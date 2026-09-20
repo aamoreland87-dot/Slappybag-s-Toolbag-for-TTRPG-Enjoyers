@@ -1,0 +1,26 @@
+/* Site typefaces — stand-ins for Paizo's Pathfinder 2e house fonts.
+   Eczar      → Taroca   (titles: card and creature names)
+   Teko       → Gin      (subheads: section captions, stat-block bars)
+   Tauri      → FF Good  (small headers, labels, UI chrome)
+   EB Garamond→ Sabon    (body text)
+   All four are SIL Open Font License; see fonts/licenses/. */
+
+@font-face{font-family:"Eczar";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/Eczar-Regular.ttf) format("truetype")}
+@font-face{font-family:"Eczar";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/Eczar-Bold.ttf) format("truetype")}
+
+@font-face{font-family:"Teko";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/Teko-Medium.ttf) format("truetype")}
+@font-face{font-family:"Teko";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/Teko-Bold.ttf) format("truetype")}
+
+@font-face{font-family:"Tauri";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/Tauri-Regular.ttf) format("truetype")}
+
+@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/EBGaramond-Regular.ttf) format("truetype")}
+@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/EBGaramond-Italic.ttf) format("truetype")}
+@font-face{font-family:"EB Garamond";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/EBGaramond-Bold.ttf) format("truetype")}
+@font-face{font-family:"EB Garamond";font-style:italic;font-weight:700;font-display:swap;src:url(fonts/EBGaramond-BoldItalic.ttf) format("truetype")}
+
+:root{
+  --font-title:"Eczar", "Iowan Old Style", Georgia, serif;
+  --font-sub:"Teko", "Oswald", "Arial Narrow", sans-serif;
+  --font-caps:"Tauri", "Segoe UI", system-ui, sans-serif;
+  --font-body:"EB Garamond", Garamond, "Iowan Old Style", Georgia, serif;
+}

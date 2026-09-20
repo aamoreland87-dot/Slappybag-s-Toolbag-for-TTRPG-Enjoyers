@@ -1,14 +1,15 @@
 # Pathfinder Tools
 
-Printable card builders for Pathfinder 2nd Edition. Each tool is a single
-self-contained HTML file — no build step, no server, no dependencies beyond
-a browser (PDF export loads jsPDF from a CDN).
+Printable card builders for Pathfinder 2nd Edition. Each tool is a single HTML
+file — no build step, no server. Shared pieces: `fonts.css` + `fonts/` (the
+typefaces, also fetched by the PDF exporter) and jsPDF from a CDN for PDF export.
 
 | Page | What it does |
 |---|---|
 | `index.html` | Landing page linking to the tools |
 | `item-cards.html` | Item card builder — 4×5in cards, library, PDF sheet export |
 | `initiative-cards.html` | Creature / NPC initiative card builder |
+| `fonts.css`, `fonts/` | Typefaces standing in for Paizo's: Eczar (titles), Teko (subheads), Tauri (small headers), EB Garamond (body). All SIL OFL. |
 
 ## Running locally
 

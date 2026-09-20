@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pathfinder Tools</title>
+<link rel="stylesheet" href="fonts.css">
 <style>
   :root{
     --ink:#1A1820; --ink-2:#575060; --ink-3:#8A8290;
     --paper:#FFFFFF; --ground:#F1EFEE; --rule:#CBC4C2;
     --accent:#78202C; --accent-2:#A8434F; --on-accent:#FFFFFF;
     --shadow:0 1px 2px rgba(26,24,32,.06), 0 12px 30px rgba(26,24,32,.10);
-    --serif:"Vollkorn","Iowan Old Style",Georgia,serif;
-    --sans:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+    --serif:var(--font-title);
+    --sans:var(--font-body);
+    --caps:var(--font-caps);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -28,7 +30,7 @@
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--sans);min-height:100vh;display:flex;flex-direction:column}
+  body{margin:0;background:var(--ground);color:var(--ink);font:17px/1.5 var(--sans);min-height:100vh;display:flex;flex-direction:column}
   main{max-width:820px;margin:0 auto;padding:56px 16px 40px;width:100%;flex:1}
   h1{font:700 2.2rem/1.15 var(--serif);margin:0 0 6px;letter-spacing:-.01em}
   .sub{color:var(--ink-2);margin:0 0 36px}
@@ -38,8 +40,8 @@
   a.card:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
   .card h2{font:700 1.35rem/1.2 var(--serif);margin:0 0 8px;color:var(--accent)}
   .card p{margin:0;color:var(--ink-2)}
-  .card .go{display:inline-block;margin-top:14px;font-weight:600;color:var(--accent)}
-  footer{text-align:center;color:var(--ink-3);font-size:.85rem;padding:20px 16px}
+  .card .go{display:inline-block;margin-top:14px;font-family:var(--caps);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  footer{text-align:center;color:var(--ink-3);font-family:var(--caps);font-size:.8rem;letter-spacing:.04em;padding:20px 16px}
 </style>
 </head>
 <body>
