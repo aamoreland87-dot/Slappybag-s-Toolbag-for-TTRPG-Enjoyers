@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset=utf-8><title>pdf crop</title>
+<style>body{margin:0;background:#fff}canvas{display:block}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head><body><canvas id=c></canvas>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const q=new URLSearchParams(location.search);
+const fx=+(q.get('x')||0), fy=+(q.get('y')||0), fw=+(q.get('w')||1), fh=+(q.get('h')||1);
+const W=+(q.get('vw')||800);
+(async()=>{
+  const pdf=await pdfjsLib.getDocument('cards.pdf').promise;
+  const page=await pdf.getPage(+(q.get('p')||1));
+  const v1=page.getViewport({scale:1});
+  const scale=W/(v1.width*fw);
+  const vp=page.getViewport({scale});
+  const off=document.createElement('canvas'); off.width=vp.width; off.height=vp.height;
+  await page.render({canvasContext:off.getContext('2d'),viewport:vp}).promise;
+  const c=document.getElementById('c'); c.width=W; c.height=Math.round(vp.height*fh);
+  c.getContext('2d').drawImage(off, vp.width*fx, vp.height*fy, W, c.height, 0,0,W,c.height);
+  document.title='done '+v1.width+'x'+v1.height;
+})();
+</script></body></html>

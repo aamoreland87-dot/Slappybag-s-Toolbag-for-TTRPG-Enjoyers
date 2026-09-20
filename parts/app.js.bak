@@ -16,8 +16,8 @@
   /* Senses: [key, name, printed label, takes a range]. The common ones first; "other" carries its own label.
      Names follow the Monster Core / Bestiary glossary (Archives of Nethys creature abilities). */
   var SENSES = [
-    ["darkvision","Darkvision","darkvision",false], ["greater-darkvision","Greater darkvision","greater darkvision",false],
-    ["low-light","Low-light vision","low-light vision",false], ["scent","Scent","scent",true], ["tremorsense","Tremorsense","tremorsense",true],
+    ["darkvision","Darkvision","DV",false], ["greater-darkvision","Greater darkvision","greater DV",false],
+    ["low-light","Low-light vision","LLV",false], ["scent","Scent","scent",true], ["tremorsense","Tremorsense","tremorsense",true],
     ["all-around","All-around vision","all-around vision",false], ["bloodsense","Bloodsense","bloodsense",true],
     ["echolocation","Echolocation","echolocation",true], ["infrared","Infrared vision","infrared vision",false],
     ["lifesense","Lifesense","lifesense",true], ["magic-sense","Magic sense","magic sense",true], ["mist-vision","Mist vision","mist vision",false],
@@ -29,7 +29,7 @@
   var SENSE = {}; SENSES.forEach(function(s){ SENSE[s[0]] = {name:s[1], label:s[2], ranged:s[3]}; });
   var COMMON_SENSES = ["darkvision","low-light","scent","tremorsense","greater-darkvision"];
   var SPICO = {
-    land:"M0.6,8.4 L0.6,3.2 C0.6,2.3 1.2,1.7 2.1,1.7 L3.1,1.7 C3.9,1.8 4.5,2.4 4.8,3.2 C5.4,4.8 6.9,5.6 8.5,6.3 C9.4,6.7 9.8,7.2 9.8,7.9 L9.8,8.4 Z M0.6,8.75 L9.8,8.75 L9.8,10 L4.2,10 L4.2,9.45 L2.7,9.45 L2.7,10 L0.6,10 Z",
+    land:"M2.4,5.4 C2.4,3.5 3.5,2.7 4.8,2.7 C6.4,2.7 7.3,3.9 7.2,5.6 C7.1,6.9 6.4,7.5 6.5,8.6 C6.6,9.5 5.9,10 5,10 C4.1,10 3.4,9.5 3.5,8.5 C3.6,7.4 2.5,6.8 2.4,5.4 Z M4.3,1.5 C4.3,2.11 3.81,2.6 3.2,2.6 C2.59,2.6 2.1,2.11 2.1,1.5 C2.1,0.89 2.59,0.4 3.2,0.4 C3.81,0.4 4.3,0.89 4.3,1.5 Z M5.82,0.95 C5.82,1.35 5.5,1.67 5.1,1.67 C4.7,1.67 4.38,1.35 4.38,0.95 C4.38,0.55 4.7,0.23 5.1,0.23 C5.5,0.23 5.82,0.55 5.82,0.95 Z M7.12,1.15 C7.12,1.49 6.84,1.77 6.5,1.77 C6.16,1.77 5.88,1.49 5.88,1.15 C5.88,0.81 6.16,0.53 6.5,0.53 C6.84,0.53 7.12,0.81 7.12,1.15 Z M8.12,1.75 C8.12,2.04 7.89,2.27 7.6,2.27 C7.31,2.27 7.08,2.04 7.08,1.75 C7.08,1.46 7.31,1.23 7.6,1.23 C7.89,1.23 8.12,1.46 8.12,1.75 Z",
     fly:"M0,9.2 C0.8,4.2 4,1 10,0.4 C8.6,1.9 7.6,3 6.7,3.7 L8.8,3.5 C7.7,4.9 6.5,5.7 5.3,6.1 L7.1,6.3 C5.6,7.8 3.6,8.9 0,9.2 Z",
     burrow:"M8.39,0 L10,1.61 L9.2,2.41 L8.76,1.97 L4.89,5.84 L4.16,5.11 L8.03,1.24 L7.59,0.8 Z M2.77,3.72 L6.28,7.23 L4.67,8.83 C3.5,10 1.9,9.85 1.02,8.98 C0.15,8.1 0,6.5 1.17,5.33 Z",
     climb:"M1.2,0 L2.6,0 L2.6,10 L1.2,10 Z M7.4,0 L8.8,0 L8.8,10 L7.4,10 Z M2.6,1.5 L7.4,1.5 L7.4,2.6 L2.6,2.6 Z M2.6,4.5 L7.4,4.5 L7.4,5.6 L2.6,5.6 Z M2.6,7.5 L7.4,7.5 L7.4,8.6 L2.6,8.6 Z",
@@ -45,27 +45,17 @@
     W:187.2, H:561.6, HALF:280.8,
     name:{x:4, y:4, w:177.2, h:18, size:15},
     rule:{x:24, y:24.5, w:139.2, h:2},
-    hdr:{y:31, h:15.5, w:48, xs:[5, 69.6], size:10.4},   /* the Speed header is centred over whichever frame is in use */
+    hdr:{y:31, h:15.5, w:48, xs:[5, 69.6, 134.2], size:11.5},
     shield:{x:10.4, y:50, w:36, h:40, path:"M18,1 C23,4 30,3 36,5 L36,20 C36,31 27,37 18,40 C9,37 0,31 0,20 L0,5 C6,3 13,4 18,1 Z"},
     heart:{x:73.6, y:51, w:40, h:38, path:"M20,37 C12,30 0,22 0,11 C0,5 4.5,1 10,1 C14.5,1 18,3.5 20,7.5 C22,3.5 25.5,1 30,1 C35.5,1 40,5 40,11 C40,22 28,30 20,37 Z"},
+    speed:{x:141, y:51, w:41, h:39, path:"M0,0 L28,0 L41,19.5 L28,39 L0,39 Z"},
     big:{size:20, baseline:26},
-    /* speeds: the frame grows with the count. One speed sits alone, centred, in a narrow frame. With more,
-       the walking speed takes the arrow point and the others fill the space to its left, fastest first:
-       two or three speeds use the medium frame (the extras take the whole left side, or stack), four or
-       five the wide one with a 2x2 grid (top right, bottom right, top left, bottom left). */
-    spd:{y:50, h:40, tiers:[
-      {n:1, x:148, w:34, path:"M0,0 L24,0 L34,20 L24,40 L0,40 Z", point:{x:1.5, y:0, w:29, h:40, size:14}, grid:{}},
-      {n:2, x:132, w:50, path:"M0,0 L36,0 L50,20 L36,40 L0,40 Z", point:{x:21, y:0, w:25, h:40, size:13}, grid:{
-        1:[{x:2, y:0, w:19, h:40, size:10}],
-        2:[{x:2, y:0, w:19, h:20, size:9}, {x:2, y:20, w:19, h:20, size:9}]}},
-      {n:4, x:124, w:58, path:"M0,0 L44,0 L58,20 L44,40 L0,40 Z", point:{x:29, y:0, w:25, h:40, size:13}, grid:{
-        4:[{x:15.5, y:0, w:13.5, h:20, size:7.5}, {x:15.5, y:20, w:13.5, h:20, size:7.5}, {x:2, y:0, w:13.5, h:20, size:7.5}, {x:2, y:20, w:13.5, h:20, size:7.5}]}}
-    ]},
+    spd:{x:140, y:51, w:30, h:39, size:12, lh:14.4},
     irw:{x:4.3, y:92, w:71, h:24, max:74, size:7, lh:7.6, pad:1.5},   /* grows from h to max as it fills; the saves and recall box move down */
     skills:{x:78, y:142, labelW:79.5, gap:3, boxW:22.5, rowH:14.8, n:NSK, size:11, baseline:11},
-    saves:{x:4.3, y:122, w:71, labelW:36, rowH:20, size:12, lblSize:10.8, baseline:14},
-    per:{x:78, y:92, w:105, capH:17, rowH:28, labelW:56, labelSize:8.8, senseSize:7, senseLh:7.8},
-    rec:{x:4.3, y:188, w:71, capH:18, rowH:22, capSize:10.8},
+    saves:{x:4.3, y:122, w:71, labelW:36, rowH:20, size:12, baseline:14},
+    per:{x:78, y:92, w:105, capH:17, rowH:28, labelW:56, labelSize:9.5, senseSize:7, senseLh:7.8},
+    rec:{x:4.3, y:188, w:71, capH:18, rowH:22},
     img:{pad:4}
   };
 
@@ -99,7 +89,6 @@
     };
     var src = d.image || (d.imageId ? "/_blob/" + d.imageId : "");
     var scale = (d.imgScale || 100) / 100;
-    var sp = normSpeeds(d), sg = placeSpeeds(sp).g;   /* the speed frame is sized to the number of speeds */
     var s = G.skills, sv = G.saves, p = G.per, r = G.rec;
     var skills = "";
     for(var i = 0; i < NSK; i++){
@@ -115,11 +104,11 @@
       '<div class="half stats">' +
         fld("name", "c-name fit", "Creature name", " " + pos(G.name.x, G.name.y, G.name.w, G.name.h)) +
         '<div class="rule" ' + pos(G.rule.x, G.rule.y, G.rule.w, G.rule.h) + '></div>' +
-        ["AC","HP","Speed"].map(function(t, k){ return '<div class="hdr" ' + pos(G.hdr.xs.concat(sg.hdrX)[k], G.hdr.y, G.hdr.w, G.hdr.h) + '>' + t + '</div>'; }).join("") +
-        ico(G.shield, "shield") + ico(G.heart, "heart") + ico(sg, "speed") +
+        ["AC","HP","Speed"].map(function(t, k){ return '<div class="hdr" ' + pos(G.hdr.xs[k], G.hdr.y, G.hdr.w, G.hdr.h) + '>' + t + '</div>'; }).join("") +
+        ico(G.shield, "shield") + ico(G.heart, "heart") + ico(G.speed, "speed") +
         fld("ac", "big fit", "", " " + pos(G.shield.x, G.shield.y + 7, G.shield.w, 26)) +
         fld("hp", "big fit", "", " " + pos(G.heart.x, G.heart.y + 6, G.heart.w, 26)) +
-        '<div class="spdwrap" ' + pos(sg.x, sg.y, sg.w, sg.h) + '>' + speedsHtml(sp, edit) + '</div>' +
+        '<div class="spdwrap" ' + pos(G.spd.x, G.spd.y, G.spd.w, G.spd.h) + '>' + speedsHtml(normSpeeds(d), edit) + '</div>' +
         '<div class="skills" ' + pos(s.x, s.y + dy, s.labelW + s.gap + s.boxW, s.rowH * NSK).replace(/"$/, ';--rowh:' + pt(s.rowH) + ';--skfs:' + pt(s.size) + '"') + '>' + skills + '</div>' +
         '<div class="tbl" ' + pos(sv.x, sv.y + dy, sv.w, sv.rowH * 3) + '>' +
           [["Fort","fort"],["Ref","ref"],["Will","will"]].map(function(q){ return '<div><span class="lbl">' + q[0] + '</span><span class="val">' + fld(q[1], "fit", "") + '</span></div>'; }).join("") +
@@ -167,33 +156,12 @@
     return list.filter(function(s){ return s.t; }).sort(function(a, b){ return rank(a) - rank(b); });
   }
   function speedIcon(t){ return SPICO[t] ? '<svg class="spico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + SPICO[t] + '"/></svg>' : ""; }
-  /* The frame tier for n speeds (the largest tier whose n fits), with the shared y / h folded in */
-  function speedFrame(n){
-    var t = G.spd.tiers[0];
-    G.spd.tiers.forEach(function(x){ if(x.n <= Math.max(n, 1)) t = x; });
-    return {x:t.x, y:G.spd.y, w:t.w, h:G.spd.h, path:t.path, point:t.point, grid:t.grid, hdrX:Math.min(t.x + t.w / 2 - G.hdr.w / 2, G.W - 5 - G.hdr.w)};   /* centred, but never past the card edge */
-  }
-  /* Walking speed in the point (the fastest if there is none); the others, fastest first, take the
-     cells to its left — up to four. Returns {g: frame, items: [{s, c}]} — speed and its cell. */
-  function placeSpeeds(list){
-    var rank = function(s){ var i = SPEEDS.map(function(x){ return x[0]; }).indexOf(s.t); return i < 0 ? 99 : i; };
-    var num = function(s){ var n = parseFloat(s.v); return isNaN(n) ? -1 : n; };
-    var rest = list.slice().sort(function(a, b){ return (num(b) - num(a)) || (rank(a) - rank(b)); }), point = null;
-    for(var i = 0; i < rest.length; i++) if(rest[i].t === "land"){ point = rest.splice(i, 1)[0]; break; }
-    if(!point) point = rest.shift();
-    rest = rest.slice(0, 4);
-    var g = speedFrame(point ? 1 + rest.length : 0);
-    if(!point) return {g:g, items:[]};
-    var cells = rest.length ? g.grid[rest.length <= 2 ? rest.length : 4] : [];
-    return {g:g, items:[{s:point, c:g.point}].concat(rest.map(function(s, k){ return {s:s, c:cells[k]}; }))};
-  }
   function speedsHtml(list, edit){
     var ce = edit ? ' contenteditable="true" spellcheck="false"' : '';
-    return '<div class="spd">' + placeSpeeds(list).items.map(function(p, i){
-      var s = p.s, c = p.c;
-      return '<span class="sprow fit" ' + pos(c.x, c.y, c.w, c.h).replace(/"$/, ';--sps:' + pt(c.size) + '"') + ' data-t="' + esc(s.t) + '"' + (s.l ? ' data-l="' + esc(s.l) + '"' : '') + ' title="' + esc(SPNAME[s.t] || s.l || "") + '">' +
+    return '<div class="spd">' + list.map(function(s, i){
+      return '<span class="sprow" data-t="' + esc(s.t) + '"' + (s.l ? ' data-l="' + esc(s.l) + '"' : '') + ' title="' + esc(SPNAME[s.t] || s.l || "") + '">' +
         speedIcon(s.t) + (s.t === "other" ? '<span class="spl">' + esc(s.l) + '</span>' : '') +
-        '<span class="spv" data-s="' + i + '"' + ce + '>' + esc(s.v) + '</span></span>';
+        '<span class="spv fit" data-s="' + i + '"' + ce + '>' + esc(s.v) + '</span></span>';
     }).join("") + '</div>';
   }
   function readSpeeds(){
@@ -202,14 +170,7 @@
     });
   }
   function renderSpeeds(list){
-    list = sortSpeeds(list);
-    var g = placeSpeeds(list).g, wrap = cardbox.querySelector(".spdwrap"), frame = cardbox.querySelector(".ico.speed");
-    var box = function(el){ el.style.left = pt(g.x); el.style.top = pt(g.y); el.style.width = pt(g.w); el.style.height = pt(g.h); };
-    wrap.innerHTML = speedsHtml(list, true); box(wrap);
-    /* the frame and its header move with the tier */
-    if(frame){ box(frame); frame.setAttribute("viewBox", "0 0 " + g.w + " " + g.h); frame.querySelector("path").setAttribute("d", g.path); }
-    var hdr = cardbox.querySelectorAll(".hdr")[2]; if(hdr) hdr.style.left = pt(g.hdrX);
-    fitAll(cardbox);
+    cardbox.querySelector(".spdwrap").innerHTML = speedsHtml(sortSpeeds(list), true);
     renderSpeedList();
   }
   /* ---------------- senses: [{t:"scent", v:"30 ft"}], printed in SENSES order under the Perception bar ---------------- */
@@ -332,6 +293,12 @@
       var base = parseFloat(getComputedStyle(el).fontSize), sc = 1;
       while(el.scrollWidth > el.clientWidth + 0.5 && sc > 0.5){ sc -= 0.05; el.style.fontSize = (base * sc) + "px"; }
     });
+    /* the wrapping strip shrinks on height instead */
+    root.querySelectorAll(".spdwrap").forEach(function(box){
+      var el = box.querySelector(".spd"); if(!el) return; el.style.fontSize = "";
+      var base = parseFloat(getComputedStyle(el).fontSize), sc = 1;
+      while(el.scrollHeight > box.clientHeight + 0.5 && sc > 0.5){ sc -= 0.05; el.style.fontSize = (base * sc) + "px"; }
+    });
     root.querySelectorAll(".blk.per .senses").forEach(function(el){
       el.style.fontSize = "";
       var base = parseFloat(getComputedStyle(el).fontSize), sc = 1;
@@ -404,13 +371,10 @@
     a.href = source; a.textContent = source.replace(/^https?:\/\/(www\.)?/, "");
   }
   /* the three strip entries live in the panel under the card */
-  /* the fields are one-line textareas that grow as a long list wraps; pasted line breaks become commas */
-  function readIrw(d){ IRW.forEach(function(q){ d[q[0]] = $(q[0] + "In").value.replace(/\s*\n+\s*/g, ", ").replace(/\s+/g, " ").trim(); }); return d; }
-  function setIrw(d){ IRW.forEach(function(q){ var el = $(q[0] + "In"); el.value = d[q[0]] || ""; growField(el); }); renderIrw(d); }
+  function readIrw(d){ IRW.forEach(function(q){ d[q[0]] = $(q[0] + "In").value.trim(); }); return d; }
+  function setIrw(d){ IRW.forEach(function(q){ $(q[0] + "In").value = d[q[0]] || ""; }); renderIrw(d); }
   function renderIrw(d){ cardbox.querySelector(".irw-in").innerHTML = irwHtml(d); }
-  function growField(el){ el.style.height = "auto"; el.style.height = (el.scrollHeight + 2) + "px"; }
-  IRW.forEach(function(q){ $(q[0] + "In").addEventListener("input", function(){ growField(this); renderIrw(readIrw({})); fitAll(cardbox); saveDraft(); }); });
-  window.addEventListener("resize", function(){ IRW.forEach(function(q){ growField($(q[0] + "In")); }); });
+  IRW.forEach(function(q){ $(q[0] + "In").addEventListener("input", function(){ renderIrw(readIrw({})); fitAll(cardbox); saveDraft(); }); });
 
   /* ---------------- type-ahead for Imm / Res / Weak: the current comma-separated item is matched
      against damage types, materials, conditions and the usual special cases (abbreviated the way the
@@ -461,7 +425,7 @@
     inp.addEventListener("focus", function(){ showSuggest(inp); });
     inp.addEventListener("blur", function(){ setTimeout(function(){ if(document.activeElement !== inp) hideSuggest(); }, 150); });
     inp.addEventListener("keydown", function(e){
-      if(sugBox.hidden || sugFor !== inp){ if(e.key === "Enter") e.preventDefault(); return; }
+      if(sugBox.hidden || sugFor !== inp) return;
       if(e.key === "ArrowDown"){ e.preventDefault(); sugIdx = (sugIdx + 1) % sugItems.length; markSuggest(); }
       else if(e.key === "ArrowUp"){ e.preventDefault(); sugIdx = (sugIdx - 1 + sugItems.length) % sugItems.length; markSuggest(); }
       else if(e.key === "Enter" || e.key === "Tab"){ if(sugIdx >= 0 || e.key === "Enter"){ e.preventDefault(); acceptSuggest(sugIdx >= 0 ? sugIdx : 0); } }
@@ -1204,31 +1168,14 @@
     if(!libsReady) libsReady = loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
     return libsReady;
   }
-  var fontsLoaded = false, fontData = null;
-  /* The PDF is drawn with the page's own typefaces (jsPDF wants TrueType). The site build fetches
-     them from fonts/ on the first export; the artifact build carries them inline in #pdfFonts. */
-  var FONT_FILES = {body:"ebgaramond-400.ttf", bodyBold:"ebgaramond-600.ttf", title:"eczar-700.ttf", sub:"teko-700.ttf", caps:"tauri-400.ttf"};
-  function loadFontData(){
-    if(fontData) return Promise.resolve(fontData);
-    var raw = $("pdfFonts");
-    if(raw){ fontData = JSON.parse(raw.textContent); return Promise.resolve(fontData); }
-    var keys = Object.keys(FONT_FILES);
-    return Promise.all(keys.map(function(k){
-      return fetch("fonts/" + FONT_FILES[k]).then(function(r){ if(!r.ok) throw new Error(r.status + " " + FONT_FILES[k]); return r.arrayBuffer(); })
-        .then(function(buf){ var b = new Uint8Array(buf), out = "", CH = 0x8000; for(var i = 0; i < b.length; i += CH) out += String.fromCharCode.apply(null, b.subarray(i, i + CH)); return btoa(out); });
-    })).then(function(list){ fontData = {}; keys.forEach(function(k, i){ fontData[k] = list[i]; }); return fontData; });
-  }
+  var fontsLoaded = false;
   function registerFonts(pdf){
-    var F = fontData; if(!F) return;
-    var add = function(k, name, style){ pdf.addFileToVFS(FONT_FILES[k], F[k]); pdf.addFont(FONT_FILES[k], name, style); };
-    add("body", "Sans", "normal"); add("bodyBold", "Sans", "bold");
-    add("title", "Serif", "bold");
-    add("sub", "Sub", "bold");
-    add("caps", "Caps", "normal"); add("caps", "Caps", "bold");   /* Tauri has one weight */
+    var raw = $("pdfFonts"); if(!raw) return;
+    var F = JSON.parse(raw.textContent);
+    pdf.addFileToVFS("AlegreyaSans-Regular.ttf", F.sans); pdf.addFont("AlegreyaSans-Regular.ttf", "Sans", "normal");
+    pdf.addFileToVFS("AlegreyaSans-Bold.ttf", F.sansBold); pdf.addFont("AlegreyaSans-Bold.ttf", "Sans", "bold");
     fontsLoaded = true;
   }
-  /* the card's accent — the deep blue twin of the item card's red; bars, title, speed icons, strip labels */
-  var ACC = [22, 50, 94];
   /* An image element as a PNG data: URL for jsPDF, turned upside down when the card is. */
   function imgData(el, flipIt){
     try{
@@ -1257,26 +1204,17 @@
   }
   function drawCard(pdf, d, im, X, Y, blank){
     d = d || {};
-    var SUB = 1.25;   /* Teko renders small for its em; the CSS bars carry the same bump */
-    var font = function(style, size, fam){
-      fam = fam || "Sans";
-      pdf.setFont(fontsLoaded ? fam : (fam === "Serif" ? "times" : "helvetica"), fam === "Caps" && !fontsLoaded ? "normal" : style);
-      pdf.setFontSize(size * (fam === "Sub" && fontsLoaded ? SUB : 1));
-    };
+    var font = function(style, size){ pdf.setFont(fontsLoaded ? "Sans" : "helvetica", style); pdf.setFontSize(size); };
     var tw = function(s){ return pdf.getTextWidth(s); };
     /* the same rule as the screen: shrink a short string until it fits, down to half size */
-    var fit = function(s, w, size, fam){ var sc = 1; font("bold", size, fam); while(tw(s) > w && sc > 0.5){ sc -= 0.05; font("bold", size * sc, fam); } return size * sc; };
+    var fit = function(s, w, size){ var sc = 1; font("bold", size); while(tw(s) > w && sc > 0.5){ sc -= 0.05; font("bold", size * sc); } return size * sc; };
     var ink = function(){ pdf.setDrawColor(0); pdf.setFillColor(0); pdf.setTextColor(0); };
-    var accent = function(){ pdf.setDrawColor(ACC[0], ACC[1], ACC[2]); pdf.setFillColor(ACC[0], ACC[1], ACC[2]); pdf.setTextColor(ACC[0], ACC[1], ACC[2]); };
     var text = function(s, x, y, o){ if(s) pdf.text(String(s), X + x, Y + y, o || {}); };
     var rect = function(x, y, w, h, style){ pdf.rect(X + x, Y + y, w, h, style); };
     var line = function(x1, y1, x2, y2, w){ pdf.setLineWidth(w); pdf.line(X + x1, Y + y1, X + x2, Y + y2); };
     /* centred, single line, shrunk to fit */
-    var centred = function(s, x, w, baseline, size, fam){ if(!s) return; var sz = fit(s, w - 2, size, fam); font("bold", sz, fam); text(s, x + w / 2, baseline, {align:"center"}); };
-    /* a caption: blue Teko centred in its cell, no fill, like the CSS .hdr / .lbl / .cap */
-    var bar = function(label, x, y, w, h, size){
-      accent(); font("bold", size, "Sub"); text(label, x + w / 2, y + h * 0.5 + size * 0.35, {align:"center"}); ink();
-    };
+    var centred = function(s, x, w, baseline, size){ if(!s) return; var sz = fit(s, w - 2, size); font("bold", sz); text(s, x + w / 2, baseline, {align:"center"}); };
+    var white = function(){ pdf.setTextColor(255); };
     var lines = function(s){ return String(s || "").split(/\n/).map(function(l){ return l.trim(); }).filter(Boolean); };
     ink();
     /* frame and fold */
@@ -1292,39 +1230,39 @@
     }
     var oy = G.HALF, showIrw = true, oy2 = oy;
     /* name and rule */
-    centred(d.name, G.name.x, G.name.w, oy + G.name.y + 14, G.name.size, "Serif");
+    centred(d.name, G.name.x, G.name.w, oy + G.name.y + 14, G.name.size);
     rect(G.rule.x, oy + G.rule.y, G.rule.w, G.rule.h, "F");
-    /* AC / HP / Speed headers — the Speed one sits over whichever frame the speed count calls for */
-    var spl = placeSpeeds(normSpeeds(d)), sg = spl.g;
+    /* AC / HP / Speed headers */
     ["AC","HP","Speed"].forEach(function(t, k){
-      var hx = G.hdr.xs.concat(sg.hdrX)[k];
-      bar(t, hx, oy + G.hdr.y, G.hdr.w, G.hdr.h, G.hdr.size);
-      accent(); line(hx, oy + G.hdr.y + G.hdr.h - 0.5, hx + G.hdr.w, oy + G.hdr.y + G.hdr.h - 0.5, 1); ink();
+      rect(G.hdr.xs[k], oy + G.hdr.y, G.hdr.w, G.hdr.h, "F");
+      white(); font("bold", G.hdr.size); text(t, G.hdr.xs[k] + G.hdr.w / 2, oy + G.hdr.y + G.hdr.h * 0.5 + G.hdr.size * 0.35, {align:"center"}); ink();
     });
     /* icons */
-    [G.shield, G.heart, sg].forEach(function(g){
+    [G.shield, G.heart, G.speed].forEach(function(g){
       var p = pathSegs(g.path)[0];
       pdf.setLineWidth(1.5); pdf.setLineJoin(1);
       pdf.lines(p.segs, X + g.x + p.start[0], Y + oy + g.y + p.start[1], [1, 1], "S", true);
     });
     centred(d.ac, G.shield.x, G.shield.w, oy + G.shield.y + 7 + 19, G.big.size);
     centred(d.hp, G.heart.x, G.heart.w, oy + G.heart.y + 6 + 19, G.big.size);
-    /* speeds: walk in the arrow point, the rest to its left — same cells as on screen, each shrunk to its cell */
-    spl.items.forEach(function(p){
-      var sp = p.s, c = p.c, label = sp.t === "other" ? sp.l + " " : "", tx = label + sp.v;
-      var iconW = SPICO[sp.t] ? 0.85 * c.size : 0, gap = SPICO[sp.t] ? 0.12 * c.size : 0;
-      var size = fit(tx, c.w - 1 - iconW - gap, c.size), sc = size / c.size;
-      iconW *= sc; gap *= sc;
-      var wText = tw(tx), x = sg.x + c.x + (c.w - wText - iconW - gap) / 2, mid = oy + sg.y + c.y + c.h / 2;
-      if(SPICO[sp.t]){
-        accent();
-        pathSegs(SPICO[sp.t]).forEach(function(p){
-          pdf.lines(p.segs, X + x + p.start[0] * iconW / 10, Y + mid - iconW / 2 + p.start[1] * iconW / 10, [iconW / 10, iconW / 10], "F", true);
-        });
-        ink();
-      }
-      text(tx, x + iconW + gap, mid + size * 0.35);
-    });
+    /* speeds: one row each — icon (for fly / burrow / climb / swim) and the number — shrunk to fit the pentagon */
+    var sl = normSpeeds(d);
+    if(sl.length){
+      var ssc = Math.min(1, (G.spd.h - 2) / (sl.length * G.spd.lh)), ssize = G.spd.size * ssc, slh = G.spd.lh * ssc, iconW = 9.6 * ssc;
+      var top = oy + G.spd.y + (G.spd.h - sl.length * slh) / 2;
+      sl.forEach(function(sp, k){
+        font("bold", ssize);
+        var label = sp.t === "other" ? sp.l + " " : "", tx = label + sp.v, wText = tw(tx);
+        var wIcon = SPICO[sp.t] ? iconW + 1.5 * ssc : 0, x = G.spd.x + (G.spd.w - wText - wIcon) / 2;
+        var base = top + k * slh + slh * 0.5 + ssize * 0.35;
+        if(SPICO[sp.t]){
+          pathSegs(SPICO[sp.t]).forEach(function(p){
+            pdf.lines(p.segs, X + x + p.start[0] * iconW / 10, Y + base - ssize * 0.78 + p.start[1] * iconW / 10, [iconW / 10, iconW / 10], "F", true);
+          });
+        }
+        text(tx, x + wIcon, base);
+      });
+    }
     /* skills: right-aligned names, boxed mods */
     var s = G.skills, bx = s.x + s.labelW + s.gap;
     pdf.setLineWidth(0.75);
@@ -1338,7 +1276,7 @@
     /* immunities / resistances / weaknesses: each starts its own line; the box grows with the text up to
        G.irw.max (the saves and Recall box move down), and only shrinks the text past that */
     var w = G.irw, wy = oy + w.y;
-    var entries = IRW.filter(function(q){ return String(d[q[0]] || "").trim(); }).map(function(q){ return [{t:q[1].toUpperCase() + " ", b:true, c:true}, {t:String(d[q[0]]), b:false}]; });
+    var entries = IRW.filter(function(q){ return String(d[q[0]] || "").trim(); }).map(function(q){ return [{t:q[1] + " ", b:true}, {t:String(d[q[0]]), b:false}]; });
     var inner = w.w - 2 * w.pad - 1, size = w.size, lh = w.lh, blocks, total = 0;
     for(var sc = 1; sc >= 0.6; sc -= 0.05){
       size = w.size * sc; lh = w.lh * sc;
@@ -1352,15 +1290,15 @@
     blocks.forEach(function(lines2){
       lines2.forEach(function(ln){
         var x = w.x + w.pad + 0.5, base = wy + w.pad + k * lh + lh * 0.5 + size * 0.35; k++;
-        ln.forEach(function(seg){ font(seg.b ? "bold" : "normal", seg.c ? size * 0.85 : size, seg.c ? "Caps" : "Sans"); if(seg.c) accent(); text(seg.t, x, base); x += tw(seg.t); if(seg.c) ink(); });
+        ln.forEach(function(seg){ font(seg.b ? "bold" : "normal", size); text(seg.t, x, base); x += tw(seg.t); });
       });
     });
     /* saves */
     var sv = G.saves;
     [["Fort","fort"],["Ref","ref"],["Will","will"]].forEach(function(q, k){
       var y = oy2 + sv.y + dl + k * sv.rowH;
-      bar(q[0], sv.x, y, sv.labelW, sv.rowH, sv.lblSize);
-      line(sv.x + sv.labelW, y, sv.x + sv.labelW, y + sv.rowH, 0.75);
+      rect(sv.x, y, sv.labelW, sv.rowH, "F");
+      white(); font("bold", sv.size); text(q[0], sv.x + sv.labelW / 2, y + sv.baseline, {align:"center"}); ink();
       centred(d[q[1]], sv.x + sv.labelW, sv.w - sv.labelW, y + sv.baseline, sv.size);
       if(k) line(sv.x, y, sv.x + sv.w, y, 0.75);
     });
@@ -1368,8 +1306,8 @@
     /* perception */
     var p = G.per, py = oy2 + p.y;
     /* label cell and mod cell, like the saves */
-    bar("Perception", p.x, py, p.labelW, p.capH, p.labelSize);
-    line(p.x + p.labelW, py, p.x + p.labelW, py + p.capH, 0.75);
+    rect(p.x, py, p.labelW, p.capH, "F");
+    white(); font("bold", p.labelSize); text("Perception", p.x + p.labelW / 2, py + p.capH * 0.5 + p.labelSize * 0.35, {align:"center"}); ink();
     centred(d.per, p.x + p.labelW, p.w - p.labelW, py + p.capH * 0.5 + 12 * 0.35, 12);
     line(p.x, py + p.capH, p.x + p.w, py + p.capH, 0.75);
     pdf.setLineWidth(1); rect(p.x, py, p.w, p.capH + p.rowH, "S");
@@ -1412,29 +1350,29 @@
     }
     /* recall info */
     var r2 = G.rec, ry = oy2 + r2.y + dl;
-    bar("Recall info", r2.x, ry, r2.w, r2.capH, r2.capSize);
-    line(r2.x, ry + r2.capH, r2.x + r2.w, ry + r2.capH, 0.75);
+    rect(r2.x, ry, r2.w, r2.capH, "F");
+    white(); font("bold", 12); text("Recall info", r2.x + r2.w / 2, ry + r2.capH * 0.5 + 12 * 0.35, {align:"center"}); ink();
     pdf.setLineWidth(1); rect(r2.x, ry, r2.w, r2.capH + r2.rowH, "S");
     centred(d.recall, r2.x + 2, r2.w - 4, ry + r2.capH + 14.2, 12);
   }
   /* Word-wrap styled runs to a width, measuring with the PDF's own fonts. */
   function wrapRuns(pdf, runs, width, size){
     var lines = [[]], cur = 0;
-    var pdfw = function(s, b, c){ pdf.setFont(fontsLoaded ? (c ? "Caps" : "Sans") : "helvetica", b && !(c && !fontsLoaded) ? "bold" : "normal"); pdf.setFontSize(c ? size * 0.85 : size); return pdf.getTextWidth(s); };
+    var pdfw = function(s, b){ pdf.setFont(fontsLoaded ? "Sans" : "helvetica", b ? "bold" : "normal"); pdf.setFontSize(size); return pdf.getTextWidth(s); };
     runs.forEach(function(r){
       r.t.split(/(\s+)/).forEach(function(word){
         if(!word) return;
-        var ww = pdfw(word, r.b, r.c);
+        var ww = pdfw(word, r.b);
         if(cur + ww > width && cur > 0){ lines.push([]); cur = 0; if(/^\s+$/.test(word)) return; }
         var line = lines[lines.length - 1], last = line[line.length - 1];
-        if(last && last.b === r.b && !!last.c === !!r.c) last.t += word; else line.push({t:word, b:r.b, c:r.c});
+        if(last && last.b === r.b) last.t += word; else line.push({t:word, b:r.b});
         cur += ww;
       });
     });
     return lines.map(function(l){ if(l.length){ l[0].t = l[0].t.replace(/^\s+/, ""); } return l; }).filter(function(l){ return l.length; });
   }
   function buildPdf(){
-    return loadLibs().then(function(){ return loadFontData().catch(function(e){ console.warn("fonts", e); fontData = null; }); }).then(function(){
+    return loadLibs().then(function(){
       var pdf = new jspdf.jsPDF({unit:"pt", format:"letter", orientation:"landscape", compress:true});
       try{ registerFonts(pdf); }catch(e){ console.warn("fonts", e); fontsLoaded = false; }
       var slots = $("pages").querySelectorAll(".slot");
@@ -1453,15 +1391,6 @@
     });
   }
   /* The sheet as a standalone web page: the same markup and stylesheet, images inlined. */
-  /* fonts.css with its url()s made absolute, so an exported page (opened from a blob: URL or saved
-     elsewhere) still finds the typefaces. The artifact build has no fonts.css — its faces are
-     embedded in #cardCss — so the fetch simply yields nothing there. */
-  var fontsCssText = "";
-  if(!$("pdfFonts")) fetch("fonts.css").then(function(r){ return r.ok ? r.text() : ""; }).then(function(t){ fontsCssText = t; }).catch(function(){});
-  function fontsCssAbs(){
-    var base = new URL(".", location.href).href;
-    return fontsCssText.replace(/url\((['"]?)(?!data:|https?:)([^)'"]+)\1\)/g, function(m, q, p){ return "url(" + base + p + ")"; });
-  }
   function buildHtml(){
     var live = $("pages"), copy = live.cloneNode(true);
     var srcImgs = live.querySelectorAll("img");
@@ -1469,8 +1398,8 @@
     var n = copy.querySelectorAll(".page").length;
     return '<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Initiative cards</title>' +
-      '<style>' + fontsCssAbs() + '</style><style>' + $("cardCss").textContent + '</style>' +
-      '<style>:root{--sheet-zoom:1;--shadow:0 12px 30px rgba(0,0,0,.12);--ink-3:#777}body{margin:0;padding:1.5rem 0 3rem;background:#D9DCE1;font-family:var(--font-body,Georgia,serif)}' +
+      '<style>' + $("cardCss").textContent + '</style>' +
+      '<style>:root{--sheet-zoom:1;--shadow:0 12px 30px rgba(0,0,0,.12);--ink-3:#777}body{margin:0;padding:1.5rem 0 3rem;background:#D9DCE1;font-family:"Alegreya Sans",sans-serif}' +
       '.hint{text-align:center;font-style:italic;font-size:.9rem;color:#4E5560;margin:0 0 1.2rem}' +
       '@media print{.hint{display:none}body{padding:0;background:#fff}}</style></head><body>' +
       '<p class="hint">' + n + (n === 1 ? " letter page" : " letter pages") + ', landscape · print at 100% (Ctrl+P / ⌘P), or choose “Save as PDF” in the print dialog.</p>' +
@@ -1559,11 +1488,4 @@
   showView(lastView === "sheet" ? "library" : lastView);
   /* fonts arrive after first paint; fit again once they do */
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ refresh(); });
-})();
-
-/* Toolbag tool switcher (site build): close on outside click or Escape. */
-(function(){
-  var sw = document.getElementById("toolSwitch"); if(!sw) return;
-  document.addEventListener("click", function(e){ if(sw.open && !sw.contains(e.target)) sw.open = false; });
-  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && sw.open){ sw.open = false; sw.querySelector("summary").focus(); } });
 })();

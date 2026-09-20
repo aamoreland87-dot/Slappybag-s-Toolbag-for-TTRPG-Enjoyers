@@ -2,14 +2,12 @@
 /* ================= the card =================
    A card is 2.6 x 7.8 in, folded across the middle: the picture half on top, the stat
    block below. Everything inside .card is laid out in points so the PDF, drawn from the
-   same numbers, matches the screen. The card is a print object: white paper, black ink
-   and one accent — a deep blue, the twin of the item card's red — in every theme.
-   Type follows the item card: Eczar for the name, Teko in the bars, Tauri for small
-   labels, EB Garamond (lining figures) for everything else. .cardbox carries the zoom. */
+   same numbers, matches the screen. The card is a print object: white paper, black ink,
+   in every theme. .cardbox carries the screen zoom. */
 .cardbox{
   width:187.2pt; font-size:12pt; line-height:1.2; zoom:var(--zoom,1);
-  box-shadow:var(--shadow); font-family:var(--font-body,Georgia,serif); font-variant-numeric:lining-nums;
-  color:#000; background:#fff; --card-accent:#16325E;
+  box-shadow:var(--shadow); font-family:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  color:#000; background:#fff;
 }
 .card{
   position:relative; display:flex; flex-direction:column; width:187.2pt; height:561.6pt;
@@ -33,8 +31,8 @@
 .photo img{max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block; transform:scale(var(--img-scale,1))}
 .photo.flip img{transform:scale(var(--img-scale,1)) rotate(180deg)}
 .photo.has-img{cursor:default}
-.photo .ph-hint{ font-family:var(--font-caps,sans-serif);
-  font-size:7.5pt; letter-spacing:.12em; line-height:1.6; text-transform:uppercase;
+.photo .ph-hint{
+  font-size:8pt; letter-spacing:.14em; line-height:1.6; text-transform:uppercase;
   color:#9a9a9a; text-align:center; padding:0 1em; border:1pt dashed #bbb; padding:1.2em 1em;
 }
 .photo.has-img .ph-hint{display:none}
@@ -45,10 +43,9 @@
 .half.stats > *{position:absolute; box-sizing:border-box}
 .fld{white-space:pre-wrap; overflow-wrap:anywhere}
 .fit{white-space:nowrap; overflow:hidden; text-overflow:clip; display:block}
-.c-name{font-family:var(--font-title,Georgia,serif); font-weight:700; font-size:15pt; line-height:18pt; text-align:center; color:#000}
+.c-name{font-weight:700; font-size:15pt; line-height:18pt; text-align:center}
 .rule{background:#000}
-/* captions: blue Teko on white, no fill — the AC / HP / Speed ones sit on a rule. Teko sits small for its em, so caption sizes are the point size × 1.25 (the PDF does the same) */
-.hdr{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:13pt; line-height:14.5pt; letter-spacing:.03em; text-align:center; border-bottom:1pt solid var(--card-accent)}
+.hdr{background:#000; color:#fff; font-weight:700; font-size:11.5pt; line-height:16.2pt; text-align:center}
 .ico{display:block; overflow:visible}
 .ico path{fill:none; stroke:#000; stroke-width:1.5; stroke-linejoin:round}
 .big{font-weight:700; font-size:20pt; line-height:26pt; text-align:center}
@@ -56,14 +53,14 @@
 .tbl{border:1pt solid #000; display:grid; grid-auto-rows:1fr}
 .tbl > div{border-bottom:.75pt solid #000; display:grid; grid-template-columns:36pt 1fr}
 .tbl > div:last-child{border-bottom:none}
-.tbl .lbl{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:13.5pt; letter-spacing:.03em; display:flex; align-items:center; justify-content:center; border-right:.75pt solid #000}
+.tbl .lbl{background:#000; color:#fff; font-weight:700; font-size:12pt; display:flex; align-items:center; justify-content:center}
 .tbl .val{font-weight:700; font-size:12pt; display:flex; align-items:center; justify-content:center; padding:0 2pt}
 .tbl .val .fit{width:100%; text-align:center}
 .blk{border:1pt solid #000; display:flex; flex-direction:column}
-.blk .cap{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:13.5pt; letter-spacing:.03em; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border-bottom:.75pt solid #000}
+.blk .cap{background:#000; color:#fff; font-weight:700; font-size:12pt; flex:0 0 auto; display:flex; align-items:center; justify-content:center}
 .blk .row{flex:1 1 auto; display:grid; min-height:0}
 .blk.per .prow{display:grid; border-bottom:.75pt solid #000; flex:0 0 auto}
-.blk.per .prow .lbl{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:11pt; letter-spacing:.03em; display:flex; align-items:center; justify-content:center; border-right:.75pt solid #000}
+.blk.per .prow .lbl{background:#000; color:#fff; font-weight:700; font-size:9pt; display:flex; align-items:center; justify-content:center}
 .blk.per .prow .val{font-weight:700; font-size:12pt; display:flex; align-items:center; justify-content:center; padding:0 2pt}
 .blk.per .prow .val .fit{width:100%; text-align:center}
 .blk.per .senses{flex:1 1 auto; min-height:0; display:flex; flex-wrap:wrap; align-items:flex-start; align-content:center; justify-content:center; column-gap:.35em; row-gap:.1em; font-weight:700; font-size:7pt; line-height:1.1; text-align:center; overflow:hidden; padding:0 2pt}
@@ -116,7 +113,7 @@
 /* immunities / resistances / weaknesses strip */
 .irw{border:1pt solid #000; overflow:hidden}
 .irw-in{text-align:left; font-size:7.2pt; line-height:7.7pt; padding:1.5pt 2pt; font-weight:400; white-space:normal; overflow-wrap:anywhere}
-.irw-in b{font-family:var(--font-caps,sans-serif); font-weight:400; font-size:.85em; letter-spacing:.06em; text-transform:uppercase; color:var(--card-accent)}
+.irw-in b{font-weight:700}
 .irw-in .irwl{display:block}
 
 
@@ -125,7 +122,7 @@
 .spd{position:relative; width:100%; height:100%; font-weight:700; line-height:1}
 .sprow{position:absolute; display:flex; align-items:center; justify-content:center; gap:.12em; white-space:nowrap; font-size:var(--sps,8pt)}
 .spico{width:.85em; height:.85em; display:block; flex:0 0 auto}
-.spico path{fill:var(--card-accent)}
+.spico path{fill:#000}
 .spl{font-size:.6em; font-weight:400; margin-right:.15em}
 .spv{display:inline-block; min-width:1em; text-align:center}
 

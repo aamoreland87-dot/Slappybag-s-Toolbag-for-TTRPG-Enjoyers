@@ -47,10 +47,10 @@
 .half.stats > *{position:absolute; box-sizing:border-box}
 .fld{white-space:pre-wrap; overflow-wrap:anywhere}
 .fit{white-space:nowrap; overflow:hidden; text-overflow:clip; display:block}
-.c-name{font-family:var(--font-title,Georgia,serif); font-weight:700; font-size:15pt; line-height:18pt; text-align:center; color:var(--card-accent)}
+.c-name{font-family:var(--font-title,Georgia,serif); font-weight:700; font-size:15pt; line-height:18pt; text-align:center; color:#000}
 .rule{background:#000}
-/* bars: Teko sits small for its em, so every bar size is the point size × 1.25 (the PDF does the same) */
-.hdr{background:var(--card-accent); color:#fff; font-family:var(--font-sub,sans-serif); font-weight:700; font-size:14.4pt; line-height:16.2pt; letter-spacing:.03em; text-align:center}
+/* captions: blue Teko on white, no fill — the AC / HP / Speed ones sit on a rule. Teko sits small for its em, so caption sizes are the point size × 1.25 (the PDF does the same) */
+.hdr{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:13pt; line-height:14.5pt; letter-spacing:.03em; text-align:center; border-bottom:1pt solid var(--card-accent)}
 .ico{display:block; overflow:visible}
 .ico path{fill:none; stroke:#000; stroke-width:1.5; stroke-linejoin:round}
 .big{font-weight:700; font-size:20pt; line-height:26pt; text-align:center}
@@ -58,14 +58,14 @@
 .tbl{border:1pt solid #000; display:grid; grid-auto-rows:1fr}
 .tbl > div{border-bottom:.75pt solid #000; display:grid; grid-template-columns:36pt 1fr}
 .tbl > div:last-child{border-bottom:none}
-.tbl .lbl{background:var(--card-accent); color:#fff; font-family:var(--font-sub,sans-serif); font-weight:700; font-size:15pt; letter-spacing:.03em; display:flex; align-items:center; justify-content:center}
+.tbl .lbl{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:13.5pt; letter-spacing:.03em; display:flex; align-items:center; justify-content:center; border-right:.75pt solid #000}
 .tbl .val{font-weight:700; font-size:12pt; display:flex; align-items:center; justify-content:center; padding:0 2pt}
 .tbl .val .fit{width:100%; text-align:center}
 .blk{border:1pt solid #000; display:flex; flex-direction:column}
-.blk .cap{background:var(--card-accent); color:#fff; font-family:var(--font-sub,sans-serif); font-weight:700; font-size:15pt; letter-spacing:.03em; flex:0 0 auto; display:flex; align-items:center; justify-content:center}
+.blk .cap{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:13.5pt; letter-spacing:.03em; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border-bottom:.75pt solid #000}
 .blk .row{flex:1 1 auto; display:grid; min-height:0}
 .blk.per .prow{display:grid; border-bottom:.75pt solid #000; flex:0 0 auto}
-.blk.per .prow .lbl{background:var(--card-accent); color:#fff; font-family:var(--font-sub,sans-serif); font-weight:700; font-size:11.9pt; letter-spacing:.03em; display:flex; align-items:center; justify-content:center}
+.blk.per .prow .lbl{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:11pt; letter-spacing:.03em; display:flex; align-items:center; justify-content:center; border-right:.75pt solid #000}
 .blk.per .prow .val{font-weight:700; font-size:12pt; display:flex; align-items:center; justify-content:center; padding:0 2pt}
 .blk.per .prow .val .fit{width:100%; text-align:center}
 .blk.per .senses{flex:1 1 auto; min-height:0; display:flex; flex-wrap:wrap; align-items:flex-start; align-content:center; justify-content:center; column-gap:.35em; row-gap:.1em; font-weight:700; font-size:7pt; line-height:1.1; text-align:center; overflow:hidden; padding:0 2pt}
@@ -448,7 +448,7 @@ span.tog{display:inline-flex; align-items:center}
     <div class="tool-row">
       <span class="bar-label">Senses</span>
       <button class="btn" id="senseBtn">Choose senses</button>
-      <span class="hint">Or click the sense line under Perception on the card. They print like traits: DV | scent 60 ft | mist vision.</span>
+      <span class="hint">Or click the sense line under Perception on the card. They print like traits: darkvision | scent 60 ft | mist vision.</span>
     </div>
     <div class="tool-row irw-row">
       <span class="bar-label">Imm / Res / Weak</span>
@@ -551,8 +551,8 @@ span.tog{display:inline-flex; align-items:center}
   /* Senses: [key, name, printed label, takes a range]. The common ones first; "other" carries its own label.
      Names follow the Monster Core / Bestiary glossary (Archives of Nethys creature abilities). */
   var SENSES = [
-    ["darkvision","Darkvision","DV",false], ["greater-darkvision","Greater darkvision","greater DV",false],
-    ["low-light","Low-light vision","LLV",false], ["scent","Scent","scent",true], ["tremorsense","Tremorsense","tremorsense",true],
+    ["darkvision","Darkvision","darkvision",false], ["greater-darkvision","Greater darkvision","greater darkvision",false],
+    ["low-light","Low-light vision","low-light vision",false], ["scent","Scent","scent",true], ["tremorsense","Tremorsense","tremorsense",true],
     ["all-around","All-around vision","all-around vision",false], ["bloodsense","Bloodsense","bloodsense",true],
     ["echolocation","Echolocation","echolocation",true], ["infrared","Infrared vision","infrared vision",false],
     ["lifesense","Lifesense","lifesense",true], ["magic-sense","Magic sense","magic sense",true], ["mist-vision","Mist vision","mist vision",false],
@@ -580,7 +580,7 @@ span.tog{display:inline-flex; align-items:center}
     W:187.2, H:561.6, HALF:280.8,
     name:{x:4, y:4, w:177.2, h:18, size:15},
     rule:{x:24, y:24.5, w:139.2, h:2},
-    hdr:{y:31, h:15.5, w:48, xs:[5, 69.6], size:11.5},   /* the Speed header is centred over whichever frame is in use */
+    hdr:{y:31, h:15.5, w:48, xs:[5, 69.6], size:10.4},   /* the Speed header is centred over whichever frame is in use */
     shield:{x:10.4, y:50, w:36, h:40, path:"M18,1 C23,4 30,3 36,5 L36,20 C36,31 27,37 18,40 C9,37 0,31 0,20 L0,5 C6,3 13,4 18,1 Z"},
     heart:{x:73.6, y:51, w:40, h:38, path:"M20,37 C12,30 0,22 0,11 C0,5 4.5,1 10,1 C14.5,1 18,3.5 20,7.5 C22,3.5 25.5,1 30,1 C35.5,1 40,5 40,11 C40,22 28,30 20,37 Z"},
     big:{size:20, baseline:26},
@@ -598,9 +598,9 @@ span.tog{display:inline-flex; align-items:center}
     ]},
     irw:{x:4.3, y:92, w:71, h:24, max:74, size:7, lh:7.6, pad:1.5},   /* grows from h to max as it fills; the saves and recall box move down */
     skills:{x:78, y:142, labelW:79.5, gap:3, boxW:22.5, rowH:14.8, n:NSK, size:11, baseline:11},
-    saves:{x:4.3, y:122, w:71, labelW:36, rowH:20, size:12, baseline:14},
-    per:{x:78, y:92, w:105, capH:17, rowH:28, labelW:56, labelSize:9.5, senseSize:7, senseLh:7.8},
-    rec:{x:4.3, y:188, w:71, capH:18, rowH:22},
+    saves:{x:4.3, y:122, w:71, labelW:36, rowH:20, size:12, lblSize:10.8, baseline:14},
+    per:{x:78, y:92, w:105, capH:17, rowH:28, labelW:56, labelSize:8.8, senseSize:7, senseLh:7.8},
+    rec:{x:4.3, y:188, w:71, capH:18, rowH:22, capSize:10.8},
     img:{pad:4}
   };
 
@@ -1808,10 +1808,9 @@ span.tog{display:inline-flex; align-items:center}
     var line = function(x1, y1, x2, y2, w){ pdf.setLineWidth(w); pdf.line(X + x1, Y + y1, X + x2, Y + y2); };
     /* centred, single line, shrunk to fit */
     var centred = function(s, x, w, baseline, size, fam){ if(!s) return; var sz = fit(s, w - 2, size, fam); font("bold", sz, fam); text(s, x + w / 2, baseline, {align:"center"}); };
-    /* a filled accent bar with white Teko text, like the CSS .hdr / .lbl / .cap */
+    /* a caption: blue Teko centred in its cell, no fill, like the CSS .hdr / .lbl / .cap */
     var bar = function(label, x, y, w, h, size){
-      accent(); rect(x, y, w, h, "F");
-      pdf.setTextColor(255); font("bold", size, "Sub"); text(label, x + w / 2, y + h * 0.5 + size * 0.35, {align:"center"}); ink();
+      accent(); font("bold", size, "Sub"); text(label, x + w / 2, y + h * 0.5 + size * 0.35, {align:"center"}); ink();
     };
     var lines = function(s){ return String(s || "").split(/\n/).map(function(l){ return l.trim(); }).filter(Boolean); };
     ink();
@@ -1828,13 +1827,14 @@ span.tog{display:inline-flex; align-items:center}
     }
     var oy = G.HALF, showIrw = true, oy2 = oy;
     /* name and rule */
-    accent(); centred(d.name, G.name.x, G.name.w, oy + G.name.y + 14, G.name.size, "Serif"); ink();
+    centred(d.name, G.name.x, G.name.w, oy + G.name.y + 14, G.name.size, "Serif");
     rect(G.rule.x, oy + G.rule.y, G.rule.w, G.rule.h, "F");
     /* AC / HP / Speed headers — the Speed one sits over whichever frame the speed count calls for */
     var spl = placeSpeeds(normSpeeds(d)), sg = spl.g;
     ["AC","HP","Speed"].forEach(function(t, k){
       var hx = G.hdr.xs.concat(sg.hdrX)[k];
       bar(t, hx, oy + G.hdr.y, G.hdr.w, G.hdr.h, G.hdr.size);
+      accent(); line(hx, oy + G.hdr.y + G.hdr.h - 0.5, hx + G.hdr.w, oy + G.hdr.y + G.hdr.h - 0.5, 1); ink();
     });
     /* icons */
     [G.shield, G.heart, sg].forEach(function(g){
@@ -1894,7 +1894,8 @@ span.tog{display:inline-flex; align-items:center}
     var sv = G.saves;
     [["Fort","fort"],["Ref","ref"],["Will","will"]].forEach(function(q, k){
       var y = oy2 + sv.y + dl + k * sv.rowH;
-      bar(q[0], sv.x, y, sv.labelW, sv.rowH, sv.size);
+      bar(q[0], sv.x, y, sv.labelW, sv.rowH, sv.lblSize);
+      line(sv.x + sv.labelW, y, sv.x + sv.labelW, y + sv.rowH, 0.75);
       centred(d[q[1]], sv.x + sv.labelW, sv.w - sv.labelW, y + sv.baseline, sv.size);
       if(k) line(sv.x, y, sv.x + sv.w, y, 0.75);
     });
@@ -1903,6 +1904,7 @@ span.tog{display:inline-flex; align-items:center}
     var p = G.per, py = oy2 + p.y;
     /* label cell and mod cell, like the saves */
     bar("Perception", p.x, py, p.labelW, p.capH, p.labelSize);
+    line(p.x + p.labelW, py, p.x + p.labelW, py + p.capH, 0.75);
     centred(d.per, p.x + p.labelW, p.w - p.labelW, py + p.capH * 0.5 + 12 * 0.35, 12);
     line(p.x, py + p.capH, p.x + p.w, py + p.capH, 0.75);
     pdf.setLineWidth(1); rect(p.x, py, p.w, p.capH + p.rowH, "S");
@@ -1945,7 +1947,8 @@ span.tog{display:inline-flex; align-items:center}
     }
     /* recall info */
     var r2 = G.rec, ry = oy2 + r2.y + dl;
-    bar("Recall info", r2.x, ry, r2.w, r2.capH, 12);
+    bar("Recall info", r2.x, ry, r2.w, r2.capH, r2.capSize);
+    line(r2.x, ry + r2.capH, r2.x + r2.w, ry + r2.capH, 0.75);
     pdf.setLineWidth(1); rect(r2.x, ry, r2.w, r2.capH + r2.rowH, "S");
     centred(d.recall, r2.x + 2, r2.w - 4, ry + r2.capH + 14.2, 12);
   }
