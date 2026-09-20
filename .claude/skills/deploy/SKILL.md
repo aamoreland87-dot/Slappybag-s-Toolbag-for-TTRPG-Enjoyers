@@ -31,8 +31,11 @@ Live URL: https://aamoreland87-dot.github.io/Slappybag-s-Toolbag-for-TTRPG-Enjoy
 
 5. **Confirm it's live.** Poll the live URL of a changed page with
    `curl -s -o /dev/null -w '%{http_code}'` every 10 s for up to 2 minutes until it
-   returns 200 and, for HTML files, the `Content-Length` matches the local file size
-   (`wc -c`). Pages builds usually finish in 20–60 s.
+   returns 200 and its downloaded size (`%{size_download}`) matches the committed
+   blob's size: `git cat-file -s HEAD:<file>`. Compare against the blob, not the
+   working file — git stores LF endings but checks out CRLF on Windows, so `wc -c` on
+   the local file is always larger than what GitHub serves. Pages builds usually
+   finish in 20–60 s.
 
 6. **Report.** Give the user the commit hash, the one-line message, and the direct
    link to each page that changed. If the poll timed out, say so and suggest checking

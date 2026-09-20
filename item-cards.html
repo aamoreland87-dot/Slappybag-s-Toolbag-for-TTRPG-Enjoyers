@@ -70,6 +70,21 @@ body{
 .bar-row{display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .8rem}
 .bar h1{font-family:var(--serif); font-size:1.05rem; font-weight:700; margin:0; white-space:nowrap}
 .bar h1 .sub{color:var(--accent); font-weight:600}
+/* ---- toolbag nav: back to menu + switch tool ---- */
+.toolbag{display:flex; flex:0 0 auto; align-items:center; gap:.6rem; position:relative}
+.toolbag .home{font-family:var(--caps); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); text-decoration:none; white-space:nowrap}
+.toolbag .home:hover{color:var(--accent)}
+.switch summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:.3rem; white-space:nowrap}
+.switch summary::-webkit-details-marker{display:none}
+.switch summary::after{content:"\25BE"; color:var(--accent); font-size:.8rem}
+.switch[open] summary::after{content:"\25B4"}
+.switch .menu{position:absolute; left:0; top:calc(100% + .45rem); z-index:30; margin:0; padding:.3rem 0; list-style:none; min-width:13rem; background:var(--paper); border:1px solid var(--rule); border-radius:2px; box-shadow:var(--shadow)}
+.switch .menu a{display:block; padding:.5rem 1rem; color:var(--ink); text-decoration:none; font-family:var(--caps); font-size:.82rem; letter-spacing:.06em; text-transform:uppercase}
+.switch .menu a:hover{background:var(--chip); color:var(--accent)}
+.switch .menu a[aria-current="page"]{color:var(--accent)}
+.switch .menu a[aria-current="page"]::before{content:"\25B8 "}
+.switch .menu .all{border-top:1px solid var(--rule-soft); margin-top:.3rem; padding-top:.3rem}
+.switch summary:focus-visible,.toolbag .home:focus-visible,.switch .menu a:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
 .bar .grow{flex:1 1 1rem}
 .bar-group{display:flex; flex-wrap:wrap; align-items:center; gap:.35rem}
 .bar-label{
@@ -440,7 +455,17 @@ span.tog{display:inline-flex; align-items:center}
 
 <div class="bar">
   <div class="bar-row">
-    <h1>Item Cards <span class="sub">· PF2e</span></h1>
+    <nav class="toolbag" aria-label="Toolbag">
+      <a class="home" href="index.html">&lsaquo; Toolbag</a>
+      <details class="switch" id="toolSwitch">
+        <summary title="Switch tool"><h1>Item Cards <span class="sub">&middot; PF2e</span></h1></summary>
+        <ul class="menu">
+          <li><a href="item-cards.html" aria-current="page">Item Cards</a></li>
+          <li><a href="initiative-cards.html">Initiative Cards</a></li>
+          <li class="all"><a href="index.html">All tools</a></li>
+        </ul>
+      </details>
+    </nav>
     <div class="seg" role="group" aria-label="View">
       <button class="tog" data-view="editor" aria-pressed="true">Editor</button>
       <button class="tog" data-view="library" aria-pressed="false">Library</button>
@@ -1922,4 +1947,12 @@ span.tog{display:inline-flex; align-items:center}
 </script>
 
 
+<script>
+/* Close the tool switcher on outside click or Escape. */
+(function(){
+  var sw = document.getElementById("toolSwitch"); if(!sw) return;
+  document.addEventListener("click", function(e){ if(sw.open && !sw.contains(e.target)) sw.open = false; });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && sw.open){ sw.open = false; sw.querySelector("summary").focus(); } });
+})();
+</script>
 </body></html>
