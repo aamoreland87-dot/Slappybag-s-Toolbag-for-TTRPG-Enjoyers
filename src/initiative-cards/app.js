@@ -16,14 +16,14 @@
   /* Senses: [key, name, printed label, takes a range]. The common ones first; "other" carries its own label.
      Names follow the Monster Core / Bestiary glossary (Archives of Nethys creature abilities). */
   var SENSES = [
-    ["darkvision","Darkvision","darkvision",false], ["greater-darkvision","Greater darkvision","greater darkvision",false],
-    ["low-light","Low-light vision","low-light vision",false], ["scent","Scent","scent",true], ["tremorsense","Tremorsense","tremorsense",true],
-    ["all-around","All-around vision","all-around vision",false], ["bloodsense","Bloodsense","bloodsense",true],
-    ["echolocation","Echolocation","echolocation",true], ["infrared","Infrared vision","infrared vision",false],
-    ["lifesense","Lifesense","lifesense",true], ["magic-sense","Magic sense","magic sense",true], ["mist-vision","Mist vision","mist vision",false],
-    ["motion-sense","Motion sense","motion sense",true], ["painsight","Painsight","painsight",false], ["see-invisibility","See invisibility","see invisibility",false],
-    ["spiritsense","Spiritsense","spiritsense",true], ["thoughtsense","Thoughtsense","thoughtsense",true], ["truesight","Truesight","truesight",false],
-    ["wavesense","Wavesense","wavesense",true],
+    ["darkvision","Darkvision","Darkvision",false], ["greater-darkvision","Greater Darkvision","Greater Darkvision",false],
+    ["low-light","Low-Light Vision","Low-Light Vision",false], ["scent","Scent","Scent",true], ["tremorsense","Tremorsense","Tremorsense",true],
+    ["all-around","All-Around Vision","All-Around Vision",false], ["bloodsense","Bloodsense","Bloodsense",true],
+    ["echolocation","Echolocation","Echolocation",true], ["infrared","Infrared Vision","Infrared Vision",false],
+    ["lifesense","Lifesense","Lifesense",true], ["magic-sense","Magic Sense","Magic Sense",true], ["mist-vision","Mist Vision","Mist Vision",false],
+    ["motion-sense","Motion Sense","Motion Sense",true], ["painsight","Painsight","Painsight",false], ["see-invisibility","See Invisibility","See Invisibility",false],
+    ["spiritsense","Spiritsense","Spiritsense",true], ["thoughtsense","Thoughtsense","Thoughtsense",true], ["truesight","Truesight","Truesight",false],
+    ["wavesense","Wavesense","Wavesense",true],
     ["other","Other","",true]
   ];
   var SENSE = {}; SENSES.forEach(function(s){ SENSE[s[0]] = {name:s[1], label:s[2], ranged:s[3]}; });
@@ -138,7 +138,7 @@
   /* Imm / Res / Weak: typed in the panel under the card; the strip prints only the filled ones. */
   function irwHtml(d){
     return IRW.filter(function(q){ return String(d[q[0]] || "").trim(); }).map(function(q){
-      return '<div class="irwl"><b>' + q[1] + '</b> <span class="iv">' + esc(d[q[0]]) + '</span></div>';
+      return '<div class="irwl"><b>' + q[1] + '</b> <span class="iv">' + esc(titleCase(d[q[0]])) + '</span></div>';
     }).join("");
   }
   function hasIrw(d){ return IRW.some(function(q){ return String(d[q[0]] || "").trim(); }); }
@@ -238,9 +238,17 @@
     var rank = function(s){ var i = order.indexOf(s.t); return i < 0 ? 99 : i; };
     return list.filter(function(s){ return s.t && (s.t !== "other" || s.l); }).sort(function(a, b){ return rank(a) - rank(b); });
   }
-  function senseLabel(s){ return s.t === "other" ? s.l : SENSE[s.t] ? SENSE[s.t].label + (s.v ? " " + s.v : "") : s.t; }
+  /* Title Case for printed lists: "bludg. 2, cold iron 5 (not adamantine)" → "Bludg. 2, Cold Iron 5 (not Adamantine)".
+     Connectives stay lower-case; the stored text is left as typed. */
+  var SMALL = {not:1, and:1, or:1, of:1, to:1, from:1, except:1, the:1, a:1, an:1, in:1, with:1, vs:1};
+  function titleCase(s){
+    return String(s || "").replace(/[A-Za-z][A-Za-z'’.]*/g, function(w){
+      return SMALL[w.toLowerCase()] ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1);
+    });
+  }
+  function senseLabel(s){ return s.t === "other" ? titleCase(s.l) : SENSE[s.t] ? SENSE[s.t].label + (s.v ? " " + s.v : "") : s.t; }
   /* printed like the item card's traits: "DV | scent 60 ft | mist vision" */
-  function senseName(s){ return s.t === "other" ? s.l : SENSE[s.t] ? SENSE[s.t].label : s.t; }
+  function senseName(s){ return s.t === "other" ? titleCase(s.l) : SENSE[s.t] ? SENSE[s.t].label : s.t; }
   /* each sense is a little stack — name, and its range on a second line — separated by " | " */
   function sensesHtml(list){
     return list.map(function(s){
@@ -1338,7 +1346,7 @@
     /* immunities / resistances / weaknesses: each starts its own line; the box grows with the text up to
        G.irw.max (the saves and Recall box move down), and only shrinks the text past that */
     var w = G.irw, wy = oy + w.y;
-    var entries = IRW.filter(function(q){ return String(d[q[0]] || "").trim(); }).map(function(q){ return [{t:q[1].toUpperCase() + " ", b:true, c:true}, {t:String(d[q[0]]), b:false}]; });
+    var entries = IRW.filter(function(q){ return String(d[q[0]] || "").trim(); }).map(function(q){ return [{t:q[1].toUpperCase() + " ", b:true, c:true}, {t:titleCase(d[q[0]]), b:false}]; });
     var inner = w.w - 2 * w.pad - 1, size = w.size, lh = w.lh, blocks, total = 0;
     for(var sc = 1; sc >= 0.6; sc -= 0.05){
       size = w.size * sc; lh = w.lh * sc;
