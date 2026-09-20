@@ -1,0 +1,184 @@
+
+<div class="bar">
+  <div class="bar-row">
+    <!-- site-only -->
+    <nav class="toolbag" aria-label="Toolbag">
+      <a class="home" href="index.html">&lsaquo; Toolbag</a>
+      <details class="switch" id="toolSwitch">
+        <summary title="Switch tool"><h1>Initiative Cards <span class="sub">&middot; PF2e</span></h1></summary>
+        <ul class="menu">
+          <li><a href="item-cards.html">Item Cards</a></li>
+          <li><a href="initiative-cards.html" aria-current="page">Initiative Cards</a></li>
+          <li class="all"><a href="index.html">All tools</a></li>
+        </ul>
+      </details>
+    </nav>
+    <!-- /site-only -->
+    <!-- artifact-only <h1>Initiative Cards <span class="sub">&middot; PF2e</span></h1> -->
+    <div class="seg" role="group" aria-label="View">
+      <button class="tog" data-view="editor" aria-pressed="true">Editor</button>
+      <button class="tog" data-view="library" aria-pressed="false">Library</button>
+      <button class="tog" data-view="sheet" aria-pressed="false">Sheet</button>
+    </div>
+    <div class="grow"></div>
+
+    <div class="bar-group" data-for="editor">
+      <button class="btn" id="importBtn" title="Fill the card from a pasted Demiplane or Archives of Nethys page">Import</button>
+      <button class="btn" id="newCard">New</button>
+      <button class="btn solid" id="saveCard">Save</button>
+    </div>
+    <div class="bar-group" data-for="library" hidden>
+      <span class="bar-label">Sort</span>
+      <div class="seg" role="group" aria-label="Sort">
+        <button class="tog" data-sort="name" aria-pressed="false">Name</button>
+        <button class="tog" data-sort="created" aria-pressed="true">Created</button>
+        <button class="tog" data-sort="edited" aria-pressed="false">Edited</button>
+      </div>
+      <button class="btn" id="selAll">All</button>
+      <button class="btn" id="selNone">None</button>
+      <button class="btn solid" id="toSheet">Sheet (0)</button>
+    </div>
+    <div class="bar-group" data-for="sheet" hidden>
+      <button class="btn" id="addBlank">+ Blank card</button>
+      <button class="btn" id="sheetClear">Clear</button>
+      <button class="btn solid" id="print">Print</button>
+    </div>
+  </div>
+
+  <details class="opts" id="opts">
+    <summary>Options</summary>
+    <div class="opts-body">
+      <div class="bar-group">
+        <span class="bar-label">Zoom</span>
+        <div class="seg" role="group" aria-label="Screen zoom">
+          <button class="tog" id="z-out" aria-label="Zoom out">&minus;</button>
+          <span class="tog" id="z-lvl" aria-live="polite">100%</span>
+          <button class="tog" id="z-in" aria-label="Zoom in">+</button>
+        </div>
+      </div>
+      <div class="bar-group">
+        <span class="bar-label">Theme</span>
+        <div class="seg" role="group" aria-label="Theme">
+          <button class="tog" data-theme="" aria-pressed="true">Auto</button>
+          <button class="tog" data-theme="light" aria-pressed="false">Light</button>
+          <button class="tog" data-theme="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+      <div class="bar-group">
+        <button class="btn" id="example">Example</button>
+        <button class="btn" id="clear">Clear card</button>
+      </div>
+      <span class="status" id="status">Library: starting…</span>
+    </div>
+  </details>
+</div>
+
+<!-- ================= EDITOR ================= -->
+<section class="view editor" id="editorView">
+  <div class="pane" id="pane">
+    <div class="cardbox side" id="cardbox"></div>
+    <p class="card-note screen-only" id="cardNote"></p>
+  </div>
+
+  <div class="tools screen-only">
+    <div class="tool-row">
+      <span class="bar-label">Picture</span>
+      <button class="btn" id="phPick">Choose</button>
+      <button class="btn" id="phClear">Remove</button>
+      <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> remove background</label>
+      <label>size <input type="range" id="imgScale" min="40" max="100" value="100" step="5" aria-label="Picture size"> <span id="imgScaleLbl">100%</span></label>
+      <input type="file" accept="image/*,.webp" id="phFile" hidden>
+      <span class="hint" id="phMeta">Drop an image on the picture half, or paste one. It prints upside down so it reads right way up once the card is folded.</span>
+    </div>
+    <div class="tool-row speeds">
+      <span class="bar-label">Speeds</span>
+      <ul class="splist" id="spdList"></ul>
+      <span class="hint">Tick every movement type the creature has and type its speed. Each type gets its own icon on the card: foot, wing, shovel, ladder, fin.</span>
+    </div>
+    <div class="tool-row">
+      <span class="bar-label">Senses</span>
+      <button class="btn" id="senseBtn">Choose senses</button>
+      <span class="hint">Or click the sense line under Perception on the card. They print like traits: DV | scent 60 ft | mist vision.</span>
+    </div>
+    <div class="tool-row irw-row">
+      <span class="bar-label">Imm / Res / Weak</span>
+      <label class="field"><span>Immunities</span><textarea id="immuneIn" rows="1" placeholder="e.g. fire, paralyzed, sleep" autocomplete="off" spellcheck="false"></textarea></label>
+      <label class="field"><span>Resistances</span><textarea id="resistIn" rows="1" placeholder="e.g. bludg. 5, cold 10" autocomplete="off" spellcheck="false"></textarea></label>
+      <label class="field"><span>Weaknesses</span><textarea id="weakIn" rows="1" placeholder="e.g. cold iron 5" autocomplete="off" spellcheck="false"></textarea></label>
+      <span class="hint">Only the ones you fill in print on the card; the box itself always prints.</span>
+    </div>
+    <div class="suggest" id="irwSuggest" hidden role="listbox"></div>
+    <div class="tool-row" id="sourceRow" hidden>
+      <span class="bar-label">Source</span>
+      <a id="sourceLink" class="srclink" href="#" target="_blank" rel="noopener noreferrer"></a>
+    </div>
+    <div class="tool-row">
+      <span class="bar-label">Skills</span>
+      <div class="chips" id="skillChips"></div>
+      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows stay alphabetical, lores last.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LIBRARY ================= -->
+<section class="view" id="libraryView" hidden>
+  <div class="gallery" id="gallery"></div>
+  <p class="empty" id="libEmpty" hidden>No saved creatures yet. Build one in the editor and press Save.</p>
+</section>
+
+<!-- ================= SHEET ================= -->
+<section class="view" id="sheetView" hidden>
+  <div class="sheet-wrap" id="pages"></div>
+  <p class="sheet-note screen-only" id="sheetNote"></p>
+</section>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="toast hide" id="toast"></div>
+
+<section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
+  <h3 id="printTitle">Your sheet is ready</h3>
+  <p id="printMsg">Save the PDF to this device, or open the sheet as a web page and print or save from your browser. Letter size, landscape, four cards per page. Cut along the shared lines and fold each card across the middle.</p>
+  <div class="modal-row" style="margin-top:0">
+    <button class="btn solid big" id="saveSheet">Save as PDF</button>
+    <button class="btn big" id="openHtml">Open as HTML</button>
+  </div>
+  <div class="modal-row">
+    <span class="grow"></span>
+    <button class="btn" id="printModalClose">Close</button>
+  </div>
+</section>
+
+<section class="picker" id="importPanel" hidden role="dialog" aria-label="Import a creature">
+  <div class="picker-head">
+    <h3>Import a creature</h3>
+    <span class="grow"></span>
+    <button class="btn" id="importClose">Close</button>
+  </div>
+  <label class="field"><span>Link</span><input type="url" id="importLink" placeholder="https://app.demiplane.com/nexus/pathfinder2e/creatures/… or https://2e.aonprd.com/Monsters.aspx?ID=…" autocomplete="off"><span class="badge" id="linkBadge"></span></label>
+  <div id="queueWrap" hidden><ul class="queue" id="queueList"></ul><p class="hint" id="queueNote" hidden></p></div>
+  <p class="hint"><b>Link only:</b> Send to Claude pings Claude — it reads the page, grabs the official art when Demiplane has it, and the finished card lands in your library a minute or two later. <b>Right now:</b> open the creature page, select all (Ctrl+A / ⌘A), copy, paste below, and the card fills itself. Recall Knowledge comes from the trait, level, and rarity.</p>
+  <textarea id="importText" rows="9" placeholder="Paste the creature's page or stat block here" spellcheck="false"></textarea>
+  <div class="modal-row">
+    <button class="btn solid" id="importGo">Fill the card</button>
+    <span class="hint" id="importNote"></span>
+  </div>
+</section>
+
+<section class="picker" id="sensePicker" hidden role="dialog" aria-label="Senses">
+  <div class="picker-head">
+    <input type="search" id="senseSearch" placeholder="Search senses, or type a new one and press Enter" autocomplete="off">
+    <button class="btn solid" id="sensePickerDone">Done</button>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">On the card</span>
+    <div class="chips" id="senseSel"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">Common senses</span>
+    <div class="chips" id="senseSug"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">All senses</span>
+    <div class="chips" id="senseAll"></div>
+  </div>
+</section>

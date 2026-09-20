@@ -1514,8 +1514,8 @@ span.tog{display:inline-flex; align-items:center}
   var fontsLoaded = false, fontData = null;
   /* The same files fonts.css uses, as base64 for jsPDF. Fetched once, on first export. */
   var FONT_FILES = {
-    body:"EBGaramond-Regular.ttf", bodyBold:"EBGaramond-Bold.ttf", bodyItalic:"EBGaramond-Italic.ttf", bodyBoldItalic:"EBGaramond-BoldItalic.ttf",
-    title:"Eczar-Bold.ttf", sub:"Teko-Bold.ttf", caps:"Tauri-Regular.ttf"
+    body:"ebgaramond-400.ttf", bodyBold:"ebgaramond-600.ttf", bodyItalic:"ebgaramond-400i.ttf", bodyBoldItalic:"ebgaramond-600.ttf",   /* the set has no 600 italic: bold italic prints bold */
+    title:"eczar-700.ttf", sub:"teko-700.ttf", caps:"tauri-400.ttf"
   };
   function loadFontData(){
     if(fontData) return Promise.resolve(fontData);

@@ -1,7 +1,7 @@
 ﻿# Minimal static file server for local preview (no Node/Python needed).
 param([int]$Port = 8765)
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$types = @{ ".html"="text/html; charset=utf-8"; ".css"="text/css"; ".js"="application/javascript"; ".json"="application/json"; ".png"="image/png"; ".jpg"="image/jpeg"; ".svg"="image/svg+xml"; ".woff2"="font/woff2"; ".md"="text/plain" }
+$types = @{ ".html"="text/html; charset=utf-8"; ".css"="text/css"; ".js"="application/javascript"; ".json"="application/json"; ".png"="image/png"; ".jpg"="image/jpeg"; ".svg"="image/svg+xml"; ".woff2"="font/woff2"; ".woff"="font/woff"; ".ttf"="font/ttf"; ".md"="text/plain" }
 $l = New-Object System.Net.HttpListener
 $l.Prefixes.Add("http://localhost:$Port/")
 $l.Start()

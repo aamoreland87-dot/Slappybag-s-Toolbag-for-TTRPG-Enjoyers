@@ -1,26 +1,39 @@
-/* Site typefaces — stand-ins for Paizo's Pathfinder 2e house fonts.
-   Eczar      → Taroca   (titles: card and creature names)
-   Teko       → Gin      (subheads: section captions, stat-block bars)
-   Tauri      → FF Good  (small headers, labels, UI chrome)
-   EB Garamond→ Sabon    (body text)
-   All four are SIL Open Font License; see fonts/licenses/. */
+/* Site typefaces — open-licensed stand-ins for Paizo's Pathfinder 2e house fonts.
+   Eczar       → titles (card and creature names, page headings)
+   Teko        → subheads (section captions, stat-block bars); variable 300–700
+   Tauri       → small headers, labels, UI chrome; one weight, no italic
+   EB Garamond → body text; 400, 400 italic, 600 (used for bold)
+   All four are SIL Open Font License; the license texts in fonts/licenses/ ship with the files.
 
-@font-face{font-family:"Eczar";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/Eczar-Regular.ttf) format("truetype")}
-@font-face{font-family:"Eczar";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/Eczar-Bold.ttf) format("truetype")}
+   The .woff files here are subsetted to Latin + Latin Extended. The .ttf twins are for the PDF
+   exporter (jsPDF needs TrueType); teko-700.ttf is a static instance because jsPDF cannot pick a
+   weight out of the variable file.
 
-@font-face{font-family:"Teko";font-style:normal;font-weight:500;font-display:swap;src:url(fonts/Teko-Medium.ttf) format("truetype")}
-@font-face{font-family:"Teko";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/Teko-Bold.ttf) format("truetype")}
+   Metrics worth knowing (from the font handoff): Eczar's natural line box is 1.78em — cap
+   line-height at ~1.15 on headings. EB Garamond's x-height is small (0.40em) and Tauri's is
+   large (0.55em), so body copy runs ~18–19px and Tauri sits at ~0.9em beside it. */
 
-@font-face{font-family:"Tauri";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/Tauri-Regular.ttf) format("truetype")}
+@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ebgaramond-400.woff) format("woff")}
+@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/ebgaramond-400i.woff) format("woff")}
+@font-face{font-family:"EB Garamond";font-style:normal;font-weight:600 700;font-display:swap;src:url(fonts/ebgaramond-600.woff) format("woff")}
 
-@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/EBGaramond-Regular.ttf) format("truetype")}
-@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/EBGaramond-Italic.ttf) format("truetype")}
-@font-face{font-family:"EB Garamond";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/EBGaramond-Bold.ttf) format("truetype")}
-@font-face{font-family:"EB Garamond";font-style:italic;font-weight:700;font-display:swap;src:url(fonts/EBGaramond-BoldItalic.ttf) format("truetype")}
+/* Eczar has no italic; never set font-style:italic on it. */
+@font-face{font-family:"Eczar";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/eczar-400.woff) format("woff")}
+@font-face{font-family:"Eczar";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/eczar-600.woff) format("woff")}
+@font-face{font-family:"Eczar";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/eczar-700.woff) format("woff")}
+
+/* Teko has no italic. */
+@font-face{font-family:"Teko";font-style:normal;font-weight:300 700;font-display:swap;src:url(fonts/teko-var.woff) format("woff-variations"),url(fonts/teko-var.woff) format("woff")}
+
+/* Tauri: regular only — no italic, no bold. */
+@font-face{font-family:"Tauri";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/tauri-400.woff) format("woff")}
 
 :root{
-  --font-title:"Eczar", "Iowan Old Style", Georgia, serif;
+  --font-title:"Eczar", "Palatino Linotype", Palatino, "Iowan Old Style", Georgia, serif;
   --font-sub:"Teko", "Oswald", "Arial Narrow", sans-serif;
-  --font-caps:"Tauri", "Segoe UI", system-ui, sans-serif;
-  --font-body:"EB Garamond", Garamond, "Iowan Old Style", Georgia, serif;
+  --font-caps:"Tauri", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --font-body:"EB Garamond", Garamond, "Iowan Old Style", Georgia, "Times New Roman", serif;
+  /* the handoff's names, as aliases */
+  --font-subhead:var(--font-sub);
+  --font-label:var(--font-caps);
 }

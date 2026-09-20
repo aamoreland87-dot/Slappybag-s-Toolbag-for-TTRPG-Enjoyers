@@ -5,3 +5,6 @@ Thumbs.db
 
 # Local preview server output
 .claude/serve.log
+_pdftest.html
+src/initiative-cards/artifact.html
+.published.sha
