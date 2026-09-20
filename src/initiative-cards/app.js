@@ -790,7 +790,6 @@
     ["celestial","Religion"],["construct","Arcana/Crafting"],["dragon","Arcana"],["elemental","Arcana/Nature"],
     ["ethereal","Occultism"],["fey","Nature"],["fiend","Religion"],["fungus","Nature"],["humanoid","Society"],
     ["monitor","Religion"],["ooze","Occultism"],["plant","Nature"],["spirit","Occultism"],["undead","Religion"]];
-  function titleCase(s){ return s.toLowerCase().replace(/(^|[\s\-(])([a-z])/g, function(m, a, b){ return a + b.toUpperCase(); }); }
   function looksLikeBlock(t){ return /\bAC\s+\d+/.test(t) && /\bHP\s+\d+/.test(t) && /\bPerception\s+[+\-–]?\s*\d/i.test(t); }
   function abbrSense(s){
     return s.replace(/\(imprecise\)|\(precise\)|\(vague\)/gi, "").replace(/greater darkvision/i, "greater DV")
@@ -808,7 +807,7 @@
     if(li >= 0 && !out.name){
       for(var j = li - 1; j >= 0; j--){ if(!/^(monster core|bestiary|source\b|creature family|creatures$)/i.test(lines[j])){ out.name = lines[j]; break; } }
     }
-    if(out.name && out.name === out.name.toUpperCase()) out.name = titleCase(out.name);
+    if(out.name && out.name === out.name.toUpperCase()) out.name = titleCase(out.name.toLowerCase());
     var pi = -1;
     for(var k = 0; k < lines.length; k++){ if(/^Perception\s+[+-]?\s*\d/i.test(lines[k])){ pi = k; break; } }
     var traitWords = (li >= 0 && pi > li ? lines.slice(li + 1, pi).join(" ") : "").toLowerCase().split(/[^a-z-]+/);
@@ -858,9 +857,10 @@
     if(!out.recall && lvl !== null && LEVEL_DC[lvl] !== undefined){
       var dc = LEVEL_DC[lvl], rar = "";
       Object.keys(RARITY_ADJ).forEach(function(r){ if(traitWords.indexOf(r) >= 0){ dc += RARITY_ADJ[r]; rar = r; } });
-      var skill = "";
-      RK.forEach(function(p){ if(!skill && traitWords.indexOf(p[0]) >= 0) skill = p[1]; });
-      out.recall = (skill || "DC") + " " + dc;
+      /* every creature-type trait counts: an undead beast can be recalled with Religion or Nature */
+      var skills = [];
+      RK.forEach(function(p){ if(traitWords.indexOf(p[0]) >= 0) p[1].split("/").forEach(function(s){ if(skills.indexOf(s) < 0) skills.push(s); }); });
+      out.recall = (skills.join("/") || "DC") + " " + dc;
       out.level = lvl; out.rarity = rar;
     }
     return out;
