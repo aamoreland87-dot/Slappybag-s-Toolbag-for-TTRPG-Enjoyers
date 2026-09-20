@@ -607,7 +607,8 @@
     if(bw * bh > w * h * 0.92) return null;
     return {x:left, y:top, w:bw, h:bh};
   }
-  function loadImage(file){
+  function loadImage(file, opts){
+    opts = opts || {};
     if(!file) return;
     var isImage = /^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || "");
     if(!isImage) return;
@@ -629,7 +630,7 @@
           return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:w, h:h};
         }
         var isJpeg = /jpe?g/i.test(file.type), v;
-        if(bgToggle.checked){
+        if(opts.bg === false ? false : bgToggle.checked){
           var cut = false, box = null;
           try{ cut = knockout(full); }catch(e){}
           try{ box = trimBox(full); }catch(e){}
@@ -639,6 +640,7 @@
           v = encode(full, 0, 0, fw, fh, isJpeg);
           v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
         }
+        if(opts.from) v.meta += " · from " + opts.from;
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
         photo.classList.remove("busy");
         refresh(); saveDraft();
@@ -783,7 +785,7 @@
     ["ethereal","Occultism"],["fey","Nature"],["fiend","Religion"],["fungus","Nature"],["humanoid","Society"],
     ["monitor","Religion"],["ooze","Occultism"],["plant","Nature"],["spirit","Occultism"],["undead","Religion"]];
   function titleCase(s){ return s.toLowerCase().replace(/(^|[\s\-(])([a-z])/g, function(m, a, b){ return a + b.toUpperCase(); }); }
-  function looksLikeBlock(t){ return /\bAC\s+\d+/.test(t) && /\bHP\s+\d+/.test(t) && /\bPerception\s+[+\-–]?\d/i.test(t); }
+  function looksLikeBlock(t){ return /\bAC\s+\d+/.test(t) && /\bHP\s+\d+/.test(t) && /\bPerception\s+[+\-–]?\s*\d/i.test(t); }
   function abbrSense(s){
     return s.replace(/\(imprecise\)|\(precise\)|\(vague\)/gi, "").replace(/greater darkvision/i, "greater DV")
       .replace(/\bdarkvision\b/i, "DV").replace(/low-light vision/i, "LLV").replace(/\bfeet\b/gi, "ft")
@@ -802,20 +804,20 @@
     }
     if(out.name && out.name === out.name.toUpperCase()) out.name = titleCase(out.name);
     var pi = -1;
-    for(var k = 0; k < lines.length; k++){ if(/^Perception\s+[+-]?\d/i.test(lines[k])){ pi = k; break; } }
+    for(var k = 0; k < lines.length; k++){ if(/^Perception\s+[+-]?\s*\d/i.test(lines[k])){ pi = k; break; } }
     var traitWords = (li >= 0 && pi > li ? lines.slice(li + 1, pi).join(" ") : "").toLowerCase().split(/[^a-z-]+/);
     if(pi >= 0){
-      m = /^Perception\s+([+-]?\d+)\s*;?\s*(.*)$/i.exec(lines[pi]);
+      m = /^Perception\s+([+-]?)\s*(\d+)\s*;?\s*(.*)$/i.exec(lines[pi]); m = [m[0], m[1] + m[2], m[3]];
       out.per = (m[1][0] === "-" ? "" : "+") + parseInt(m[1], 10);
       out.senses = sortSenses(m[2].split(/[;,]\s*/).map(senseOf).filter(Boolean));
     }
     lines.forEach(function(l){
       if((m = /^Skills\s+(.*)$/i.exec(l))){
         m[1].replace(/\([^)]*\)/g, "").split(/,\s*/).forEach(function(s){
-          var q = /^(.+?)\s+([+-]\d+)/.exec(s.trim()); if(!q) return;
+          var q = /^(.+?)\s*([+-])\s*(\d+)/.exec(s.trim()); if(!q) return;   /* "Stealth+ 23" happens in the source data */
           var n = q[1].trim();
           if(/\sLore$/i.test(n)) n = "L: " + n.replace(/\sLore$/i, "");
-          out.skills.push({n:n, m:q[2]});
+          out.skills.push({n:n, m:q[2] + q[3]});
         });
       }
       if(!out.speeds && (m = /^Speed\s+(.*)$/i.exec(l))){
@@ -827,9 +829,10 @@
     });
     var flat = lines.join("\n").replace(/\([^)]*\)/g, "");
     if((m = /\bAC\s+(\d+)/.exec(flat))) out.ac = m[1];
-    if((m = /\bFort\w*\s+([+-]\d+)/.exec(flat))) out.fort = m[1];
-    if((m = /\bRef\w*\s+([+-]\d+)/.exec(flat))) out.ref = m[1];
-    if((m = /\bWill\s+([+-]\d+)/.exec(flat))) out.will = m[1];
+    var sm = function(re){ var r = re.exec(flat); return r ? r[1] + r[2] : ""; };   /* sign, digits — a stray space between them happens */
+    if(sm(/\bFort\w*\s+([+-])\s*(\d+)/)) out.fort = sm(/\bFort\w*\s+([+-])\s*(\d+)/);
+    if(sm(/\bRef\w*\s+([+-])\s*(\d+)/)) out.ref = sm(/\bRef\w*\s+([+-])\s*(\d+)/);
+    if(sm(/\bWill\s+([+-])\s*(\d+)/)) out.will = sm(/\bWill\s+([+-])\s*(\d+)/);
     if((m = /\bHP\s+(\d+)/.exec(flat))) out.hp = m[1];
     /* immunities / resistances / weaknesses share the HP line, split by semicolons */
     var abbr = function(s){
@@ -870,6 +873,54 @@
     toast(missing.length ? "Filled the card — still needs " + missing.join(", ") : "Filled the card from the stat block", 4000);
     return true;
   }
+  /* ---------------- Demiplane, read directly ----------------
+     Demiplane's GraphQL API answers without a login and allows other sites, so on the website the
+     page fetches the stat block and the official art itself. The claude.ai artifact can't make
+     outbound requests, so there a link still goes to Claude (queueLink). Unofficial API: if it ever
+     changes, the paste-the-page-text route below keeps working. */
+  var DP_API = "https://apiv4.demiplane.com/v1/graphql", DP_SITE = "https://app.demiplane.com/nexus/pathfinder2e/creatures/";
+  var DP_FIELDS = "id name level traits element_display element_image is_legacy elementDisplayByElementDisplayId { slug }";
+  var DP_WHERE = 'category:{_eq:"creature"}, nexus:{slug:{_eq:"pathfinder2e"}}';
+  function canFetch(){ return !(window.claude && window.claude.use); }
+  function dpQuery(query, variables){
+    return fetch(DP_API, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({query:query, variables:variables})})
+      .then(function(r){ if(!r.ok) throw new Error("Demiplane answered " + r.status); return r.json(); })
+      .then(function(j){ if(j.errors) throw new Error(j.errors[0].message); return (j.data && j.data.demiplane_element_display_version) || []; });
+  }
+  function dpBySlug(slug){
+    return dpQuery("query($slug:String!){ demiplane_element_display_version(order_by:{version_number:desc}, where:{elementDisplayByElementDisplayId:{slug:{_eq:$slug}, " + DP_WHERE + "}}, limit:1){ " + DP_FIELDS + " } }", {slug:slug});
+  }
+  function dpByName(pattern){
+    return dpQuery("query($n:String!){ demiplane_element_display_version(order_by:{version_number:desc}, where:{name:{_ilike:$n}, elementDisplayByElementDisplayId:{" + DP_WHERE + "}}, limit:12){ " + DP_FIELDS + " } }", {n:pattern});
+  }
+  /* the entry as the text parseStatBlock reads: "Name Creature N", the traits, then the stat block */
+  function dpText(v){
+    var ta = document.createElement("textarea");
+    ta.innerHTML = String(v.element_display || "").replace(/<\/p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+    var traits = String(v.traits || "").split(",").map(function(t){ return t.split("|")[0].trim(); }).filter(Boolean);
+    return v.name + " Creature " + v.level + "\n" + traits.join(" ") + "\n" + ta.value;
+  }
+  function dpArt(v){
+    var url = "https://images.demiplane.com/" + encodeURI(v.element_image).replace(/#/g, "%23") + "?format=webp&width=900";
+    photo.classList.add("busy");
+    fetch(url).then(function(r){ if(!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(function(b){ loadImage(new File([b], "demiplane.webp", {type:b.type || "image/webp"}), {bg:false, from:"Demiplane"}); })
+      .catch(function(){ photo.classList.remove("busy"); toast("Couldn't fetch the art from Demiplane", 4000); });
+  }
+  /* k: {ref: slug} from a link, or {name} typed in. Remaster entries win over legacy ones on a name search. */
+  function fetchDemiplane(k){
+    var note = $("importNote"); note.textContent = "Asking Demiplane…";
+    var p = k.ref ? dpBySlug(k.ref) : dpByName(k.name).then(function(list){ return list.length ? list : dpByName("%" + k.name + "%"); })
+      .then(function(list){ return list.sort(function(a, b){ return (a.is_legacy ? 1 : 0) - (b.is_legacy ? 1 : 0); }); });
+    return p.then(function(list){
+      var v = list[0];
+      if(!v) throw new Error(k.ref ? "Demiplane has no creature at that link." : "No creature called “" + k.name + "” on Demiplane.");
+      var slug = v.elementDisplayByElementDisplayId && v.elementDisplayByElementDisplayId.slug;
+      if(!importText(dpText(v), k.url || (slug ? DP_SITE + slug : ""))) throw new Error("Demiplane's entry for " + v.name + " has no stat block.");
+      closeImport();
+      if(v.element_image && !/LORE\.png$/i.test(v.element_image)) dpArt(v);
+    }).catch(function(e){ note.textContent = errText(e); });
+  }
   /* Which site a link points at. Only creature pages count. */
   function linkKind(u){
     u = String(u || "").trim(); if(!u) return null;
@@ -898,18 +949,28 @@
   function closeImport(){ importPanel.hidden = true; $("scrim").hidden = true; }
   $("importBtn").addEventListener("click", openImport);
   $("importClose").addEventListener("click", closeImport);
+  /* a bare creature name (no dots or slashes) in the link box searches Demiplane by name */
+  function nameQuery(raw){ raw = String(raw || "").trim(); return raw && !/[.\/]/.test(raw) && /^[a-z]/i.test(raw) ? raw : ""; }
   function updateImportUi(){
-    var k = linkKind($("importLink").value), txt = $("importText").value.trim(), badge = $("linkBadge");
+    var raw = $("importLink").value, k = linkKind(raw), name = nameQuery(raw), txt = $("importText").value.trim(), badge = $("linkBadge");
     if(!k){ badge.textContent = ""; badge.className = "badge"; }
     else if(k.kind){ badge.textContent = k.label + " · " + k.ref; badge.className = "badge on"; }
+    else if(name && canFetch()){ badge.textContent = "Search Demiplane for “" + name + "”"; badge.className = "badge on"; }
     else{ badge.textContent = "Not a Demiplane or Archives of Nethys creature link"; badge.className = "badge warn"; }
+    var direct = canFetch() && !txt && ((k && k.kind === "demiplane") || (k && !k.kind && name));
     var canQueue = k && k.kind && !txt;
-    $("importGo").textContent = canQueue ? (Lib.mode === "db" ? "Send to Claude" : "Fill the card") : "Fill the card";
-
+    $("importGo").textContent = direct ? "Fetch" : canQueue ? (Lib.mode === "db" ? "Send to Claude" : "Fill the card") : "Fill the card";
   }
   function runImport(){
-    var k = linkKind($("importLink").value), link = k ? k.url : "", txt = $("importText").value;
+    var raw = $("importLink").value, k = linkKind(raw), link = k ? k.url : "", txt = $("importText").value;
     if(!txt.trim()){
+      if(canFetch()){
+        /* the website reads Demiplane itself: a creature link, or just a name */
+        if(k && k.kind === "demiplane"){ fetchDemiplane(k); return; }
+        if(k && !k.kind && nameQuery(raw)){ fetchDemiplane({name:nameQuery(raw)}); return; }
+        if(k && k.kind === "aon"){ $("importNote").textContent = "Archives of Nethys doesn't let other sites read its pages. Paste the page text below, or give the creature's Demiplane link or just its name."; return; }
+        $("importNote").textContent = "Paste a Demiplane creature link, type the creature's name, or paste the page text."; return;
+      }
       if(!k || !k.kind){ $("importNote").textContent = "Paste a creature link from Demiplane or Archives of Nethys, or the page text."; return; }
       if(Lib.mode !== "db"){
         setSource(link); saveDraft();
@@ -982,6 +1043,7 @@
     }, function(){});
   }
   $("importGo").addEventListener("click", runImport);
+  if(!canFetch()){ $("importHint").hidden = true; $("importHintArtifact").hidden = false; }
   $("importLink").addEventListener("input", updateImportUi);
   $("importText").addEventListener("input", updateImportUi);
   $("importText").addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); runImport(); } });
