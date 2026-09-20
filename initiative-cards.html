@@ -587,11 +587,12 @@ span.tog{display:inline-flex; align-items:center}
     big:{size:20, baseline:26},
     /* speeds: the frame grows with the count. One speed sits alone, centred, in a narrow frame. With more,
        the walking speed takes the arrow point and the others fill the space to its left, fastest first:
-       two or three speeds use the medium frame (the extras take the whole left side, or stack), four or
+       two or three speeds use the medium frame (two speeds stack as equals, faster first; three put the
+       extras on the left), four or
        five the wide one with a 2x2 grid (top right, bottom right, top left, bottom left). */
     spd:{y:50, h:40, tiers:[
       {n:1, x:148, w:34, path:"M0,0 L24,0 L34,20 L24,40 L0,40 Z", point:{x:1.5, y:0, w:29, h:40, size:14}, grid:{}},
-      {n:2, x:132, w:50, path:"M0,0 L36,0 L50,20 L36,40 L0,40 Z", point:{x:21, y:0, w:25, h:40, size:13}, grid:{
+      {n:2, x:132, w:50, path:"M0,0 L36,0 L50,20 L36,40 L0,40 Z", point:{x:21, y:0, w:25, h:40, size:13}, pair:[{x:2, y:0, w:38, h:20, size:11}, {x:2, y:20, w:38, h:20, size:11}], grid:{
         1:[{x:2, y:0, w:19, h:40, size:10}],
         2:[{x:2, y:0, w:19, h:20, size:9}, {x:2, y:20, w:19, h:20, size:9}]}},
       {n:4, x:124, w:58, path:"M0,0 L44,0 L58,20 L44,40 L0,40 Z", point:{x:29, y:0, w:25, h:40, size:13}, grid:{
@@ -654,7 +655,7 @@ span.tog{display:inline-flex; align-items:center}
         ["AC","HP","Speed"].map(function(t, k){ return '<div class="hdr" ' + pos(G.hdr.xs.concat(sg.hdrX)[k], G.hdr.y, G.hdr.w, G.hdr.h) + '>' + t + '</div>'; }).join("") +
         ico(G.shield, "shield") + ico(G.heart, "heart") + ico(sg, "speed") +
         fld("ac", "big fit", "", " " + pos(G.shield.x, G.shield.y + 7, G.shield.w, 26)) +
-        fld("hp", "big fit", "", " " + pos(G.heart.x, G.heart.y + 6, G.heart.w, 26)) +
+        fld("hp", "big fit", "", " " + pos(G.heart.x + 7, G.heart.y + 6, G.heart.w - 14, 26)) +
         '<div class="spdwrap" ' + pos(sg.x, sg.y, sg.w, sg.h) + '>' + speedsHtml(sp, edit) + '</div>' +
         '<div class="skills" ' + pos(s.x, s.y + dy, s.labelW + s.gap + s.boxW, s.rowH * NSK).replace(/"$/, ';--rowh:' + pt(s.rowH) + ';--skfs:' + pt(s.size) + '"') + '>' + skills + '</div>' +
         '<div class="tbl" ' + pos(sv.x, sv.y + dy, sv.w, sv.rowH * 3) + '>' +
@@ -707,7 +708,7 @@ span.tog{display:inline-flex; align-items:center}
   function speedFrame(n){
     var t = G.spd.tiers[0];
     G.spd.tiers.forEach(function(x){ if(x.n <= Math.max(n, 1)) t = x; });
-    return {x:t.x, y:G.spd.y, w:t.w, h:G.spd.h, path:t.path, point:t.point, grid:t.grid, hdrX:Math.min(t.x + t.w / 2 - G.hdr.w / 2, G.W - 5 - G.hdr.w)};   /* centred, but never past the card edge */
+    return {x:t.x, y:G.spd.y, w:t.w, h:G.spd.h, path:t.path, point:t.point, pair:t.pair, grid:t.grid, hdrX:Math.min(t.x + t.w / 2 - G.hdr.w / 2, G.W - 5 - G.hdr.w)};   /* centred, but never past the card edge */
   }
   /* Walking speed in the point (the fastest if there is none); the others, fastest first, take the
      cells to its left — up to four. Returns {g: frame, items: [{s, c}]} — speed and its cell. */
@@ -720,6 +721,11 @@ span.tog{display:inline-flex; align-items:center}
     rest = rest.slice(0, 4);
     var g = speedFrame(point ? 1 + rest.length : 0);
     if(!point) return {g:g, items:[]};
+    /* exactly two speeds: equal weight, stacked, the faster on top — no point placement */
+    if(rest.length === 1 && g.pair){
+      var pair = [point, rest[0]].sort(function(a, b){ return (num(b) - num(a)) || (rank(a) - rank(b)); });
+      return {g:g, items:pair.map(function(s, k){ return {s:s, c:g.pair[k]}; })};
+    }
     var cells = rest.length ? g.grid[rest.length <= 2 ? rest.length : 4] : [];
     return {g:g, items:[{s:point, c:g.point}].concat(rest.map(function(s, k){ return {s:s, c:cells[k]}; }))};
   }
@@ -1914,7 +1920,7 @@ span.tog{display:inline-flex; align-items:center}
       pdf.lines(p.segs, X + g.x + p.start[0], Y + oy + g.y + p.start[1], [1, 1], "S", true);
     });
     centred(d.ac, G.shield.x, G.shield.w, oy + G.shield.y + 7 + 19, G.big.size);
-    centred(d.hp, G.heart.x, G.heart.w, oy + G.heart.y + 6 + 19, G.big.size);
+    centred(d.hp, G.heart.x + 7, G.heart.w - 14, oy + G.heart.y + 6 + 19, G.big.size);   /* the heart narrows: three digits shrink to fit */
     /* speeds: walk in the arrow point, the rest to its left — same cells as on screen, each shrunk to its cell */
     spl.items.forEach(function(p){
       var sp = p.s, c = p.c, label = sp.t === "other" ? sp.l + " " : "", tx = label + sp.v;
