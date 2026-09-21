@@ -325,6 +325,15 @@ span.tog{display:inline-flex; align-items:center}
 .glyph svg{height:1.15em; width:auto; display:block}
 /* action traits: printed in brackets after the cost, lowercase like a stat block */
 .atr{font-family:var(--sans); font-weight:400; font-size:1em; letter-spacing:0; text-transform:none; color:var(--ink)}
+/* in the editor the seven trait toggles take one full line: the words themselves are the toggles
+   (ghosted until ticked), small enough to sit side by side on the card */
+.blanks .sec.active .atr{flex:1 1 100%; white-space:nowrap; overflow:hidden; font-size:.74em; line-height:1.3; text-align:left}
+.blanks .sec.active .atr .pl{gap:0; margin:0 .5em 0 0}
+.blanks .sec.active .atr .pl input{display:none !important}
+.blanks .sec.active .atr .pl .pv{color:var(--ghost)}
+.blanks .sec.active .atr .pl.on .pv{color:var(--ink); font-weight:600}
+.blanks .sec.active .atr .pl.on ~ .pl.on::before{content:""}
+.blanks .sec.active .atr:has(.pl.on)::before{content:""} .blanks .sec.active .atr:has(.pl.on)::after{content:""}
 .atr .pl.on ~ .pl.on::before{content:", "}
 .blanks .atr .pl.on ~ .pl.on::before{content:""}
 .atr:has(.pl.on)::before{content:"("} .atr:has(.pl.on)::after{content:")"}
@@ -836,18 +845,26 @@ span.tog{display:inline-flex; align-items:center}
     list.forEach(function(a){ cardEl.appendChild(actionSection(a)); });
     ensureSpareSlot();
   }
-  /* the last slot is always an untyped, empty one */
+  /* Slots keep card order — reaction, free action, 1, 2, 3 — the moment a cost is ticked (ties keep
+     the order they were made in); untyped slots with something in them sit below those, and the
+     one spare empty slot is always last. */
+  function sortActionSlots(){
+    var secs = Array.prototype.slice.call(actionSecs());
+    var rank = function(s){ return s.dataset.type ? ATYPES.indexOf(s.dataset.type) : (secEmpty(s) ? 99 : 50); };
+    secs.slice().sort(function(a, b){ return (rank(a) - rank(b)) || (secs.indexOf(a) - secs.indexOf(b)); })
+      .forEach(function(s){ cardEl.appendChild(s); });
+  }
   function ensureSpareSlot(){
-    var secs = actionSecs(), last = secs[secs.length - 1];
-    if(!last || last.dataset.type || !secEmpty(last)) cardEl.appendChild(actionSection());
+    var spares = Array.prototype.filter.call(actionSecs(), function(s){ return !s.dataset.type && secEmpty(s); });
+    spares.slice(0, -1).forEach(function(s){ s.remove(); });   /* never more than one */
+    if(!spares.length) cardEl.appendChild(actionSection());
+    sortActionSlots();
   }
   /* a cost box in a slot: pick that type (only one), or untick it to clear the type */
   function setSlotType(sec, type){
     sec.dataset.type = type;
     sec.querySelector(".alabel").textContent = ALABEL[type];
     sec.querySelectorAll(".types input").forEach(function(i){ i.checked = i.dataset.t === type; });
-    var secs = actionSecs();
-    if(!type && secEmpty(sec) && sec !== secs[secs.length - 1]) sec.remove();
     ensureSpareSlot();
   }
   renderActionSections([]);
