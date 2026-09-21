@@ -209,6 +209,8 @@ span.tog{display:inline-flex; align-items:center}
 .opts-body{display:flex; flex-wrap:wrap; gap:.5rem 1.1rem; align-items:center; padding-top:.45rem; margin-top:.35rem; border-top:1px solid var(--rule-soft)}
 .status{font-family:var(--caps); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 .status b{color:var(--accent); font-weight:400}
+.account-slot:empty{display:none}
+.btn.account .who{display:inline-block; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom}
 
 /* ================= views ================= */
 .view{padding:1.5rem 1rem 0}
@@ -419,6 +421,7 @@ span.tog{display:inline-flex; align-items:center}
         <button class="btn" id="clear">Clear card</button>
       </div>
       <span class="status" id="status">Library: starting…</span>
+      <span class="account-slot" id="account"></span>
     </div>
   </details>
 </div>
@@ -533,6 +536,7 @@ span.tog{display:inline-flex; align-items:center}
     <div class="chips" id="senseAll"></div>
   </div>
 </section>
+<script src="firebase-config.js"></script><script src="cloud.js"></script>
 <script>
 (function(){
   "use strict";
@@ -616,6 +620,8 @@ span.tog{display:inline-flex; align-items:center}
   };
 
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  /* Art from another origin (the cloud library) needs CORS to reach the PDF canvas; local and data: art does not. */
+  function cors(src){ return /^https?:/i.test(src) ? ' crossorigin="anonymous"' : ""; }
   function pt(v){ return (Math.round(v * 100) / 100) + "pt"; }
   function pos(x, y, w, h){ return 'style="left:' + pt(x) + ';top:' + pt(y) + ';width:' + pt(w) + ';height:' + pt(h) + '"'; }
 
@@ -634,7 +640,7 @@ span.tog{display:inline-flex; align-items:center}
     var ico = function(g, cls){
       return '<svg class="ico ' + cls + '" viewBox="0 0 ' + g.w + ' ' + g.h + '" ' + pos(g.x, g.y, g.w, g.h) + ' aria-hidden="true"><path d="' + g.path + '"/></svg>';
     };
-    var src = d.image || (d.imageId ? "/_blob/" + d.imageId : "");
+    var src = d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : "");
     var scale = (d.imgScale || 100) / 100;
     var sp = normSpeeds(d), sg = placeSpeeds(sp).g;   /* the speed frame is sized to the number of speeds */
     var s = G.skills, sv = G.saves, p = G.per, r = G.rec;
@@ -647,7 +653,7 @@ span.tog{display:inline-flex; align-items:center}
     }
     return '<article class="card">' +
       '<div class="half top"><div class="photo' + (src ? " has-img" : "") + (flipped ? " flip" : "") + '"' + (edit ? ' id="photo"' : "") + ' style="--img-scale:' + scale + '"' + (edit ? ' tabindex="0" role="button" aria-label="Add a picture"' : '') + '>' +
-        (src ? '<img alt="" src="' + esc(src) + '">' : '') +
+        (src ? '<img alt=""' + cors(src) + ' src="' + esc(src) + '">' : '') +
         (edit ? '<span class="ph-hint">Drop picture<br>or tap</span>' : '') + '</div></div>' +
       '<div class="half stats">' +
         fld("name", "c-name fit", "Creature name", " " + pos(G.name.x, G.name.y, G.name.w, G.name.h)) +
@@ -940,7 +946,7 @@ span.tog{display:inline-flex; align-items:center}
     renderSpeeds(normSpeeds(d)); renderSenses(normSenses(d));
     writeSkills(sortSkills((d.skills || []).map(function(s){ return {n:(s && s.n) || "", m:(s && s.m) || ""}; })));
     currentId = d.id || null;
-    setImage({src:d.imageSrc || d.image || (d.imageId ? "/_blob/" + d.imageId : ""),
+    setImage({src:d.imageSrc || d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : ""),
               data:d.image || "", id:d.imageId || "", meta:d.imageMeta || "", dirty:!!d.imageDirty});
     setImgScale(d.imgScale || 100);
     setSource(d.source || "");
@@ -1035,6 +1041,7 @@ span.tog{display:inline-flex; align-items:center}
     var el = photo.querySelector("img");
     if(img.src){
       if(!el){ el = document.createElement("img"); el.alt = ""; photo.insertBefore(el, photo.firstChild); }
+      if(cors(img.src)) el.crossOrigin = "anonymous"; else el.removeAttribute("crossorigin");
       el.src = img.src;
       photo.classList.add("has-img");
     }else{
@@ -1622,7 +1629,7 @@ span.tog{display:inline-flex; align-items:center}
     return box;
   }
 
-  /* ---------------- library store: db when hosted, localStorage otherwise ---------------- */
+  /* ---------------- library store: artifact db when hosted, cloud when signed in, localStorage otherwise ---------------- */
   var Lib = {mode:"local", cards:[], listeners:[], db:null, assets:null};
   Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
   Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
@@ -1639,13 +1646,16 @@ span.tog{display:inline-flex; align-items:center}
     }
     id = id || Lib.newId();
     var i = Lib.cards.findIndex(function(c){ return c.id === id; });
-    card.id = id; card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
+    card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
+    if(Lib.mode === "cloud") return Cloud.save(id, card).then(function(){ return id; });
+    card.id = id;
     if(i >= 0) Lib.cards[i] = card; else Lib.cards.push(card);
     Lib.writeLocal(); Lib.emit();
     return Promise.resolve(id);
   };
   Lib.remove = function(id){
     if(Lib.mode === "db") return Lib.db.collection("creatures").doc(id).delete();
+    if(Lib.mode === "cloud") return Cloud.remove(id);
     Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; });
     Lib.writeLocal(); Lib.emit();
     return Promise.resolve();
@@ -1653,6 +1663,16 @@ span.tog{display:inline-flex; align-items:center}
   Lib.start = function(){
     Lib.cards = Lib.readLocal(); Lib.emit();
     $("status").innerHTML = "Library: <b>this device</b>";
+    if(window.Cloud && Cloud.available){
+      Cloud.init({kind:"creatures", mount:$("account"),
+        onStatus:function(html){ $("status").innerHTML = html; },
+        onCards:function(cards){
+          if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
+          else{ Lib.mode = "local"; Lib.cards = Lib.readLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          Lib.emit();
+        }});
+      return;
+    }
     var tries = 0;
     (function wait(){
       if(window.claude && window.claude.use) return Lib.connect();
@@ -1702,12 +1722,23 @@ span.tog{display:inline-flex; align-items:center}
         }
       }else if(img.dirty && !img.src){ img.id = ""; img.dirty = false; }
       p = p.then(function(){ card.imageId = img.id || ""; card.imageMeta = img.meta || ""; });
+    }else if(Lib.mode === "cloud"){
+      /* the picture lives in Storage under the card's id, so a new card gets its id before the upload */
+      var isNew = !Lib.cards.some(function(c){ return c.id === currentId; });
+      if(isNew && Cloud.full()){ toast(Cloud.fullMessage(), 5000); btn.disabled = false; return; }
+      currentId = isNew ? Lib.newId() : currentId;
+      if(img.dirty && img.data){
+        p = Cloud.upload(currentId, dataUrlToBlob(img.data))
+          .then(function(url){ img.src = url; img.data = ""; img.dirty = false; },
+                function(e){ note = " (picture not stored: " + errText(e) + ")"; });
+      }else if(img.dirty && !img.src){ Cloud.removeArt(currentId); img.dirty = false; }
+      p = p.then(function(){ card.imageUrl = img.src || ""; card.imageMeta = img.meta || ""; });
     }else{
       card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
     }
     p.then(function(){ return Lib.save(card, currentId); })
      .then(function(id){ currentId = id; saveDraft(); toast("Saved to library" + note); })
-     .catch(function(e){ toast("Save failed: " + errText(e)); console.error("save", e); })
+     .catch(function(e){ toast("Save failed: " + errText(e), 5000); console.error("save", e); if(Lib.mode === "cloud" && isNew){ Cloud.removeArt(currentId); currentId = null; } })
      .then(function(){ btn.disabled = false; });
   });
 

@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// Slappybag's Toolbag — Firestore rules.
+//
+//   users/{uid}                     plan ('free' | 'pro'), counters `creatures` / `items`,
+//                                   and `last_creatures` / `last_items` (id of the card the counter last moved for)
+//   users/{uid}/creatures/{id}      initiative cards
+//   users/{uid}/items/{id}          item cards
+//
+// Everything is private to its owner. The free cap is enforced here, not in the page: a card can only be
+// created in a batch that also moves the owner's counter by +1 and names the card in last_<kind>; the
+// counter can only move when such a card appears (or disappears) in the same batch. So the client can
+// neither create past the limit nor quietly reset its own counter. `plan` is never changed by the client.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function me(uid) { return request.auth != null && request.auth.uid == uid; }
+    function limitFor(plan) { return plan == 'pro' ? 500 : 4; }
+    function userDoc(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function cardDoc(uid, kind, id) { return /databases/$(database)/documents/users/$(uid)/$(kind)/$(id); }
+
+    // A counter may stay put, or move by exactly one alongside the card it names.
+    function counterStep(uid, kind) {
+      let before = resource.data[kind];
+      let after = request.resource.data[kind];
+      let last = request.resource.data['last_' + kind];
+      return after == before
+        || (after == before + 1 && !exists(cardDoc(uid, kind, last)) && existsAfter(cardDoc(uid, kind, last)))
+        || (after == before - 1 && exists(cardDoc(uid, kind, last)) && !existsAfter(cardDoc(uid, kind, last)));
+    }
+
+    match /users/{uid} {
+      allow read: if me(uid);
+      allow create: if me(uid)
+        && request.resource.data.plan == 'free'
+        && request.resource.data.creatures == 0
+        && request.resource.data.items == 0;
+      allow update: if me(uid)
+        && request.resource.data.plan == resource.data.plan
+        && counterStep(uid, 'creatures')
+        && counterStep(uid, 'items');
+      allow delete: if false;
+    }
+
+    match /users/{uid}/{kind}/{id} {
+      function isKind() { return kind == 'creatures' || kind == 'items'; }
+      function ownerAfter() { return getAfter(userDoc(uid)).data; }
+      function ownerBefore() { return get(userDoc(uid)).data; }
+
+      allow read: if me(uid) && isKind();
+      allow update: if me(uid) && isKind() && request.resource.data.size() < 200;
+      // create/delete only together with the matching counter move on the owner record
+      allow create: if me(uid) && isKind()
+        && request.resource.data.size() < 200
+        && ownerAfter()['last_' + kind] == id
+        && ownerAfter()[kind] == ownerBefore()[kind] + 1
+        && ownerAfter()[kind] <= limitFor(ownerAfter().plan);
+      allow delete: if me(uid) && isKind()
+        && ownerAfter()['last_' + kind] == id
+        && ownerAfter()[kind] == ownerBefore()[kind] - 1;
+    }
+  }
+}

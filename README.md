@@ -35,3 +35,13 @@ The tools were originally built as Claude artifacts and still detect the
 artifact runtime (`window.claude`) — when present they use its shared database
 and asset store instead of `localStorage`. Outside of claude.ai that branch is
 simply skipped.
+
+Signed in with Google (the "Sign in to sync" button in Options), the library
+lives in Firebase instead: cards in Firestore under `users/{uid}/creatures` and
+`users/{uid}/items`, art in Storage at the same path. `cloud.js` is that third
+mode; `firebase-config.js` holds the project settings and, while it is `null`,
+the button never appears. The free cap (4 creatures + 4 items synced; local is
+unlimited) is enforced by `firestore.rules` through per-user counters, and a
+`plan` field on the user record picks the limit. Deploy the rules with
+`firebase deploy --only firestore:rules,storage` and set the bucket CORS with
+`gsutil cors set cors.json gs://<bucket>` so cloud art can reach the PDF canvas.

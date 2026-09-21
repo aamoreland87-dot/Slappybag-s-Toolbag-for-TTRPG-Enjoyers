@@ -14,6 +14,7 @@ No build server; pushing is deploying (`.claude/skills/deploy`, `/rollback` to u
 | `index.html` | Landing page linking the tools |
 | `item-cards.html` | PF2e item cards, 4×5 in. Edited directly — it is its own source. |
 | `initiative-cards.html` | Creature initiative cards, 2.6×7.8 in tent-fold. **Generated** from `src/initiative-cards/` — never edit the built page. `bash src/initiative-cards/build.sh` (site) / `… build.sh artifact` (claude.ai copy). |
+| `cloud.js`, `firebase-config.js`, `firestore.rules`, `storage.rules`, `cors.json`, `firebase.json` | Cloud library (see step 1 below). |
 | `fonts.css`, `fonts/` | Eczar / Teko / Tauri / EB Garamond, subsetted woff for pages, ttf twins for the PDF exporter (jsPDF from cdnjs). OFL licences in `fonts/licenses/`. |
 
 Card style: black on white with one accent — item cards deep red `#5E1622`, initiative
@@ -55,18 +56,30 @@ Decision: the site is the product; artifacts are not being carried forward unles
 
 Agreed plan, in order. Steps 1–3 cost nothing to run.
 
-1. **Cloud library (Firebase)** — Firestore for cards, Storage for art, Google sign-in.
-   Private per user (rules key everything by `uid`). Signed out = today's local library,
-   unchanged. Both tools already abstract the library backend (`Lib` with modes), so this is a
-   third mode, not a rewrite. One-time migration of the artifact libraries into the owner's
-   account. Send-to-Claude import can use Firestore instead of the artifact db.
-   *Owner to do:* create the Firebase project (Spark plan), enable Google auth, Firestore,
-   Storage; add `aamoreland87-dot.github.io` to authorized domains; hand over `firebaseConfig`.
-2. **Free tier cap** — local: unlimited. Synced: **4 items + 4 creatures** (one printed sheet
-   each). Enforced by per-user counters checked in Firestore rules (client can't bypass).
-   8 was floated as the friendlier number; it's a positioning call, one constant.
-3. **`plan` field** on the user record (`free` | `pro`) read by the rules to pick the limit.
-   Add now so upgrading is a data change.
+1. **Cloud library (Firebase)** — **built, waiting on the config** (2026-09-20). `cloud.js` is
+   the third `Lib` mode (`"cloud"`) on both site pages; `firebase-config.js` is `null` until the
+   owner pastes `firebaseConfig`, and until then nothing loads and no button shows. Data model:
+   `users/{uid}` = `{plan, creatures, items, last_creatures, last_items}`; cards in
+   `users/{uid}/creatures|items/{id}`; one picture per card in Storage at the same path, kept on
+   the card as `imageUrl`. Signed out = local library, unchanged; the two libraries are separate
+   (no automatic upload of local cards — deliberate, the cap would bite). Import in cloud mode
+   behaves like local ("Fill the card"); Send-to-Claude stays artifact-only.
+   *Owner to do:* Firebase project (Spark) → enable Google sign-in, Firestore, Storage; add
+   `aamoreland87-dot.github.io` (and `localhost`) to Auth → authorized domains; paste the config
+   into `firebase-config.js`; `firebase deploy --only firestore:rules,storage` (or paste
+   `firestore.rules` / `storage.rules` in the console); `gsutil cors set cors.json gs://<bucket>`
+   so cloud art can be drawn to the PDF canvas (without it the PDF just omits the picture).
+   *Then test:* sign in, save 4 creatures, the 5th must be refused with the "library is full"
+   toast (that's the rules working — the client check is only for the message), delete one,
+   save again, art in the PDF. Not yet done: migrating the artifact libraries into the owner's
+   account (4 creatures with art in the Initiative Cards artifact).
+2. **Free tier cap** — **in `firestore.rules`** (`limitFor`: free 4, pro 500) and mirrored in
+   `cloud.js` `LIMITS` for the friendly message. Local: unlimited. A create must arrive in a
+   batch that moves the owner's counter by +1 and names the card in `last_<kind>`; the counter
+   can only move alongside such a card — so the client can neither exceed the cap nor reset its
+   count. 8 was floated as the friendlier number; it's one constant in each file.
+3. **`plan` field** — **done**: on the user record, `free` on creation, client may never change
+   it; the rules read it to pick the limit. Upgrading is a server-side data change.
 4. **Paid tier** (only when there's demand) — Stripe Checkout; a webhook flips `plan` to
    `pro`. The webhook needs Cloud Functions (Blaze plan; still free at this volume but needs a
    card on file). Define lapse behaviour (cards stay, sync freezes at the cap), receipts, a
