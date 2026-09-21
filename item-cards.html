@@ -293,12 +293,20 @@ span.tog{display:inline-flex; align-items:center}
 .pl{display:none; align-items:center; gap:.2em; cursor:pointer; letter-spacing:0}
 .pl.on{display:inline-flex}
 .blanks .pl{display:inline-flex}
-/* In the editor an action section always shows its type glyph; ghosted until the action is in use. */
-.sec.active > .sec-cap > .pl{display:inline-flex}
-.sec.active > .sec-cap > .pl:not(.on) .pv{color:var(--ghost)}
-/* An action not in use shows only its caption row while blank fields are on; ticking its glyph opens it. */
-.blanks .sec.active.idle .range,.blanks .sec.active.idle .atr,.blanks .sec.active.idle .body{display:none !important}
-.blanks .sec.active.idle > .sec-cap > span:first-child{color:var(--ghost)}
+/* Action slots in the editor. A slot with a cost shows just that glyph (untick it to change your
+   mind); an idle slot shows the five cost boxes and hides its range, traits and write-up. */
+.sec.active .types .pl.on{display:inline-flex}
+.sec.active .types .pl.on input{display:inline-block}
+.blanks .sec.active:not(.idle) .types .pl:not(.on){display:none}
+.sec.active.idle .types .pl{display:inline-flex}
+.sec.active.idle .types .pl .pv{color:var(--ghost)}
+.sec.active.idle .types input{display:inline-block}
+.sec.active.idle .range,.sec.active.idle .atr{display:none !important}
+.sec.active.idle.empty .body{display:none !important}
+.sec.active.idle > .sec-cap > .alabel{color:var(--ghost)}
+/* the spare slot only shows while blank fields are on (a typed slot is content, so it always shows) */
+.sec.active.idle.empty{display:none}
+.blanks .sec.active.idle.empty{display:flex}
 .pl input{
   appearance:none; -webkit-appearance:none; margin:0; display:none;
   width:.85em; height:.85em; border:1px solid var(--ink-3);
@@ -759,12 +767,15 @@ span.tog{display:inline-flex; align-items:center}
      `actions:{a1:{on,text,html,range,traits},…}`; older ones one Active with the cost ticked in `c`. */
   function actionsOf(d){
     var out = [], trim = function(s){ return String(s || "").trim(); };
+    var keep = function(t, a){
+      if(t || trim(a.text) || trim(a.range) || (a.traits || []).length)
+        out.push({type:t, text:a.text || "", html:a.html || "", range:a.range || "", traits:a.traits || []});
+    };
+    /* current shape: a list of actions in card order, any number of each type */
+    if(Array.isArray(d.actions)){ d.actions.forEach(function(a){ if(a) keep(a.type || "", a); }); return out; }
+    /* the shape before: one slot per type, keyed by type */
     if(d.actions){
-      ATYPES.forEach(function(t){
-        var a = d.actions[t]; if(!a) return;
-        if(a.on || trim(a.text) || trim(a.range) || (a.traits || []).length)
-          out.push({type:t, text:a.text || "", html:a.html || "", range:a.range || "", traits:a.traits || []});
-      });
+      ATYPES.forEach(function(t){ var a = d.actions[t]; if(a && (a.on || trim(a.text) || trim(a.range) || (a.traits || []).length)) keep(t, a); });
       return out;
     }
     var types = ATYPES.filter(function(t){ return d.c && d.c[t]; });
@@ -792,22 +803,54 @@ span.tog{display:inline-flex; align-items:center}
   /* The flat fields (name, category, description…); the action sections are handled on their own. */
   function texts(){ return Array.prototype.filter.call(pane.querySelectorAll("[data-f]"), function(el){ return !el.closest(".sec.active"); }); }
   function checks(){ return Array.prototype.filter.call(pane.querySelectorAll("[data-c]"), function(el){ return !el.closest(".sec.active"); }); }
-  /* The editor's Active sections: one per action type, in ATYPES order, after Passive. */
-  function buildActionSections(){
-    ATYPES.forEach(function(t){
-      var s = document.createElement("section"); s.className = "sec active"; s.dataset.a = t;
-      s.innerHTML =
-        '<div class="sec-cap"><span>' + ALABEL[t] + '</span>' +
-          '<label class="pl" title="This item has this action"><input type="checkbox" data-c="' + t + '"><span class="pv glyph">' + ICON[t] + '</span></label>' +
-          '<span class="range"><b>Range</b> <span contenteditable class="num" data-f="range" data-ph=""></span></span>' +
-          '<span class="pick atr">' + ATRAITS.map(function(tr){ return '<label class="pl"><input type="checkbox" data-c="t-' + tr + '"><span class="pv">' + tr + '</span></label>'; }).join("") + '</span>' +
-        '</div>' +
-        '<div class="body" contenteditable data-f="active" data-ph="Frequency, trigger, and what happens when you use it."></div>';
-      cardEl.appendChild(s);
-    });
+  /* The editor's Active sections: one per action the item has, in card order, plus one spare slot
+     at the end. A slot with no type yet shows the five cost boxes; tick one and it becomes that
+     action — the other boxes go, the range, traits and write-up appear, and a fresh spare slot is
+     added below. Untick the cost and the slot goes back to the five boxes (and away, if empty). */
+  function actionSection(a){
+    a = a || {};
+    var s = document.createElement("section"); s.className = "sec active"; s.dataset.type = a.type || "";
+    s.innerHTML =
+      '<div class="sec-cap"><span class="alabel">' + ALABEL[a.type || ""] + '</span>' +
+        '<span class="pick types">' + ATYPES.map(function(t){
+          return '<label class="pl tp" title="' + ALABEL[t] + '"><input type="checkbox" data-t="' + t + '"' + (a.type === t ? ' checked' : '') + '><span class="pv glyph">' + ICON[t] + '</span></label>';
+        }).join("") + '</span>' +
+        '<span class="range"><b>Range</b> <span contenteditable class="num" data-f="range" data-ph=""></span></span>' +
+        '<span class="pick atr">' + ATRAITS.map(function(tr){ return '<label class="pl"><input type="checkbox" data-c="t-' + tr + '"' + ((a.traits || []).indexOf(tr) >= 0 ? ' checked' : '') + '><span class="pv">' + tr + '</span></label>'; }).join("") + '</span>' +
+      '</div>' +
+      '<div class="body" contenteditable data-f="active" data-ph="Frequency, trigger, and what happens when you use it."></div>';
+    var body = s.querySelector(".body");
+    if(a.html) body.innerHTML = safeHtml(a.html); else body.innerText = a.text || "";
+    s.querySelector('[data-f="range"]').innerText = a.range || "";
+    return s;
   }
-  buildActionSections();
-  function actionSecs(){ return pane.querySelectorAll(".sec.active[data-a]"); }
+  function actionSecs(){ return pane.querySelectorAll(".sec.active[data-type]"); }
+  function secEmpty(sec){
+    var content = false;
+    sec.querySelectorAll("[data-f]").forEach(function(el){ if(!isEmpty(el)) content = true; });
+    if(sec.querySelector('input[data-c^="t-"]:checked')) content = true;
+    return !content;
+  }
+  function renderActionSections(list){
+    actionSecs().forEach(function(s){ s.remove(); });
+    list.forEach(function(a){ cardEl.appendChild(actionSection(a)); });
+    ensureSpareSlot();
+  }
+  /* the last slot is always an untyped, empty one */
+  function ensureSpareSlot(){
+    var secs = actionSecs(), last = secs[secs.length - 1];
+    if(!last || last.dataset.type || !secEmpty(last)) cardEl.appendChild(actionSection());
+  }
+  /* a cost box in a slot: pick that type (only one), or untick it to clear the type */
+  function setSlotType(sec, type){
+    sec.dataset.type = type;
+    sec.querySelector(".alabel").textContent = ALABEL[type];
+    sec.querySelectorAll(".types input").forEach(function(i){ i.checked = i.dataset.t === type; });
+    var secs = actionSecs();
+    if(!type && secEmpty(sec) && sec !== secs[secs.length - 1]) sec.remove();
+    ensureSpareSlot();
+  }
+  renderActionSections([]);
   function isEmpty(el){ return el.innerText.replace(/\s+/g,"") === ""; }
   function blanksOn(){ return pane.classList.contains("blanks"); }
 
@@ -850,15 +893,15 @@ span.tog{display:inline-flex; align-items:center}
       if(RICH.indexOf(el.dataset.f) >= 0) d[el.dataset.f + "Html"] = richHtml(el);
     });
     checks().forEach(function(el){ d.c[el.dataset.c] = el.checked; });
-    /* One slot per action type; empty ones stay so the shape is stable. */
-    d.actions = {};
+    /* The actions in card order; the spare untyped slot is left out. */
+    d.actions = [];
     actionSecs().forEach(function(sec){
+      if(!sec.dataset.type && secEmpty(sec)) return;
       var body = sec.querySelector(".body"), range = sec.querySelector('[data-f="range"]');
-      d.actions[sec.dataset.a] = {
-        on:sec.querySelector('input[data-c="' + sec.dataset.a + '"]').checked,
-        text:body.innerText, html:richHtml(body), range:range.innerText,
+      d.actions.push({
+        type:sec.dataset.type, text:body.innerText, html:richHtml(body), range:range.innerText,
         traits:ATRAITS.filter(function(t){ return sec.querySelector('input[data-c="t-' + t + '"]').checked; })
-      };
+      });
     });
     return d;
   }
@@ -878,17 +921,8 @@ span.tog{display:inline-flex; align-items:center}
       else el.innerText = (v === undefined || v === null) ? "" : v;
     });
     checks().forEach(function(el){ el.checked = !!(d.c && d.c[el.dataset.c]); });
-    /* Actions: the stored slots, or an older card's single Active folded into its type (a1 if none). */
-    var byType = {};
-    if(d.actions) byType = d.actions;
-    else actionsOf(d).forEach(function(a){ byType[a.type || "a1"] = {on:true, text:a.text, html:a.html, range:a.range, traits:a.traits}; });
-    actionSecs().forEach(function(sec){
-      var a = byType[sec.dataset.a] || {}, body = sec.querySelector(".body");
-      if(a.html) body.innerHTML = safeHtml(a.html); else body.innerText = a.text || "";
-      sec.querySelector('[data-f="range"]').innerText = a.range || "";
-      sec.querySelector('input[data-c="' + sec.dataset.a + '"]').checked = !!a.on;
-      ATRAITS.forEach(function(t){ sec.querySelector('input[data-c="t-' + t + '"]').checked = (a.traits || []).indexOf(t) >= 0; });
-    });
+    /* Actions in any stored shape (list, per-type slots, or the oldest single Active) become slots. */
+    renderActionSections(actionsOf(d));
     catSel.value = d.cat || ""; if(catSel.selectedIndex < 0) catSel.value = "";
     traits = orderTraits(d.traits || splitTraits(d.traitsText));
     chg = Math.max(0, Math.min(CHG_MAX, d.chg || 0));
@@ -1164,14 +1198,10 @@ span.tog{display:inline-flex; align-items:center}
     if(document.fonts && document.fonts.ready) document.fonts.ready.then(fn);
   }
   function refresh(){
-    /* An action section with any content is that action: its type glyph switches itself on. */
+    /* An action slot without a cost yet is idle: it shows the five boxes and nothing else. */
     actionSecs().forEach(function(sec){
-      var on = sec.querySelector('input[data-c="' + sec.dataset.a + '"]');
-      var content = false;
-      sec.querySelectorAll("[data-f]").forEach(function(el){ if(!isEmpty(el)) content = true; });
-      if(sec.querySelector('input[data-c^="t-"]:checked')) content = true;
-      if(content) on.checked = true;
-      sec.classList.toggle("idle", !on.checked);
+      sec.classList.toggle("idle", !sec.dataset.type);
+      sec.classList.toggle("empty", secEmpty(sec));
       sec.querySelector(".range").classList.toggle("blank", isEmpty(sec.querySelector('[data-f="range"]')));
     });
     pane.querySelectorAll(".pl").forEach(function(l){ l.classList.toggle("on", l.querySelector("input").checked); });
@@ -1203,6 +1233,7 @@ span.tog{display:inline-flex; align-items:center}
   document.addEventListener("input", function(e){ if(e.target && e.target.isContentEditable){ refresh(); saveDraft(); } });
   document.addEventListener("change", function(e){
     var t = e.target;
+    if(t && t.dataset && t.dataset.t && t.closest(".sec.active")){ setSlotType(t.closest(".sec.active"), t.checked ? t.dataset.t : ""); refresh(); saveDraft(); return; }
     if(t === catSel || (t && t.dataset && t.dataset.c)){ refresh(); saveDraft(); }
   });
   document.addEventListener("paste", function(e){
