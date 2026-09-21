@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: Publish the current state of the Pathfinder Tools site to GitHub Pages — commit any changes, push to main, and confirm the live site updated. Run this automatically after finishing any change to the site; the user does not need to ask. Also use when the user says "deploy", "push the site", "publish my changes", or "update the website".
+description: Publish the current state of the Pathfinder Tools site to GitHub Pages — commit any changes, push to main, and confirm the live site updated. Only when the user asks ("deploy", "push the site", "publish my changes", "update the website") — never automatically after a change; work is batched locally first.
 ---
 
 # Deploy Pathfinder Tools to GitHub Pages
@@ -9,8 +9,9 @@ The site is served straight from the `main` branch of
 `aamoreland87-dot/Slappybag-s-Toolbag-for-TTRPG-Enjoyers`; pushing IS deploying.
 Live URL: https://aamoreland87-dot.github.io/Slappybag-s-Toolbag-for-TTRPG-Enjoyers/
 
-**Policy (set by the user 2026-09-20):** after completing a site change, deploy
-without asking. Every push is a permanent snapshot in GitHub's history, so any
+**Policy (revised by the user 2026-09-20):** do NOT deploy after each change. Rebuild
+locally and let the preview pane show it; deploy only when the user asks, batching the
+changes since the last push into one commit. Every push is a permanent snapshot in GitHub's history, so any
 deploy can be undone with `/rollback` — no separate backup step is needed.
 
 ## Steps
