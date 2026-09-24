@@ -1,0 +1,126 @@
+
+/* ================= the card =================
+   Same physical object as the initiative card: 2.6 x 7.8 in, folded across the middle,
+   picture on top and the stat block below, four to a landscape letter sheet. A hazard's
+   "at a glance" numbers are different from a creature's, though — no Perception, no
+   skills, no speed. In their place: Stealth and Disable (the two DCs a GM actually
+   reaches for while it's ticking), a routine of one or more triggered actions instead
+   of a skill list, and a Reset line. The stats half is laid out as a simple top-to-bottom
+   flow (not point-positioned like the creature card) and shrinks as a whole — via the
+   --hzfit zoom, set from script — if a long write-up doesn't fit at full size. Same
+   typefaces and ink as the initiative card; the accent is amber, a caution colour, the
+   third leg of the item card's red and the initiative card's blue. */
+.cardbox{
+  width:187.2pt; font-size:12pt; line-height:1.2; zoom:var(--zoom,1);
+  box-shadow:var(--shadow); font-family:var(--font-body,Georgia,serif); font-variant-numeric:lining-nums;
+  color:#000; background:#fff; --card-accent:#8A4B12;
+}
+.card{
+  position:relative; display:flex; flex-direction:column; width:187.2pt; height:561.6pt;
+  border:1pt solid #000; background:#fff; overflow:hidden; box-sizing:border-box;
+}
+.card *{box-sizing:border-box}
+.half{position:relative; width:185.2pt; height:280.8pt; flex:0 0 auto; overflow:hidden}
+.half.top{border-bottom:.6pt solid #000}
+.half.stats{border-top:.6pt solid #000; margin-top:-1.2pt}
+.cardbox.side{width:auto; display:inline-block}
+.cardbox.side .card{flex-direction:row; width:auto; height:280.8pt}
+.cardbox.side .half.top{border-bottom:none; border-right:.6pt dashed #777}
+.cardbox.side .half.stats{border-top:none; margin-top:0}
+
+/* picture half — identical behaviour to the initiative card's */
+.photo{
+  position:absolute; inset:4pt; display:flex; align-items:center; justify-content:center;
+  overflow:hidden; cursor:pointer;
+}
+.photo img{max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block; transform:scale(var(--img-scale,1))}
+.photo.flip img{transform:scale(var(--img-scale,1)) rotate(180deg)}
+.photo.has-img{cursor:default}
+.photo .ph-hint{ font-family:var(--font-caps,sans-serif);
+  font-size:7.5pt; letter-spacing:.12em; line-height:1.6; text-transform:uppercase;
+  color:#9a9a9a; text-align:center; padding:0 1em; border:1pt dashed #bbb; padding:1.2em 1em;
+}
+.photo.has-img .ph-hint{display:none}
+.photo.drop .ph-hint{border-color:#000; color:#000}
+.photo.busy{opacity:.6}
+
+/* stat half: a plain top-to-bottom flow, scaled as a whole to fit via --hzfit */
+.half.stats{padding:4pt 4.6pt 3.4pt; display:flex; flex-direction:column; overflow:hidden}
+.hzfit{zoom:var(--hzfit,1); display:flex; flex-direction:column; gap:1.8pt; width:100%}
+.fld{white-space:pre-wrap; overflow-wrap:anywhere}
+.fit{white-space:nowrap; overflow:hidden; text-overflow:clip; display:block}
+.c-name{font-family:var(--font-title,Georgia,serif); font-weight:700; font-size:14pt; line-height:15.5pt; text-align:center; color:#000}
+.hz-kicker{font-family:var(--font-caps,sans-serif); font-weight:400; font-size:6.8pt; letter-spacing:.03em; text-transform:uppercase; text-align:center; color:var(--card-accent); line-height:1.3}
+.hz-rule{background:#000; height:1.1pt; width:60%; margin:0 auto}
+
+/* AC / HP / Hardness: three equal boxes, same shield / heart glyphs as the initiative card */
+.hz-row3{display:flex; gap:1.6pt}
+.hz-box{flex:1 1 0; border:1pt solid #000; display:flex; flex-direction:column; align-items:center}
+.hz-box .hdr{width:100%; color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9pt; line-height:10pt; letter-spacing:.03em; text-align:center; border-bottom:.75pt solid var(--card-accent)}
+.hz-box .icowrap{position:relative; width:100%; flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:20pt}
+.hz-box .ico{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:20pt; height:20pt; overflow:visible}
+.hz-box .ico path{fill:none; stroke:#000; stroke-width:1.4; stroke-linejoin:round}
+.hz-box .val{position:relative; font-weight:700; font-size:14.5pt; line-height:1; text-align:center; width:88%}
+
+/* Fort / Ref / Will: one compact row, three cells */
+.hz-saves{display:flex; border:1pt solid #000}
+.hz-save{flex:1 1 0; display:flex; align-items:baseline; justify-content:center; gap:.3em; padding:1pt}
+.hz-save + .hz-save{border-left:.75pt solid #000}
+.hz-save .lbl{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9.5pt; letter-spacing:.03em}
+.hz-save .val{font-weight:700; font-size:10.5pt}
+
+/* Stealth / Disable: a caption (with the DC folded in) over one wrapped line — the same
+   component, used twice; it's the hazard's answer to the creature card's Recall info box. */
+.hz-blk{border:1pt solid #000; display:flex; flex-direction:column}
+.hz-blk .cap{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9pt; line-height:10pt; letter-spacing:.03em; padding:.8pt 3pt; border-bottom:.75pt solid #000}
+.hz-blk .body{font-size:7.4pt; line-height:8.8pt; padding:1.3pt 3pt; min-height:8.8pt}
+
+/* Actions: one or more triggered abilities, each its own paragraph — name and action-cost
+   in bold, the write-up (Trigger …; Effect …) flowing after it, exactly as a stat block reads. */
+.hz-actions{border:1pt solid #000; padding:1.3pt 3pt; display:flex; flex-direction:column; gap:1.5pt}
+.hz-act{font-size:7.4pt; line-height:8.8pt}
+.hz-act + .hz-act{border-top:.6pt dotted #999; padding-top:1.5pt}
+.hz-act .actname{font-weight:700}
+.hz-act .actcost{font-style:italic; font-weight:400}
+.hz-act .actbody{font-weight:400}
+.hz-act .actbody b{font-weight:700}
+.hz-act.spare{display:none}
+.editor .hz-act.spare{display:block; opacity:.55}
+
+.hz-reset{font-size:7pt; line-height:8.6pt; font-style:italic}
+.hz-reset b{font-style:normal; color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; letter-spacing:.02em; font-size:.92em}
+
+[contenteditable]:focus{outline:none; background:#e9edf3}
+[contenteditable]:empty::before{content:attr(data-ph); color:#b5b5b5; font-weight:400; font-size:.8em}
+.hz-blk .cap[contenteditable]:empty::before,.hz-box .hdr[contenteditable]:empty::before{color:#888}
+
+/* ================= print sheet: 4 across landscape letter ================= */
+.sheet-wrap{display:flex; flex-direction:column; align-items:center; gap:1.5rem}
+.page{
+  width:11in; height:8.5in; background:#fff; box-shadow:var(--shadow);
+  padding:.35in .3in; zoom:var(--sheet-zoom,1); box-sizing:border-box;
+  display:grid; grid-template-columns:repeat(4, 187.2pt); grid-auto-rows:561.6pt; justify-content:start; align-content:start;
+}
+.page .cardbox{zoom:1; box-shadow:none; margin:0}
+.page .slot + .slot .cardbox{margin-left:-1pt}
+.sheet-note{text-align:center; color:var(--ink-3); font-style:italic; font-size:.9rem}
+
+@page{size:letter landscape; margin:.35in .3in}
+@media print{
+  *{print-color-adjust:exact; -webkit-print-color-adjust:exact}
+  body{background:#fff; padding:0}
+  .bar,.screen-only,.picker,.scrim,.toast,.modal,#editorView,#libraryView,.sheet-note,.gsel,.gdel{display:none !important}
+  #sheetView{display:block !important; padding:0}
+  .sheet-wrap{display:block}
+  .page{width:auto; height:auto; padding:0; box-shadow:none; zoom:1; break-after:page}
+  .page:last-child{break-after:auto}
+  .photo .ph-hint{display:none}
+  [contenteditable]:empty::before{content:""}
+  .hz-act.spare{display:none !important}
+}
+
+/* immunities / resistances / weaknesses strip — identical component to the initiative card's */
+.irw{border:1pt solid #000; overflow:hidden}
+.irw-in{text-align:left; font-size:7.2pt; line-height:7.7pt; padding:1.5pt 2pt; font-weight:400; white-space:normal; overflow-wrap:anywhere}
+.irw-in b{font-family:var(--font-caps,sans-serif); font-weight:400; font-size:.85em; letter-spacing:.06em; text-transform:uppercase; color:var(--card-accent)}
+.irw-in .irwl{display:block}
