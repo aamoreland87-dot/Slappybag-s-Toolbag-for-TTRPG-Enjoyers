@@ -53,14 +53,17 @@
 .hz-kicker{font-family:var(--font-caps,sans-serif); font-weight:400; font-size:6.8pt; letter-spacing:.03em; text-transform:uppercase; text-align:center; color:var(--card-accent); line-height:1.3}
 .hz-rule{background:#000; height:1.1pt; width:60%; margin:0 auto}
 
-/* AC / HP / Hardness: three equal boxes, same shield / heart glyphs as the initiative card */
-.hz-row3{display:flex; gap:1.6pt}
-.hz-box{flex:1 1 0; border:1pt solid #000; display:flex; flex-direction:column; align-items:center}
-.hz-box .hdr{width:100%; color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9pt; line-height:10pt; letter-spacing:.03em; text-align:center; border-bottom:.75pt solid var(--card-accent)}
-.hz-box .icowrap{position:relative; width:100%; flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:20pt}
-.hz-box .ico{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:20pt; height:20pt; overflow:visible}
-.hz-box .ico path{fill:none; stroke:#000; stroke-width:1.4; stroke-linejoin:round}
-.hz-box .val{position:relative; font-weight:700; font-size:14.5pt; line-height:1; text-align:center; width:88%}
+/* AC / HP / Hardness, and Stealth / Disable: unboxed — just a caption over a big value,
+   the same shield / heart / hexagon glyphs as before, drawn larger with room for the number
+   to sit inside them. Stealth and Disable use the same row, without a glyph, and carry only
+   the DC — the rest of what they do is in the book. */
+.hz-row{display:flex; gap:2.5pt}
+.hz-box{flex:1 1 0; display:flex; flex-direction:column; align-items:center}
+.hz-box .hdr{width:86%; color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9pt; line-height:10.5pt; letter-spacing:.03em; text-align:center; border-bottom:.75pt solid var(--card-accent); margin-bottom:1pt}
+.hz-box .icowrap{position:relative; width:100%; flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:30pt}
+.hz-box .ico{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:30pt; height:30pt; overflow:visible}
+.hz-box .ico path{fill:none; stroke:#000; stroke-width:1.2; stroke-linejoin:round}
+.hz-box .val{position:relative; font-weight:700; font-size:14.5pt; line-height:1.3; text-align:center; width:62%; margin:0 auto}
 
 /* Fort / Ref / Will: one compact row, three cells */
 .hz-saves{display:flex; border:1pt solid #000}
@@ -69,30 +72,32 @@
 .hz-save .lbl{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9.5pt; letter-spacing:.03em}
 .hz-save .val{font-weight:700; font-size:10.5pt}
 
-/* Stealth / Disable: a caption (with the DC folded in) over one wrapped line — the same
-   component, used twice; it's the hazard's answer to the creature card's Recall info box. */
-.hz-blk{border:1pt solid #000; display:flex; flex-direction:column}
-.hz-blk .cap{color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9pt; line-height:10pt; letter-spacing:.03em; padding:.8pt 3pt; border-bottom:.75pt solid #000}
-.hz-blk .body{font-size:7.4pt; line-height:8.8pt; padding:1.3pt 3pt; min-height:8.8pt}
-
-/* Actions: one or more triggered abilities, each its own paragraph — name and action-cost
-   in bold, the write-up (Trigger …; Effect …) flowing after it, exactly as a stat block reads. */
-.hz-actions{border:1pt solid #000; padding:1.3pt 3pt; display:flex; flex-direction:column; gap:1.5pt}
+/* Actions: one or more triggered abilities. Each is its own panel, titled with the ability's
+   name and the action-cost glyph (the same diamond/chevron/swoosh marks as the item card,
+   right after the name); traits, if any, get their own line under it; Trigger — when the
+   ability has one — is its own small boxed line; the write-up below it is the effect, unlabelled,
+   since the panel is already named for what it does. */
+.hz-actions{border:1pt solid #000; padding:1.3pt 3pt; display:flex; flex-direction:column; gap:1.8pt}
 .hz-act{font-size:7.4pt; line-height:8.8pt}
-.hz-act + .hz-act{border-top:.6pt dotted #999; padding-top:1.5pt}
-.hz-act .actname{font-weight:700}
-.hz-act .actcost{font-style:italic; font-weight:400}
-.hz-act .actbody{font-weight:400}
-.hz-act .actbody b{font-weight:700}
+.hz-act + .hz-act{border-top:.6pt dotted #999; padding-top:1.8pt}
+.hz-act-name{font-weight:700; display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.35em}
+.hz-act-name .actname{font-weight:700}
+.hz-traits{font-weight:400; font-style:normal; color:#000; text-transform:lowercase}
+.hz-trigger{border:.6pt solid #000; padding:.7pt 2.5pt; margin:1.4pt 0; font-weight:400}
+.hz-trigger .cap{font-weight:700; font-style:italic; color:var(--card-accent); margin-right:.3em}
+.hz-act .effect{font-weight:400}
+.hz-act .effect b{font-weight:700}
 .hz-act.spare{display:none}
 .editor .hz-act.spare{display:block; opacity:.55}
+.glyph{display:inline-flex; align-items:center; vertical-align:-.15em; line-height:1; color:#000}
+.glyph svg{height:1.15em; width:auto; display:block}
 
 .hz-reset{font-size:7pt; line-height:8.6pt; font-style:italic}
 .hz-reset b{font-style:normal; color:var(--card-accent); font-family:var(--font-sub,sans-serif); font-weight:700; letter-spacing:.02em; font-size:.92em}
 
 [contenteditable]:focus{outline:none; background:#e9edf3}
 [contenteditable]:empty::before{content:attr(data-ph); color:#b5b5b5; font-weight:400; font-size:.8em}
-.hz-blk .cap[contenteditable]:empty::before,.hz-box .hdr[contenteditable]:empty::before{color:#888}
+.hz-box .hdr[contenteditable]:empty::before{color:#888}
 
 /* ================= print sheet: 4 across landscape letter ================= */
 .sheet-wrap{display:flex; flex-direction:column; align-items:center; gap:1.5rem}

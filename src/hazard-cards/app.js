@@ -5,25 +5,60 @@
   var cardbox = $("cardbox"), phFile = $("phFile");
   var ZOOMS = [.75, 1, 1.25, 1.5, 2, 2.5];
   var CARD_W = 187.2, CARD_H = 561.6, IMG_PAD = 4;
-  var FIELDS = ["name","kicker","ac","hp","hardness","fort","ref","will","stealth","disable","reset"];
+  var FIELDS = ["name","kicker","ac","hp","hardness","fort","ref","will","stealthDc","disableDc","reset"];
   var IRW = [["immune","Imm"],["resist","Res"],["weak","Weak"]];
-  var MULTI = {stealth:1, disable:1, reset:1};
-  var COST_LABEL = {reaction:"[reaction]", free:"[free action]", "1":"[one action]", "2":"[two actions]", "3":"[three actions]"};
+  var MULTI = {reset:1};
+  var COST_LABEL = {reaction:"Reaction", free:"Free action", "1":"One action", "2":"Two actions", "3":"Three actions"};
   var COSTS = [["reaction","R","Reaction"],["free","F","Free action"],["1","1","One action"],["2","2","Two actions"],["3","3","Three actions"]];
-  var ACT_KEYWORDS = ["Trigger","Effect","Requirement","Requirements","Frequency","Critical Success","Success","Failure","Critical Failure"];
+  var ATRAITS = ["move","attack","concentrate","manipulate","auditory","visual","interact"];
+  var EFFECT_KEYWORDS = ["Requirement","Requirements","Frequency","Critical Success","Success","Failure","Critical Failure"];
   var ICON = {
     shield:'<svg class="ico" viewBox="0 0 36 40" aria-hidden="true"><path d="M18,1 C23,4 30,3 36,5 L36,20 C36,31 27,37 18,40 C9,37 0,31 0,20 L0,5 C6,3 13,4 18,1 Z"/></svg>',
     heart:'<svg class="ico" viewBox="0 0 40 38" aria-hidden="true"><path d="M20,37 C12,30 0,22 0,11 C0,5 4.5,1 10,1 C14.5,1 18,3.5 20,7.5 C22,3.5 25.5,1 30,1 C35.5,1 40,5 40,11 C40,22 28,30 20,37 Z"/></svg>',
     hex:'<svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><path d="M12,2 L28,2 L38,20 L28,38 L12,38 L2,20 Z"/></svg>'
   };
+  /* action-cost glyphs — the same marks as the item card: a diamond notched with a chevron,
+     one more chevron per extra action; a hooked arrow for a reaction; a hollow diamond for free.
+     Ported from item-cards.html, with its var(--paper) cutout swapped for a flat #fff — this
+     card's paper is always white, unlike the item card's, which re-themes with the app. */
+  var COST_ICON = (function(){
+    var dot = '<polygon points="5,7.5 9.5,12 5,16.5 0.5,12" fill="currentColor"/>';
+    var chev = function(x){ return '<polyline points="' + (x + 1) + ',3 ' + (x + 10) + ',12 ' + (x + 1) + ',21" fill="none" stroke="currentColor" stroke-width="5.2" stroke-linejoin="miter" stroke-linecap="butt"/>'; };
+    var svg = function(w, body){ return '<svg viewBox="0 0 ' + w + ' 24" aria-hidden="true" focusable="false">' + body + '</svg>'; };
+    var swoosh = (function(){
+      var cx = 13, cy = 11.5, rx = 10, ry = 8.5, a0 = 215, a1 = 480, n = 48, outer = [], inner = [];
+      var f = function(v){ return Math.round(v * 100) / 100; };
+      for(var i = 0; i <= n; i++){
+        var t = i / n, a = (a0 + (a1 - a0) * t) * Math.PI / 180, w = 0.6 + 4.6 * t;
+        outer.push([f(cx + rx * Math.cos(a)), f(cy + ry * Math.sin(a))]);
+        inner.unshift([f(cx + (rx - w) * Math.cos(a)), f(cy + (ry - w) * Math.sin(a))]);
+      }
+      var ah = a1 * Math.PI / 180, w1 = 0.6 + 4.6;
+      var bx = cx + (rx - w1 / 2) * Math.cos(ah), by = cy + (ry - w1 / 2) * Math.sin(ah);
+      var dx = -rx * Math.sin(ah), dy = ry * Math.cos(ah), L = Math.hypot(dx, dy); dx /= L; dy /= L;
+      var px = -dy, py = dx, s = 4.6, len = 7;
+      var body = outer.concat(inner);
+      var head = [[f(bx + dx * len), f(by + dy * len)], [f(bx + px * s), f(by + py * s)], [f(bx - px * s), f(by - py * s)]];
+      var pts = function(a){ return a.map(function(p){ return p.join(","); }).join(" "); };
+      return '<polygon points="' + pts(body) + '" fill="currentColor"/><polygon points="' + pts(head) + '" fill="currentColor"/>';
+    })();
+    return {
+      "1":svg(23, dot + chev(10)), "2":svg(34, dot + chev(10) + chev(21)), "3":svg(45, dot + chev(10) + chev(21) + chev(32)),
+      free:svg(24, '<polygon points="12,0.5 23.5,12 12,23.5 0.5,12" fill="currentColor"/>' +
+                  '<polygon points="7.5,8.5 11,12 7.5,15.5 4,12" fill="#fff"/>' +
+                  '<polyline points="10.5,6 16.5,12 10.5,18" fill="none" stroke="#fff" stroke-width="3.4" stroke-linejoin="miter" stroke-linecap="butt"/>'),
+      reaction:svg(24, swoosh)
+    };
+  })();
+  function costGlyph(cost){ return cost && COST_ICON[cost] ? '<span class="glyph" title="' + esc(COST_LABEL[cost]) + '">' + COST_ICON[cost] + '</span>' : ""; }
 
   var EXAMPLE = {
     name:"Mindhammer Mushrooms", kicker:"Hazard 3 · Environmental Fungus · Simple",
     ac:"16", hp:"20", hardness:"", fort:"+10", ref:"+8", will:"",
-    stealth:"DC 20 (trained) to notice small animal skeletons among the mushrooms",
-    disable:"DC 20 Survival (trained) to navigate a safe path without triggering the mushrooms",
-    actions:[{name:"Psychic Blast", cost:"reaction",
-      body:"Trigger A creature walks through the mushrooms; Effect The mushrooms release a loud hum of psychic energy. The triggering creature takes 2d8+8 mental damage (DC 23 basic Will save). On a critical failure, the creature is fatigued."}],
+    stealthDc:"20", disableDc:"20",
+    actions:[{name:"Psychic Blast", cost:"reaction", traits:[],
+      trigger:"A creature walks through the mushrooms",
+      effect:"The mushrooms release a loud hum of psychic energy. The triggering creature takes 2d8+8 mental damage (DC 23 basic Will save). On a critical failure, the creature is fatigued."}],
     reset:"The mushrooms must rest for 24 hours before they can emit another Psychic Blast",
     immune:"critical hits, object immunities, precision damage", resist:"", weak:"fire 10",
     imgScale:100
@@ -36,10 +71,10 @@
       return SMALL[w.toLowerCase()] ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1);
     });
   }
-  /* keyword labels (Trigger / Effect / …) come out bold, the way a printed stat block sets them */
-  function formatActionBody(text){
+  /* keyword labels (Critical Success / Frequency / …) come out bold, the way a printed stat block sets them */
+  function formatEffect(text){
     var s = esc(text);
-    var re = new RegExp("(^|;\\s*|\\.\\s+)(" + ACT_KEYWORDS.map(function(w){ return w.replace(/ /g, "\\s+"); }).join("|") + ")\\b", "g");
+    var re = new RegExp("(^|;\\s*|\\.\\s+)(" + EFFECT_KEYWORDS.map(function(w){ return w.replace(/ /g, "\\s+"); }).join("|") + ")\\b", "g");
     return s.replace(re, function(m, pre, kw){ return pre + "<b>" + kw + "</b>"; });
   }
 
@@ -62,6 +97,9 @@
     var saves = [["Fort","fort"],["Ref","ref"],["Will","will"]].map(function(q){
       return '<div class="hz-save"><span class="lbl">' + q[0] + '</span><span class="val fld fit" data-f="' + q[1] + '"' + ce + '>' + esc(dash(d[q[1]])) + '</span></div>';
     }).join("");
+    var dcs = [["Stealth","stealthDc"],["Disable","disableDc"]].map(function(b){
+      return '<div class="hz-box"><div class="hdr">' + b[0] + '</div><div class="val fld fit" data-f="' + b[1] + '"' + ce + (edit ? ' data-ph="—"' : '') + '>' + esc(dash(d[b[1]])) + '</div></div>';
+    }).join("");
     return '<article class="card">' +
       '<div class="half top"><div class="photo' + (src ? " has-img" : "") + (flipped ? " flip" : "") + '"' + (edit ? ' id="photo"' : "") + ' style="--img-scale:' + scale + '"' + (edit ? ' tabindex="0" role="button" aria-label="Add a picture"' : '') + '>' +
         (src ? '<img alt="" src="' + esc(src) + '">' : '') +
@@ -70,36 +108,47 @@
         fld("name", "c-name fit", "Hazard name") +
         fld("kicker", "hz-kicker", "Hazard 3 · Environmental · Simple") +
         '<div class="hz-rule"></div>' +
-        '<div class="hz-row3">' + row3 + '</div>' +
+        '<div class="hz-row">' + row3 + '</div>' +
         '<div class="hz-saves">' + saves + '</div>' +
-        '<div class="hz-blk"><div class="cap">Stealth</div>' + fld("stealth", "body", "DC — to notice it") + '</div>' +
-        '<div class="hz-blk"><div class="cap">Disable</div>' + fld("disable", "body", "DC — skill, and how") + '</div>' +
+        '<div class="hz-row">' + dcs + '</div>' +
         '<div class="hz-actions"' + (edit ? ' id="actionsBlock"' : '') + '>' + actionsHtml(d.actions || [], edit) + '</div>' +
         '<div class="hz-reset"><b>Reset</b> ' + fld("reset", "", edit ? "—" : "") + '</div>' +
         '<div class="irw"><div class="irw-in">' + irwHtml(d) + '</div></div>' +
       '</div></div>' +
     '</article>';
   }
-  /* ---------------- actions: any number of triggered abilities, one spare row while editing ---------------- */
+  /* ---------------- actions: any number of triggered abilities, one spare row while editing.
+     Each is its own panel, titled with the ability's name and its action-cost glyph; traits (if
+     any) sit on their own line under that; Trigger — when it has one — is its own boxed line;
+     the effect write-up flows below, unlabelled, since the panel is already named for what it does. */
+  function traitsText(traits){ return traits.length ? "(" + traits.join(", ") + ")" : ""; }
   function actRowHtml(a, i, edit, spare){
-    a = a || {name:"", cost:"", body:""};
+    a = a || {name:"", cost:"", traits:[], trigger:"", effect:""};
     var ce = edit ? ' contenteditable="true" spellcheck="false"' : '';
-    var costLbl = COST_LABEL[a.cost || ""] || "";
-    var bodyInner = edit ? esc(a.body) : formatActionBody(a.body);
-    return '<div class="hz-act' + (spare ? " spare" : "") + '" data-i="' + i + '" data-cost="' + esc(a.cost || "") + '">' +
-      '<span class="fld actname" data-f="a' + i + 'n"' + ce + (edit ? ' data-ph="Name"' : '') + '>' + esc(a.name) + '</span> ' +
-      '<span class="actcost">' + esc(costLbl) + '</span> ' +
-      '<span class="fld actbody" data-f="a' + i + 'b"' + ce + (edit ? ' data-ph="Trigger …; Effect …"' : '') + '>' + bodyInner + '</span>' +
+    var traits = a.traits || [];
+    var traitsLine = (edit || traits.length) ? '<div class="hz-traits">' + esc(traitsText(traits)) + '</div>' : "";
+    var showTrigger = edit || a.trigger;
+    var triggerLine = showTrigger ? '<div class="hz-trigger"><span class="cap">Trigger</span><span class="fld actbody" data-f="a' + i + 't"' + ce + (edit ? ' data-ph="What sets it off"' : '') + '>' + esc(a.trigger) + '</span></div>' : "";
+    var effectInner = edit ? esc(a.effect) : formatEffect(a.effect);
+    return '<div class="hz-act' + (spare ? " spare" : "") + '" data-i="' + i + '" data-cost="' + esc(a.cost || "") + '" data-traits="' + esc(traits.join(",")) + '">' +
+      '<div class="hz-act-name"><span class="fld actname" data-f="a' + i + 'n"' + ce + (edit ? ' data-ph="Name"' : '') + '>' + esc(a.name) + '</span>' + costGlyph(a.cost) + '</div>' +
+      traitsLine + triggerLine +
+      '<div class="fld actbody effect" data-f="a' + i + 'e"' + ce + (edit ? ' data-ph="Effect — what it does"' : '') + '>' + effectInner + '</div>' +
     '</div>';
   }
   function actionsHtml(list, edit){
     var out = list.map(function(a, i){ return actRowHtml(a, i, edit, false); });
-    if(edit) out.push(actRowHtml({name:"", cost:"", body:""}, list.length, edit, true));
+    if(edit) out.push(actRowHtml({name:"", cost:"", traits:[], trigger:"", effect:""}, list.length, edit, true));
     return out.join("");
   }
   function readActions(){
     return Array.prototype.map.call(cardbox.querySelectorAll(".hz-act"), function(row){
-      return {name:textOf(row.querySelector(".actname")).trim(), cost:row.dataset.cost || "", body:textOf(row.querySelector(".actbody")).trim()};
+      var trig = row.querySelector(".hz-trigger .actbody");
+      return {
+        name:textOf(row.querySelector(".actname")).trim(), cost:row.dataset.cost || "",
+        traits:(row.dataset.traits || "").split(",").filter(Boolean),
+        trigger:trig ? textOf(trig).trim() : "", effect:textOf(row.querySelector(".effect")).trim()
+      };
     });
   }
   function renderActionsBlock(list){
@@ -110,10 +159,11 @@
   function maybeAddSpare(){
     var rows = cardbox.querySelectorAll(".hz-act"); if(!rows.length) return;
     var last = rows[rows.length - 1];
-    var has = textOf(last.querySelector(".actname")).trim() || textOf(last.querySelector(".actbody")).trim();
+    var trig = last.querySelector(".hz-trigger .actbody");
+    var has = textOf(last.querySelector(".actname")).trim() || (trig && textOf(trig).trim()) || textOf(last.querySelector(".effect")).trim();
     if(!has) return;
     var div = document.createElement("div");
-    div.innerHTML = actRowHtml({name:"", cost:"", body:""}, rows.length, true, true);
+    div.innerHTML = actRowHtml({name:"", cost:"", traits:[], trigger:"", effect:""}, rows.length, true, true);
     cardbox.querySelector("#actionsBlock").appendChild(div.firstChild);
   }
 
@@ -168,7 +218,7 @@
     var d = {imgScale:imgScale, source:source};
     FIELDS.forEach(function(f){ var el = field(f); d[f] = el ? textOf(el) : ""; });
     readIrw(d);
-    d.actions = readActions().filter(function(a){ return a.name || a.body; });
+    d.actions = readActions().filter(function(a){ return a.name || a.trigger || a.effect; });
     return d;
   }
   function saveDraft(){
@@ -181,7 +231,7 @@
     d = d || {};
     setIrw(d);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = d[f] == null ? "" : d[f]; });
-    renderActionsBlock((d.actions || []).map(function(a){ return {name:a.name || "", cost:a.cost || "", body:a.body || ""}; }));
+    renderActionsBlock((d.actions || []).map(function(a){ return {name:a.name || "", cost:a.cost || "", traits:a.traits || [], trigger:a.trigger || "", effect:a.effect || ""}; }));
     currentId = d.id || null;
     setImage({src:d.imageSrc || d.image || (d.imageId ? "/_blob/" + d.imageId : ""),
               data:d.image || "", id:d.imageId || "", meta:d.imageMeta || "", dirty:!!d.imageDirty});
@@ -221,11 +271,12 @@
   }
   function refresh(){
     fitCardBox(cardbox); renderActList();
-    var n = readActions().filter(function(a){ return a.name || a.body; }).length;
+    var n = readActions().filter(function(a){ return a.name || a.trigger || a.effect; }).length;
     $("cardNote").innerHTML = "2.6 &times; 7.8 in, folded at the middle &middot; <b>" + n + "</b> action" + (n === 1 ? "" : "s");
   }
 
-  /* ---------------- actions side panel: cost picker + remove; name/write-up stay on the card ---------------- */
+  /* ---------------- actions side panel: cost + traits pickers, and remove; name/trigger/effect
+     stay on the card itself ---------------- */
   function renderActList(){
     var box = $("actList"); box.innerHTML = "";
     readActions().forEach(function(a, i){
@@ -238,11 +289,18 @@
       });
       var name = document.createElement("span"); name.className = "aname"; name.textContent = a.name || "";
       li.appendChild(seg); li.appendChild(name);
-      if(a.name || a.body){
+      if(a.name || a.trigger || a.effect){
         var del = document.createElement("button"); del.type = "button"; del.className = "adel"; del.innerHTML = "&times;";
         del.title = "Remove action"; del.setAttribute("aria-label", "Remove action");
         li.appendChild(del);
       }
+      var traitsRow = document.createElement("div"); traitsRow.className = "atraits";
+      ATRAITS.forEach(function(t){
+        var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.trait = t;
+        b.textContent = t; b.setAttribute("aria-pressed", a.traits.indexOf(t) >= 0 ? "true" : "false");
+        traitsRow.appendChild(b);
+      });
+      li.appendChild(traitsRow);
       box.appendChild(li);
     });
   }
@@ -251,14 +309,25 @@
     var i = +li.dataset.i, rows = cardbox.querySelectorAll(".hz-act"), row = rows[i]; if(!row) return;
     if(e.target.classList.contains("adel")){
       var list = readActions(); list.splice(i, 1);
-      renderActionsBlock(list.filter(function(a){ return a.name || a.body; }));
+      renderActionsBlock(list.filter(function(a){ return a.name || a.trigger || a.effect; }));
       refresh(); saveDraft();
+      return;
+    }
+    var traitBtn = e.target.closest("button[data-trait]");
+    if(traitBtn){
+      var t = traitBtn.dataset.trait, traits = (row.dataset.traits || "").split(",").filter(Boolean), idx = traits.indexOf(t);
+      if(idx >= 0) traits.splice(idx, 1); else traits.push(t);
+      row.dataset.traits = traits.join(",");
+      var tdiv = row.querySelector(".hz-traits"); if(tdiv) tdiv.textContent = traitsText(traits);
+      fitCardBox(cardbox); renderActList(); saveDraft();
       return;
     }
     var costBtn = e.target.closest("button[data-cost]"); if(!costBtn) return;
     var c = costBtn.dataset.cost, next = (row.dataset.cost || "") === c ? "" : c;
     row.dataset.cost = next;
-    row.querySelector(".actcost").textContent = COST_LABEL[next] || "";
+    var nameDiv = row.querySelector(".hz-act-name"), oldGlyph = nameDiv.querySelector(".glyph");
+    if(oldGlyph) oldGlyph.remove();
+    var g = costGlyph(next); if(g) nameDiv.insertAdjacentHTML("beforeend", g);
     fitCardBox(cardbox); renderActList(); saveDraft();
   });
 
@@ -269,23 +338,27 @@
   document.addEventListener("input", function(e){
     if(!e.target || !e.target.isContentEditable) return;
     var f = (e.target.dataset && e.target.dataset.f) || "";
-    if(/^a\d+[nb]$/.test(f)) maybeAddSpare();
+    if(/^a\d+[nte]$/.test(f)) maybeAddSpare();
     refresh(); saveDraft();
   });
   cardbox.addEventListener("keydown", function(e){
     var t = e.target; if(!t || !t.isContentEditable) return;
     if(e.key === "Enter"){
       e.preventDefault();
-      var f = t.dataset.f || "", multi = MULTI[f] || /^a\d+b$/.test(f);
+      var f = t.dataset.f || "", multi = MULTI[f] || /^a\d+[te]$/.test(f);
       if(multi) document.execCommand("insertText", false, "\n");
       else{ var all = Array.prototype.slice.call(texts()), i = all.indexOf(t); if(all[i + 1]) all[i + 1].focus(); }
     }
   });
-  /* an emptied action row (or any interior field) is cleaned up once you leave it */
+  /* an action row emptied out (cleared by hand) is dropped once you leave it — but only rebuild
+     when something actually needs pruning, so tabbing name -> trigger -> effect within one row
+     doesn't yank focus out from under itself */
   cardbox.addEventListener("focusout", function(e){
-    var t = e.target; if(!t || !t.dataset || !/^a\d+[nb]$/.test(t.dataset.f || "")) return;
-    var list = readActions().filter(function(a){ return a.name || a.body; });
-    renderActionsBlock(list);
+    var t = e.target; if(!t || !t.dataset || !/^a\d+[nte]$/.test(t.dataset.f || "")) return;
+    var raw = readActions();
+    var needsPrune = raw.some(function(a, idx){ return idx < raw.length - 1 && !a.name && !a.trigger && !a.effect; });
+    if(!needsPrune) return;
+    renderActionsBlock(raw.filter(function(a){ return a.name || a.trigger || a.effect; }));
     refresh(); saveDraft();
   });
   function looksLikeHazardBlock(t){ return /\bHazard\s+-?\d+\b/i.test(t) && /\bAC\s+\d+/.test(t) && /\bHP\s+\d+/.test(t); }
@@ -298,7 +371,7 @@
     e.preventDefault();
     var txt = (e.clipboardData || window.clipboardData).getData("text/plain");
     if(looksLikeHazardBlock(txt)){ importText(txt, ""); return; }
-    var f = e.target.dataset.f || "", multi = MULTI[f] || /^a\d+b$/.test(f);
+    var f = e.target.dataset.f || "", multi = MULTI[f] || /^a\d+[te]$/.test(f);
     if(!multi) txt = txt.replace(/\s*\n\s*/g, " ");
     document.execCommand("insertText", false, txt);
   });
@@ -452,8 +525,8 @@
     var complexity = cLine ? cLine.replace(/^Complexity\s+/i, "").trim() : "";
     if(li >= 0) out.kicker = ["Hazard " + (out.level || "?"), typeLine, complexity].filter(Boolean).join(" · ");
     var flat = lines.join("\n");
-    if((m = /^Stealth\s+(.+)$/im.exec(flat))) out.stealth = m[1].trim();
-    if((m = /^Disable\s+(.+)$/im.exec(flat))) out.disable = m[1].trim();
+    if((m = /^Stealth\s+DC\s*(\d+)/im.exec(flat))) out.stealthDc = m[1];
+    if((m = /^Disable\s+DC\s*(\d+)/im.exec(flat))) out.disableDc = m[1];
     if((m = /^Reset\s+(.+)$/im.exec(flat))) out.reset = m[1].trim();
     if((m = /\bAC\s+(\d+)/.exec(flat))) out.ac = m[1];
     if((m = /\bHardness\s+(\d+)/i.exec(flat))) out.hardness = m[1];
@@ -475,24 +548,33 @@
       var mm = q[1].exec(hpLine); if(mm) out[q[0]] = abbr(mm[1]);
     });
     var costMap = {"reaction":"reaction","free action":"free","one action":"1","two actions":"2","three actions":"3","single action":"1"};
-    var actionRe = /^(.*?)\s*\[([^\]]+)\]\s*(.*)$/;
+    var actionRe = /^(.*?)\s*\[([^\]]+)\]\s*(?:\(([^)]+)\)\s*)?(.*)$/;
     lines.forEach(function(l){
       var mm = actionRe.exec(l); if(!mm) return;
       var key = mm[2].trim().toLowerCase(); if(!(key in costMap)) return;
-      out.actions.push({name:mm[1].trim(), cost:costMap[key], body:mm[3].trim()});
+      var traits = mm[3] ? mm[3].split(",").map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean) : [];
+      var rest = mm[4].trim(), trigger = "", effect = rest;
+      var tm = /^Trigger\s+(.*?);\s*Effect\s+(.*)$/is.exec(rest);
+      if(tm){ trigger = tm[1].trim(); effect = tm[2].trim(); }
+      else{
+        var tm2 = /^Trigger\s+(.*)$/is.exec(rest);
+        if(tm2){ trigger = tm2[1].trim(); effect = ""; }
+        else{ var em = /^Effect\s+(.*)$/is.exec(rest); if(em) effect = em[1].trim(); }
+      }
+      out.actions.push({name:mm[1].trim(), cost:costMap[key], traits:traits, trigger:trigger, effect:effect});
     });
     return out;
   }
   function importText(text, link){
     var p = parseHazardText(text);
-    var got = ["name","ac","hp","stealth","disable"].filter(function(f){ return p[f]; });
+    var got = ["name","ac","hp","stealthDc","disableDc"].filter(function(f){ return p[f]; });
     if(!got.length && !p.actions.length){ toast("No hazard stat block found in that text", 4000); return false; }
     setIrw(p);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = p[f] || ""; });
     renderActionsBlock(p.actions.length ? p.actions : []);
     if(link) setSource(link);
     refresh(); saveDraft();
-    var missing = ["name","ac","hp","stealth","disable"].filter(function(f){ return !p[f]; });
+    var missing = ["name","ac","hp","stealthDc","disableDc"].filter(function(f){ return !p[f]; });
     toast(missing.length ? "Filled the card — still needs " + missing.join(", ") : "Filled the card from the stat block", 4000);
     return true;
   }
