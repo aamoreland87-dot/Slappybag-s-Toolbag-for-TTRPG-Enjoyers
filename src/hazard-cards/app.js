@@ -637,11 +637,30 @@
   Lib.remove = function(id){ Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; }); Lib.writeLocal(); Lib.emit(); };
   Lib.start = function(){ Lib.cards = Lib.readLocal(); Lib.emit(); $("status").innerHTML = "Library: <b>this device</b>"; };
 
-  $("saveCard").addEventListener("click", function(){
+  /* Save opens a preview first — the same rendering the Library uses, not the editor's
+     contenteditable one — so what gets saved is what you'll actually see there. */
+  var previewModal = $("previewModal"), previewCard = $("previewCard");
+  function cardForSave(){
     var card = collect();
     card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
-    currentId = Lib.save(card, currentId);
-    saveDraft(); toast("Saved to library");
+    return card;
+  }
+  function openPreview(){
+    previewCard.innerHTML = "";
+    previewCard.appendChild(renderCard(cardForSave()));
+    fitRendered(previewCard);
+    previewModal.hidden = false; scrim.hidden = false;
+    $("previewSave").focus();
+  }
+  function closePreview(){ previewModal.hidden = true; scrim.hidden = true; }
+  $("saveCard").addEventListener("click", openPreview);
+  $("previewCancel").addEventListener("click", closePreview);
+  $("previewSave").addEventListener("click", function(){
+    currentId = Lib.save(cardForSave(), currentId);
+    saveDraft();
+    closePreview();
+    toast("Saved to library");
+    showView("library");
   });
 
   /* ---------------- library view ---------------- */
@@ -784,8 +803,12 @@
     else toast("Could not open a new tab here — try Print instead", 5000);
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); });
-  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closePreview(); });
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    if(!printModal.hidden) closePrintModal();
+    if(!previewModal.hidden) closePreview();
+  });
   window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
   window.addEventListener("beforeprint", renderSheet);
 

@@ -125,6 +125,17 @@
 <div class="scrim" id="scrim" hidden></div>
 <div class="toast hide" id="toast"></div>
 
+<section class="modal" id="previewModal" hidden role="dialog" aria-label="Save this hazard">
+  <h3>This is how it'll look</h3>
+  <p>Same picture you'll see in the Library.</p>
+  <div class="preview-card" id="previewCard"></div>
+  <div class="modal-row">
+    <button class="btn" id="previewCancel">Keep editing</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="previewSave">Save to library</button>
+  </div>
+</section>
+
 <section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
   <h3 id="printTitle">Your sheet is ready</h3>
   <p id="printMsg">Print it (choose “Save as PDF” in the print dialog), or open it as a web page first. Letter size, landscape, four cards per page. Cut along the shared lines and fold each card across the middle.</p>

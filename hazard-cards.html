@@ -82,7 +82,10 @@
 .hz-actions{border:1pt solid #000; padding:1.3pt 3pt; display:flex; flex-direction:column; gap:1.8pt}
 .hz-act{font-size:7.4pt; line-height:8.8pt}
 .hz-act + .hz-act{border-top:.6pt dotted #999; padding-top:1.8pt}
-.hz-act-name{font-weight:700; display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.35em}
+/* the action's name reads as a headline, like AC / Stealth / Reset: Teko, accent, centred over
+   the panel. The cost glyph sits inline with it — plain inline flow, not flex, so its
+   vertical-align actually does something (a flex row ignores it and floats the icon too high). */
+.hz-act-name{font-family:var(--font-sub,sans-serif); font-weight:700; font-size:9.5pt; letter-spacing:.03em; color:var(--card-accent); text-align:center}
 .hz-act-name .actname{font-weight:700}
 .hz-traits{font-weight:400; font-style:normal; color:#000; text-transform:lowercase}
 .hz-trigger{border:.6pt solid #000; padding:.7pt 2.5pt; margin:1.4pt 0; font-weight:400}
@@ -91,7 +94,7 @@
 .hz-act .effect b{font-weight:700}
 .hz-act.spare{display:none}
 .editor .hz-act.spare{display:block; opacity:.55}
-.glyph{display:inline-flex; align-items:center; vertical-align:-.15em; line-height:1; color:#000}
+.glyph{display:inline-flex; align-items:center; vertical-align:-.32em; line-height:1; margin-left:.35em}
 .glyph svg{height:1.15em; width:auto; display:block}
 
 .hz-reset{font-size:7pt; line-height:8.6pt; font-style:italic}
@@ -271,6 +274,8 @@ span.tog{display:inline-flex; align-items:center}
 .modal .big{display:inline-block; text-decoration:none; padding:.55rem 1rem; font-size:.95rem}
 .modal-row{display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.9rem}
 .modal-row .grow{flex:1 1 1rem}
+.preview-card{display:flex; justify-content:center; margin:.3rem 0 .9rem}
+.preview-card .cardbox{--zoom:.62; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.10); margin:0 auto}
 .toast{
   position:fixed; left:50%; bottom:calc(1.2rem + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:40;
   background:var(--ink); color:var(--paper); padding:.5rem .9rem; border-radius:2px;
@@ -458,6 +463,17 @@ span.tog{display:inline-flex; align-items:center}
 
 <div class="scrim" id="scrim" hidden></div>
 <div class="toast hide" id="toast"></div>
+
+<section class="modal" id="previewModal" hidden role="dialog" aria-label="Save this hazard">
+  <h3>This is how it'll look</h3>
+  <p>Same picture you'll see in the Library.</p>
+  <div class="preview-card" id="previewCard"></div>
+  <div class="modal-row">
+    <button class="btn" id="previewCancel">Keep editing</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="previewSave">Save to library</button>
+  </div>
+</section>
 
 <section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
   <h3 id="printTitle">Your sheet is ready</h3>
@@ -1125,11 +1141,30 @@ span.tog{display:inline-flex; align-items:center}
   Lib.remove = function(id){ Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; }); Lib.writeLocal(); Lib.emit(); };
   Lib.start = function(){ Lib.cards = Lib.readLocal(); Lib.emit(); $("status").innerHTML = "Library: <b>this device</b>"; };
 
-  $("saveCard").addEventListener("click", function(){
+  /* Save opens a preview first — the same rendering the Library uses, not the editor's
+     contenteditable one — so what gets saved is what you'll actually see there. */
+  var previewModal = $("previewModal"), previewCard = $("previewCard");
+  function cardForSave(){
     var card = collect();
     card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
-    currentId = Lib.save(card, currentId);
-    saveDraft(); toast("Saved to library");
+    return card;
+  }
+  function openPreview(){
+    previewCard.innerHTML = "";
+    previewCard.appendChild(renderCard(cardForSave()));
+    fitRendered(previewCard);
+    previewModal.hidden = false; scrim.hidden = false;
+    $("previewSave").focus();
+  }
+  function closePreview(){ previewModal.hidden = true; scrim.hidden = true; }
+  $("saveCard").addEventListener("click", openPreview);
+  $("previewCancel").addEventListener("click", closePreview);
+  $("previewSave").addEventListener("click", function(){
+    currentId = Lib.save(cardForSave(), currentId);
+    saveDraft();
+    closePreview();
+    toast("Saved to library");
+    showView("library");
   });
 
   /* ---------------- library view ---------------- */
@@ -1272,8 +1307,12 @@ span.tog{display:inline-flex; align-items:center}
     else toast("Could not open a new tab here — try Print instead", 5000);
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); });
-  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closePreview(); });
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    if(!printModal.hidden) closePrintModal();
+    if(!previewModal.hidden) closePreview();
+  });
   window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
   window.addEventListener("beforeprint", renderSheet);
 
