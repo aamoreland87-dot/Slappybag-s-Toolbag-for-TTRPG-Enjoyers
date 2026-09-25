@@ -23,12 +23,16 @@ cards deep blue `#16325E` — Eczar names, Teko captions, Tauri small labels, EB
 **Libraries today** live in each browser's `localStorage` (per device). PDF export is the
 durable copy.
 
-**The claude.ai artifacts** (older, kept for their synced libraries):
-- Initiative Cards — https://claude.ai/artifact/UEWvCUM2xWWmtdoP2aBpP2 — current (v28, same source).
+**The claude.ai artifacts** (kept for their synced libraries). Since 2026-09-25 all three are built
+from the site sources on `main` and republished whenever the user asks them to match:
+- Initiative Cards — https://claude.ai/artifact/UEWvCUM2xWWmtdoP2aBpP2 — `src/initiative-cards/build.sh artifact`.
   Holds 4 creatures with art in its `db`/`assets`. Import there queues a link and pings Claude.
-- PF2E Item Generator — https://claude.ai/artifact/DYFN4NWai9Cq8YMJ5rt9Qq — **stale** (pre-font,
-  one action per type). Its page and the repo's `item-cards.html` have diverged.
-Decision: the site is the product; artifacts are not being carried forward unless someone asks.
+- PF2E Item Generator — https://claude.ai/artifact/DYFN4NWai9Cq8YMJ5rt9Qq — `src/item-cards/build-artifact.sh`,
+  then copy to `G:\My Drive\TTRPGs\Pathfinder\Gatewalkers\Items\.sync\app.html` and publish that
+  (an hourly job mirrors its library to 4×5 PDFs using the card code it lifts out of that file).
+- Hazard Cards — https://claude.ai/artifact/LMxUYsTeuiDPHyHSyqk193 — `src/hazard-cards/build.sh artifact`.
+  Library is per-browser (no db) for now, same as the site.
+The site is still the product; the artifacts follow it.
 
 ## Creature import (the feature that makes the site worth using)
 

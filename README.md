@@ -11,6 +11,7 @@ typefaces, also fetched by the PDF exporter) and jsPDF from a CDN for PDF export
 | `initiative-cards.html` | Creature / NPC initiative card builder |
 | `fonts.css`, `fonts/` | Typefaces standing in for Paizo's: Eczar (titles), Teko (subheads), Tauri (small headers), EB Garamond (body). Subsetted `.woff` for the pages, `.ttf` twins for the PDF exporter. All SIL OFL; licenses in `fonts/licenses/`. |
 | `src/initiative-cards/` | Source of `initiative-cards.html` — don't edit the built page. Edit the parts and run `bash src/initiative-cards/build.sh` (site page) or `bash src/initiative-cards/build.sh artifact` (the claude.ai artifact copy, with the fonts embedded). |
+| `src/item-cards/build-artifact.sh` | Builds the claude.ai artifact copy of `item-cards.html` (typefaces embedded, no Toolbag nav) into `src/item-cards/artifact.html`. The item page has no parts — edit it directly, then rebuild. |
 
 ## Running locally
 
