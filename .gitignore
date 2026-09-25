@@ -8,3 +8,5 @@ Thumbs.db
 _pdftest.html
 src/initiative-cards/artifact.html
 .published.sha
+src/hazard-cards/artifact.html
+src/item-cards/artifact.html
