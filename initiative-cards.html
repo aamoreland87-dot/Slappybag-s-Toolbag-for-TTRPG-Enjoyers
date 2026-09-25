@@ -266,6 +266,8 @@ span.tog{display:inline-flex; align-items:center}
 .modal .big{display:inline-block; text-decoration:none; padding:.55rem 1rem; font-size:.95rem}
 .modal-row{display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.9rem}
 .modal-row .grow{flex:1 1 1rem}
+.preview-card{display:flex; justify-content:center; margin:.3rem 0 .9rem}
+.preview-card .cardbox{--zoom:.62; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.10); margin:0 auto}
 .toast{
   position:fixed; left:50%; bottom:calc(1.2rem + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:40;
   background:var(--ink); color:var(--paper); padding:.5rem .9rem; border-radius:2px;
@@ -487,6 +489,17 @@ span.tog{display:inline-flex; align-items:center}
 
 <div class="scrim" id="scrim" hidden></div>
 <div class="toast hide" id="toast"></div>
+
+<section class="modal" id="previewModal" hidden role="dialog" aria-label="Save this creature">
+  <h3>This is how it'll look</h3>
+  <p>Same picture you'll see in the Library.</p>
+  <div class="preview-card" id="previewCard"></div>
+  <div class="modal-row">
+    <button class="btn" id="previewCancel">Keep editing</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="previewSave">Save to library</button>
+  </div>
+</section>
 
 <section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
   <h3 id="printTitle">Your sheet is ready</h3>
@@ -1705,7 +1718,24 @@ span.tog{display:inline-flex; align-items:center}
   }
   function errText(e){ if(!e) return "unknown"; return (e.code ? e.code + " " : "") + (e.message || ""); }
 
-  $("saveCard").addEventListener("click", function(){
+  /* Save opens a preview first — the same rendering the Library uses, not the editor's
+     contenteditable one — so what gets saved is what you'll actually see there. */
+  var previewModal = $("previewModal"), previewCard = $("previewCard");
+  function openPreview(){
+    var card = collect();
+    card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
+    previewCard.innerHTML = "";
+    previewCard.appendChild(renderCard(card));
+    previewModal.hidden = false; $("scrim").hidden = false;
+    fitAll(previewCard);
+    $("previewSave").focus();
+  }
+  function closePreview(){ previewModal.hidden = true; $("scrim").hidden = true; }
+  $("saveCard").addEventListener("click", openPreview);
+  $("previewCancel").addEventListener("click", closePreview);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !previewModal.hidden) closePreview(); });
+
+  $("previewSave").addEventListener("click", function(){
     var btn = this; btn.disabled = true;
     var card = collect();
     var note = "";
@@ -1737,7 +1767,7 @@ span.tog{display:inline-flex; align-items:center}
       card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
     }
     p.then(function(){ return Lib.save(card, currentId); })
-     .then(function(id){ currentId = id; saveDraft(); toast("Saved to library" + note); })
+     .then(function(id){ currentId = id; saveDraft(); closePreview(); toast("Saved to library" + note); showView("library"); })
      .catch(function(e){ toast("Save failed: " + errText(e), 5000); console.error("save", e); if(Lib.mode === "cloud" && isNew){ Cloud.removeArt(currentId); currentId = null; } })
      .then(function(){ btn.disabled = false; });
   });
@@ -2156,7 +2186,7 @@ span.tog{display:inline-flex; align-items:center}
       .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e), 6000); });
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); closePreview(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
   (function waitDl(n){
     if(window.claude && window.claude.use){ claude.use("downloads").then(function(d){ dlNs = d; }).catch(function(){}); }

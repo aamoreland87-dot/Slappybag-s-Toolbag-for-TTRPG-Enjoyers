@@ -1165,7 +1165,24 @@
   }
   function errText(e){ if(!e) return "unknown"; return (e.code ? e.code + " " : "") + (e.message || ""); }
 
-  $("saveCard").addEventListener("click", function(){
+  /* Save opens a preview first — the same rendering the Library uses, not the editor's
+     contenteditable one — so what gets saved is what you'll actually see there. */
+  var previewModal = $("previewModal"), previewCard = $("previewCard");
+  function openPreview(){
+    var card = collect();
+    card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
+    previewCard.innerHTML = "";
+    previewCard.appendChild(renderCard(card));
+    previewModal.hidden = false; $("scrim").hidden = false;
+    fitAll(previewCard);
+    $("previewSave").focus();
+  }
+  function closePreview(){ previewModal.hidden = true; $("scrim").hidden = true; }
+  $("saveCard").addEventListener("click", openPreview);
+  $("previewCancel").addEventListener("click", closePreview);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !previewModal.hidden) closePreview(); });
+
+  $("previewSave").addEventListener("click", function(){
     var btn = this; btn.disabled = true;
     var card = collect();
     var note = "";
@@ -1197,7 +1214,7 @@
       card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
     }
     p.then(function(){ return Lib.save(card, currentId); })
-     .then(function(id){ currentId = id; saveDraft(); toast("Saved to library" + note); })
+     .then(function(id){ currentId = id; saveDraft(); closePreview(); toast("Saved to library" + note); showView("library"); })
      .catch(function(e){ toast("Save failed: " + errText(e), 5000); console.error("save", e); if(Lib.mode === "cloud" && isNew){ Cloud.removeArt(currentId); currentId = null; } })
      .then(function(){ btn.disabled = false; });
   });
@@ -1616,7 +1633,7 @@
       .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e), 6000); });
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); closePreview(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
   (function waitDl(n){
     if(window.claude && window.claude.use){ claude.use("downloads").then(function(d){ dlNs = d; }).catch(function(){}); }
