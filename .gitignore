@@ -9,3 +9,5 @@ _pdftest.html
 src/initiative-cards/artifact.html
 .published.sha
 _frametest/
+src/hazard-cards/artifact.html
+src/item-cards/artifact.html

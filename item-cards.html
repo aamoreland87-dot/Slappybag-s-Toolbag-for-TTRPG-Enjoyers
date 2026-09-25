@@ -1623,13 +1623,16 @@ span.tog{display:inline-flex; align-items:center}
   var PT = 0.75;                                  /* px -> pt */
   var INK = [0, 0, 0], INK2 = [51, 51, 51], INK3 = [102, 102, 102], ACCENT = [94, 22, 34], RULE = [119, 119, 119];
   var fontsLoaded = false, fontData = null;
-  /* The same files fonts.css uses, as base64 for jsPDF. Fetched once, on first export. */
+  /* The same files fonts.css uses, as base64 for jsPDF. The site fetches them from fonts/ on the
+     first export; the artifact build carries them inline in #pdfFonts. */
   var FONT_FILES = {
     body:"ebgaramond-400.ttf", bodyBold:"ebgaramond-600.ttf", bodyItalic:"ebgaramond-400i.ttf", bodyBoldItalic:"ebgaramond-600.ttf",   /* the set has no 600 italic: bold italic prints bold */
     title:"eczar-700.ttf", sub:"teko-700.ttf", caps:"tauri-400.ttf"
   };
   function loadFontData(){
     if(fontData) return Promise.resolve(fontData);
+    var raw = $("pdfFonts");
+    if(raw){ fontData = JSON.parse(raw.textContent); return Promise.resolve(fontData); }
     var keys = Object.keys(FONT_FILES);
     return Promise.all(keys.map(function(k){
       return fetch("fonts/" + FONT_FILES[k]).then(function(r){ if(!r.ok) throw new Error(r.status + " " + FONT_FILES[k]); return r.arrayBuffer(); })
@@ -1965,7 +1968,7 @@ span.tog{display:inline-flex; align-items:center}
 
   /* fonts.css, with its relative url()s made absolute, for documents that live at blob: URLs */
   var fontsCssText = "";
-  fetch("fonts.css").then(function(r){ return r.ok ? r.text() : ""; }).then(function(t){ fontsCssText = t; }).catch(function(){});
+  if(!$("pdfFonts")) fetch("fonts.css").then(function(r){ return r.ok ? r.text() : ""; }).then(function(t){ fontsCssText = t; }).catch(function(){});
   function fontsCssAbs(){
     var base = new URL(".", location.href).href;
     return fontsCssText.replace(/url\((["']?)(?![a-z]+:)/g, function(m, q){ return "url(" + q + base; });
