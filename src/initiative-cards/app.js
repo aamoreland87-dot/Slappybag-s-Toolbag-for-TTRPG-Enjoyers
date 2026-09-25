@@ -45,6 +45,7 @@
     W:187.2, H:561.6, HALF:280.8,
     name:{x:4, y:4, w:177.2, h:18, size:15},
     rule:{x:24, y:24.5, w:139.2, h:2},
+    traits:{x:6, y:22.6, w:175.2, h:8.4, size:6.6},   /* the line under the name; it takes the rule's band when the creature has traits */
     hdr:{y:31, h:15.5, w:48, xs:[5, 69.6], size:10.4},   /* the Speed header is centred over whichever frame is in use */
     shield:{x:10.4, y:50, w:36, h:40, path:"M18,1 C23,4 30,3 36,5 L36,20 C36,31 27,37 18,40 C9,37 0,31 0,20 L0,5 C6,3 13,4 18,1 Z"},
     heart:{x:73.6, y:51, w:40, h:38, path:"M20,37 C12,30 0,22 0,11 C0,5 4.5,1 10,1 C14.5,1 18,3.5 20,7.5 C22,3.5 25.5,1 30,1 C35.5,1 40,5 40,11 C40,22 28,30 20,37 Z"},
@@ -103,6 +104,7 @@
     var src = d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : "");
     var scale = (d.imgScale || 100) / 100;
     var sp = normSpeeds(d), sg = placeSpeeds(sp).g;   /* the speed frame is sized to the number of speeds */
+    var tl = normTraits(d);
     var s = G.skills, sv = G.saves, p = G.per, r = G.rec;
     var skills = "";
     for(var i = 0; i < NSK; i++){
@@ -117,7 +119,10 @@
         (edit ? '<span class="ph-hint">Drop picture<br>or tap</span>' : '') + '</div></div>' +
       '<div class="half stats">' +
         fld("name", "c-name fit", "Creature name", " " + pos(G.name.x, G.name.y, G.name.w, G.name.h)) +
-        '<div class="rule" ' + pos(G.rule.x, G.rule.y, G.rule.w, G.rule.h) + '></div>' +
+        (tl.length
+          ? '<div class="traits fit"' + (edit ? ' id="traitLine" tabindex="0" role="button" aria-label="Edit traits"' : '') + ' ' + pos(G.traits.x, G.traits.y, G.traits.w, G.traits.h) + '>' + traitsHtml(tl) + '</div>'
+          : '<div class="rule" ' + pos(G.rule.x, G.rule.y, G.rule.w, G.rule.h) + '></div>' +
+            (edit ? '<div class="traits add" id="traitLine" tabindex="0" role="button" aria-label="Add traits" ' + pos(G.traits.x, G.traits.y, G.traits.w, G.traits.h) + '>+ traits</div>' : '')) +
         ["AC","HP","Speed"].map(function(t, k){ return '<div class="hdr" ' + pos(G.hdr.xs.concat(sg.hdrX)[k], G.hdr.y, G.hdr.w, G.hdr.h) + '>' + t + '</div>'; }).join("") +
         ico(G.shield, "shield") + ico(G.heart, "heart") + ico(sg, "speed") +
         fld("ac", "big fit", "", " " + pos(G.shield.x, G.shield.y + 7, G.shield.w, 26)) +
@@ -135,6 +140,49 @@
         (showIrw ? '<div class="irw" ' + pos(G.irw.x, G.irw.y, G.irw.w, G.irw.h) + '><div class="irw-in">' +
           irwHtml(d) + '</div></div>' : '') +
       '</div></article>';
+  }
+  /* ---------------- traits: the line under the creature's name ----------------
+     Stored as a list of names in print order — rarity, size, legacy alignment, then types, which is
+     the order a stat block uses. TRAIT_DATA (traits.js) carries the vocabulary and, per trait, the
+     companions it most often appears with, so the picker can suggest from what is already chosen. */
+  var TRAIT_KIND = {}, TRAIT_ALL = [], TRAIT_GROUPS = [];
+  (function(){
+    if(typeof TRAIT_DATA === "undefined") return;
+    TRAIT_DATA.order.split(",").forEach(function(k){
+      var list = (TRAIT_DATA[k] || "").split(",").filter(Boolean);
+      list.forEach(function(t){ TRAIT_KIND[t.toLowerCase()] = k; });
+      TRAIT_GROUPS.push({k:k, label:{r:"Rarity", s:"Size", a:"Alignment (legacy)", t:"Type"}[k] || k, list:list});
+      TRAIT_ALL = TRAIT_ALL.concat(list);
+    });
+  })();
+  var TRAIT_CANON = {}; TRAIT_ALL.forEach(function(t){ TRAIT_CANON[t.toLowerCase()] = t; });
+  function traitName(t){ return TRAIT_CANON[String(t).toLowerCase()] || titleCase(String(t)); }
+  function traitRank(t){ var k = TRAIT_KIND[String(t).toLowerCase()] || "t"; return "rsat".indexOf(k); }
+  /* rarity, size, alignment, then types; within a group, the order they were added */
+  function sortTraits(list){
+    var seen = {}, out = [];
+    list.forEach(function(t){ var n = traitName(t); if(n && !seen[n.toLowerCase()]){ seen[n.toLowerCase()] = 1; out.push(n); } });
+    return out.map(function(t, i){ return {t:t, i:i}; })
+      .sort(function(a, b){ return (traitRank(a.t) - traitRank(b.t)) || (a.i - b.i); })
+      .map(function(x){ return x.t; });
+  }
+  function normTraits(d){ return sortTraits(Array.isArray(d.traits) ? d.traits : []); }
+  function traitsHtml(list){
+    return list.map(function(t){ return '<span class="tr">' + esc(t) + '</span>'; }).join('<span class="sep">|</span>');
+  }
+  /* Suggestions: every companion of a chosen trait, scored by how strongly it goes with it, with the
+     common traits as the fallback when nothing is chosen yet. Already-chosen traits drop out. */
+  function traitSuggestions(have){
+    var near = (typeof TRAIT_DATA !== "undefined" && TRAIT_DATA.near) || {}, score = {};
+    have.forEach(function(t){
+      (near[traitName(t)] || "").split(",").filter(Boolean).forEach(function(c, i){
+        score[c] = (score[c] || 0) + (10 - i);
+      });
+    });
+    var out = Object.keys(score).sort(function(a, b){ return score[b] - score[a] || TRAIT_ALL.indexOf(a) - TRAIT_ALL.indexOf(b); });
+    if(!have.length) out = TRAIT_ALL.slice(0, 24);
+    var lower = have.map(function(t){ return t.toLowerCase(); });
+    return out.filter(function(t){ return lower.indexOf(t.toLowerCase()) < 0; }).slice(0, 14);
   }
   /* ---------------- speeds: [{t:"fly", v:"40"}], land first, then the others in SPEEDS order ---------------- */
   /* ---------------- speeds: [{t:"fly", v:"40"}], land first, then the others in SPEEDS order ---------------- */
@@ -273,6 +321,72 @@
   }
 
   /* ---------------- sense picker: a sheet of chips, like the item card's traits ---------------- */
+  /* ---------------- the trait picker ---------------- */
+  var traitPicker = $("traitPicker"), traitSearch = $("traitSearch"), cardTraits = [];
+  function readTraits(){ return cardTraits.slice(); }
+  function renderTraits(list){
+    cardTraits = sortTraits(list);
+    var line = cardbox.querySelector(".traits");
+    if(line){
+      line.className = "traits" + (cardTraits.length ? " fit" : " add");
+      line.innerHTML = cardTraits.length ? traitsHtml(cardTraits) : "+ traits";
+    }
+    var rule = cardbox.querySelector(".rule"); if(rule) rule.style.visibility = cardTraits.length ? "hidden" : "";
+    fitAll(cardbox);
+  }
+  function traitChip(t, on){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip" + (on ? " on" : ""); b.dataset.trait = t; b.textContent = t;
+    return b;
+  }
+  function renderTraitPicker(){
+    var q = traitSearch.value.trim().toLowerCase(), have = readTraits();
+    var has = function(t){ return have.some(function(s){ return s.toLowerCase() === t.toLowerCase(); }); };
+    var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
+    var sel = $("traitSel"); sel.innerHTML = "";
+    have.forEach(function(t){ sel.appendChild(traitChip(t, true)); });
+    var sug = $("traitSug"); sug.innerHTML = "";
+    traitSuggestions(have).forEach(function(t){ if(match(t)) sug.appendChild(traitChip(t, has(t))); });
+    $("traitSugLabel").textContent = have.length ? "Often seen with " + have[have.length - 1] : "Common traits";
+    var wrap = $("traitAllWrap"); wrap.innerHTML = "";
+    TRAIT_GROUPS.forEach(function(g){
+      var hits = g.list.filter(match); if(!hits.length) return;
+      var lab = document.createElement("span"); lab.className = "bar-label"; lab.textContent = g.label; wrap.appendChild(lab);
+      var box = document.createElement("div"); box.className = "chips";
+      hits.forEach(function(t){ box.appendChild(traitChip(t, has(t))); });
+      wrap.appendChild(box);
+    });
+  }
+  function toggleTrait(t){
+    var list = readTraits(), i = -1;
+    list.forEach(function(s, k){ if(s.toLowerCase() === t.toLowerCase()) i = k; });
+    /* one rarity and one size at a time — picking a second replaces the first */
+    if(i >= 0) list.splice(i, 1);
+    else{
+      var k = TRAIT_KIND[t.toLowerCase()];
+      if(k === "r" || k === "s" || k === "a") list = list.filter(function(s){ return TRAIT_KIND[s.toLowerCase()] !== k; });
+      list.push(traitName(t));
+    }
+    renderTraits(list); refresh(); saveDraft(); renderTraitPicker();
+  }
+  function openTraitPicker(){ traitSearch.value = ""; renderTraitPicker(); traitPicker.hidden = false; $("scrim").hidden = false; if(window.innerWidth > 760) traitSearch.focus(); }
+  function closeTraitPicker(){ traitPicker.hidden = true; $("scrim").hidden = true; }
+  cardbox.addEventListener("click", function(e){ if(e.target.closest("#traitLine")) openTraitPicker(); });
+  cardbox.addEventListener("keydown", function(e){ if(e.target.id === "traitLine" && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openTraitPicker(); } });
+  $("traitBtn").addEventListener("click", openTraitPicker);
+  $("traitPickerDone").addEventListener("click", closeTraitPicker);
+  traitPicker.addEventListener("click", function(e){ var t = e.target.dataset && e.target.dataset.trait; if(t && e.target.tagName === "BUTTON") toggleTrait(t); });
+  traitSearch.addEventListener("input", renderTraitPicker);
+  traitSearch.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ closeTraitPicker(); return; }
+    if(e.key !== "Enter") return;
+    e.preventDefault();
+    var q = traitSearch.value.trim(); if(!q) return;
+    var hit = TRAIT_ALL.filter(function(t){ return t.toLowerCase() === q.toLowerCase(); })[0]
+           || TRAIT_ALL.filter(function(t){ return t.toLowerCase().indexOf(q.toLowerCase()) === 0; })[0];
+    toggleTrait(hit || titleCase(q));
+    traitSearch.value = ""; renderTraitPicker();
+  });
   var sensePicker = $("sensePicker"), senseSearch = $("senseSearch");
   function senseChip(s, on){
     var b = document.createElement("button");
@@ -328,6 +442,8 @@
     senseSearch.value = ""; renderSensePicker();
   });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !sensePicker.hidden) closeSensePicker(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !traitPicker.hidden) closeTraitPicker(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !traitPicker.hidden) closeTraitPicker(); });
   /* The checklist mirrors the card: a ticked type is a row on the card, and its number is the row's value. */
   function renderSpeedList(){
     var box = $("spdList"); if(!box) return;
@@ -388,7 +504,7 @@
   function collect(){
     var d = {skills:[], imgScale:imgScale, source:source};
     FIELDS.forEach(function(f){ var el = field(f); d[f] = el ? textOf(el) : ""; });
-    d.speeds = readSpeeds(); d.senses = readSenses(); readIrw(d);
+    d.speeds = readSpeeds(); d.senses = readSenses(); d.traits = readTraits(); readIrw(d);
     d.skills = readSkills();
     while(d.skills.length && !d.skills[d.skills.length - 1].n && !d.skills[d.skills.length - 1].m) d.skills.pop();
     return d;
@@ -403,7 +519,7 @@
     d = d || {};
     setIrw(d);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = d[f] == null ? "" : d[f]; });
-    renderSpeeds(normSpeeds(d)); renderSenses(normSenses(d));
+    renderSpeeds(normSpeeds(d)); renderSenses(normSenses(d)); renderTraits(normTraits(d));
     writeSkills(sortSkills((d.skills || []).map(function(s){ return {n:(s && s.n) || "", m:(s && s.m) || ""}; })));
     currentId = d.id || null;
     setImage({src:d.imageSrc || d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : ""),
@@ -814,6 +930,8 @@
     var pi = -1;
     for(var k = 0; k < lines.length; k++){ if(/^Perception\s+[+-]?\s*\d/i.test(lines[k])){ pi = k; break; } }
     var traitWords = (li >= 0 && pi > li ? lines.slice(li + 1, pi).join(" ") : "").toLowerCase().split(/[^a-z-]+/);
+    /* the same words, matched against the trait vocabulary, become the card's trait line */
+    out.traits = sortTraits(traitWords.map(function(w){ return TRAIT_CANON[w]; }).filter(Boolean));
     if(pi >= 0){
       m = /^Perception\s+([+-]?)\s*(\d+)\s*;?\s*(.*)$/i.exec(lines[pi]); m = [m[0], m[1] + m[2], m[3]];
       out.per = (m[1][0] === "-" ? "" : "+") + parseInt(m[1], 10);
@@ -875,7 +993,7 @@
     if(!got.length && !p.skills.length){ toast("No stat block found in that text", 4000); return false; }
     setIrw(p);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = p[f] || ""; });
-    writeSkills(sortSkills(p.skills)); renderSpeeds(p.speeds || []); renderSenses(p.senses || []);
+    writeSkills(sortSkills(p.skills)); renderSpeeds(p.speeds || []); renderSenses(p.senses || []); renderTraits(p.traits || []);
     if(link) setSource(link);
     refresh(); saveDraft();
     var missing = ["name","ac","hp","speeds","fort","ref","will","per","recall"].filter(function(f){ return !p[f]; });
@@ -1411,9 +1529,21 @@
       pdf.addImage(im.data, "PNG", X + 1 + G.img.pad + (bw - w) / 2, Y + 1 + G.img.pad + (bh - h) / 2, w, h, undefined, "FAST");
     }
     var oy = G.HALF, showIrw = true, oy2 = oy;
-    /* name and rule */
+    /* name, then either the trait line or the plain rule under it */
     centred(d.name, G.name.x, G.name.w, oy + G.name.y + 14, G.name.size, "Serif");
-    rect(G.rule.x, oy + G.rule.y, G.rule.w, G.rule.h, "F");
+    var tl2 = normTraits(d);
+    if(tl2.length){
+      var tg = G.traits, tsz = tg.size;
+      font("normal", tsz, "Caps");
+      var wOf = function(size){ font("normal", size, "Caps"); return tl2.reduce(function(a, t){ return a + tw(t.toUpperCase()); }, 0) + tw(" | ") * (tl2.length - 1); };
+      for(var ts = 1; ts >= 0.6 && wOf(tsz) > tg.w; ts -= 0.05) tsz = tg.size * ts;
+      var tx2 = tg.x + (tg.w - wOf(tsz)) / 2, tbase = oy + tg.y + tg.h * 0.5 + tsz * 0.35;
+      tl2.forEach(function(t, k){
+        if(k){ ink(); font("normal", tsz, "Caps"); text(" | ", tx2, tbase); tx2 += tw(" | "); }
+        accent(); font("normal", tsz, "Caps"); text(t.toUpperCase(), tx2, tbase); tx2 += tw(t.toUpperCase());
+      });
+      ink();
+    }else rect(G.rule.x, oy + G.rule.y, G.rule.w, G.rule.h, "F");
     /* AC / HP / Speed headers — the Speed one sits over whichever frame the speed count calls for */
     var spl = placeSpeeds(normSpeeds(d)), sg = spl.g;
     ["AC","HP","Speed"].forEach(function(t, k){
@@ -1633,7 +1763,7 @@
       .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e), 6000); });
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); closePreview(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); closeTraitPicker(); closePreview(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
   (function waitDl(n){
     if(window.claude && window.claude.use){ claude.use("downloads").then(function(d){ dlNs = d; }).catch(function(){}); }

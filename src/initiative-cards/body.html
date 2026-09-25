@@ -8,6 +8,7 @@
         <summary title="Switch tool"><h1>Initiative Cards <span class="sub">&middot; PF2e</span></h1></summary>
         <ul class="menu">
           <li><a href="item-cards.html">Item Cards</a></li>
+          <li><a href="feat-cards.html">Feat Cards</a></li>
           <li><a href="initiative-cards.html" aria-current="page">Initiative Cards</a></li>
           <li><a href="hazard-cards.html">Hazard Cards</a></li>
           <li class="all"><a href="index.html">All tools</a></li>
@@ -96,6 +97,11 @@
       <span class="bar-label">Speeds</span>
       <ul class="splist" id="spdList"></ul>
       <span class="hint">Tick every movement type the creature has and type its speed. Each type gets its own icon on the card: foot, wing, shovel, ladder, fin.</span>
+    </div>
+    <div class="tool-row">
+      <span class="bar-label">Traits</span>
+      <button class="btn" id="traitBtn">Choose traits</button>
+      <span class="hint">Or click the line under the creature&rsquo;s name. Imports fill it in; suggestions follow what you have already picked.</span>
     </div>
     <div class="tool-row">
       <span class="bar-label">Senses</span>
@@ -195,4 +201,20 @@
     <span class="bar-label">All senses</span>
     <div class="chips" id="senseAll"></div>
   </div>
+</section>
+
+<section class="picker" id="traitPicker" hidden role="dialog" aria-label="Traits">
+  <div class="picker-head">
+    <input type="search" id="traitSearch" placeholder="Search traits, or type your own and press Enter" autocomplete="off">
+    <button class="btn solid" id="traitPickerDone">Done</button>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">On the card</span>
+    <div class="chips" id="traitSel"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label" id="traitSugLabel">Common traits</span>
+    <div class="chips" id="traitSug"></div>
+  </div>
+  <div class="picker-group" id="traitAllWrap"></div>
 </section>

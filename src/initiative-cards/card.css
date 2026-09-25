@@ -130,3 +130,11 @@
 .spv{display:inline-block; min-width:1em; text-align:center}
 
 .spv[contenteditable]:empty::before{content:"0"; color:#b5b5b5; font-weight:400}
+
+/* traits: the stat-block line under the name — rarity, size, then types, like the item card's line */
+.traits{display:flex; align-items:center; justify-content:center; gap:.3em; font-family:var(--font-caps,sans-serif);
+  font-size:6.6pt; line-height:1; letter-spacing:.06em; text-transform:uppercase; color:var(--card-accent); white-space:nowrap; overflow:hidden}
+.traits .sep{color:#000}
+.editor .traits{cursor:pointer}
+.editor .traits:hover{background:#e9edf3}
+.traits.add{color:#b5b5b5; font-style:italic; letter-spacing:.04em; text-transform:none}
