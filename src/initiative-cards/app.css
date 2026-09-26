@@ -230,3 +230,13 @@ span.tog{display:inline-flex; align-items:center}
 .row-chip:hover .x{color:var(--accent)}
 .add-row select,.add-row input[type="text"]{font:inherit; font-size:.85rem; padding:.22rem .35rem; border:1px solid var(--rule); border-radius:2px; background:var(--paper,#fff); color:var(--ink)}
 .add-row input[type="text"]{min-width:0}
+
+/* Picture and Speeds on the left, Imm / Res / Weak stacked on the right */
+.tool-split{display:grid; grid-template-columns:minmax(0,1fr) minmax(13rem,18rem); gap:.7rem 1.4rem; align-items:start}
+.tool-col{display:flex; flex-direction:column; gap:.7rem; min-width:0}
+.irw-row.tool-col{flex-wrap:nowrap; align-items:stretch; gap:.45rem; padding-left:1.2rem; border-left:1px solid var(--rule)}
+.irw-row.tool-col .field{flex:none; min-width:0; align-items:stretch}
+@media (max-width:760px){
+  .tool-split{grid-template-columns:1fr}
+  .irw-row.tool-col{padding-left:0; border-left:0}
+}

@@ -45,6 +45,25 @@
     melee:"M10,0 L9.6,2.2 L4.1,7.7 L2.3,5.9 L7.8,0.4 Z M0.9,5.1 L1.8,4.2 L5.8,8.2 L4.9,9.1 Z M2.1,7.1 L2.9,7.9 L0.8,10 L0,9.2 Z",
     ranged:"M2.2,0.2 C8.4,1.4 8.4,8.6 2.2,9.8 L2.2,8.6 C6.8,7.5 6.8,2.5 2.2,1.4 Z M1.6,0.8 L2.3,0.8 L2.3,9.2 L1.6,9.2 Z M0,4.7 L8.6,4.7 L8.6,4 L10,5 L8.6,6 L8.6,5.3 L0,5.3 Z"
   };
+  /* The reaction mark, the same swoosh the item, feat and hazard cards draw: a band along three
+     quarters of an ellipse, thin at the tail, thick at the head, head pointing left. 24-unit box,
+     kept as one path so the screen and the PDF draw the same shape. It sits in the modifier box. */
+  var SWOOSH = (function(){
+    var cx = 13, cy = 11.5, rx = 10, ry = 8.5, a0 = 215, a1 = 480, n = 48, outer = [], inner = [];
+    var f = function(v){ return Math.round(v * 100) / 100; };
+    for(var i = 0; i <= n; i++){
+      var t = i / n, a = (a0 + (a1 - a0) * t) * Math.PI / 180, w = 0.6 + 4.6 * t;
+      outer.push([f(cx + rx * Math.cos(a)), f(cy + ry * Math.sin(a))]);
+      inner.unshift([f(cx + (rx - w) * Math.cos(a)), f(cy + (ry - w) * Math.sin(a))]);
+    }
+    var ah = a1 * Math.PI / 180, w1 = 0.6 + 4.6;
+    var bx = cx + (rx - w1 / 2) * Math.cos(ah), by = cy + (ry - w1 / 2) * Math.sin(ah);
+    var dx = -rx * Math.sin(ah), dy = ry * Math.cos(ah), L = Math.hypot(dx, dy); dx /= L; dy /= L;
+    var px = -dy, py = dx, s = 4.6, len = 7;
+    var head = [[f(bx + dx * len), f(by + dy * len)], [f(bx + px * s), f(by + py * s)], [f(bx - px * s), f(by - py * s)]];
+    var d = function(pts){ return "M" + pts.map(function(p){ return p.join(","); }).join(" L") + " Z"; };
+    return d(outer.concat(inner)) + " " + d(head);
+  })();
   var SPICO = {
     land:"M0.6,8.4 L0.6,3.2 C0.6,2.3 1.2,1.7 2.1,1.7 L3.1,1.7 C3.9,1.8 4.5,2.4 4.8,3.2 C5.4,4.8 6.9,5.6 8.5,6.3 C9.4,6.7 9.8,7.2 9.8,7.9 L9.8,8.4 Z M0.6,8.75 L9.8,8.75 L9.8,10 L4.2,10 L4.2,9.45 L2.7,9.45 L2.7,10 L0.6,10 Z",
     fly:"M0,9.2 C0.8,4.2 4,1 10,0.4 C8.6,1.9 7.6,3 6.7,3.7 L8.8,3.5 C7.7,4.9 6.5,5.7 5.3,6.1 L7.1,6.3 C5.6,7.8 3.6,8.9 0,9.2 Z",
@@ -197,11 +216,14 @@
   }
   function rowHtml(e, i, edit){
     var ce = edit ? ' contenteditable="true" spellcheck="false"' : '';
-    var mark = e.k === "reaction" || e.k === "action"
+    var mark = e.k === "action"
       ? '<svg class="rico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + (ACTICO[e.c] || ACTICO["1"]) + '"/></svg>'
       : (rowLabel(e) ? '<span class="rlvl">' + rowLabel(e) + '</span>' : "");
     var mod = '<span class="fld fit m" data-f="sk' + i + 'm"' + ce + '>' + esc(e.m) + '</span>';
-    if(e.k === "action" && ATKICO[e.a])
+    if(e.k === "reaction")
+      mod = '<span class="mbox rx" title="Reaction">' +
+        '<svg class="rxico" viewBox="0 0 24 24" aria-hidden="true"><path d="' + SWOOSH + '"/></svg>' + mod + '</span>';
+    else if(e.k === "action" && ATKICO[e.a])
       mod = '<span class="mbox atk" title="' + (e.a === "ranged" ? "Ranged" : "Melee") + ' Strike">' +
         '<svg class="aico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + ATKICO[e.a] + '"/></svg>' + mod + '</span>';
     return '<div class="sk' + (e.k !== "skill" ? " ex" : "") + '">' +
@@ -708,7 +730,7 @@
     $("phMeta").textContent = img.meta || "Drop an image on the picture half, or paste one.";
   }
   function refresh(){
-    fitAll(cardbox); renderChips(); renderSpeedList();
+    fitAll(cardbox); renderSkillOptions(); renderSpeedList();
     var n = Math.min(NSK, readRows().length);
     $("cardNote").innerHTML = "2.6 &times; 7.8 in, folded at the middle &middot; <b>" + n + "</b> of " + NSK + " rows used";
   }
@@ -899,25 +921,6 @@
   window.addEventListener("dragover", function(e){ if(hasFile(e)) e.preventDefault(); });
   window.addEventListener("drop", function(e){ if(hasFile(e)) e.preventDefault(); });
 
-  /* skill chips: toggles. On = the skill is on the card; click again to take it off.
-     Rows are kept alphabetical, standard skills first and lores after them. */
-  var chips = $("skillChips");
-  var isLore = function(n){ return /^l(ore)?\s*:/i.test(n || ""); };
-  function sortSkills(list){
-    var rows = list.filter(function(s){ return s.n || s.m; });
-    /* lores read "L: Name" however they were typed */
-    rows.forEach(function(s){ var m = /^l(ore)?\s*:\s*(.*)$/i.exec(s.n || ""); if(m) s.n = "L: " + m[2].trim(); });
-    var key = function(s){ return (isLore(s.n) ? "1" : s.n ? "0" : "2") + (s.n || "").toLowerCase() + (s.m ? " 0" : " 1"); };
-    rows.sort(function(a, b){ return key(a).localeCompare(key(b)); });
-    /* a skill listed twice keeps the row that has a mod */
-    var seen = {};
-    return rows.filter(function(s){
-      var k = (s.n || "").toLowerCase(); if(!k) return true;
-      if(seen[k] && !s.m) return false;
-      seen[k] = 1; return true;
-    });
-  }
-  /* A name that ends in a space (a fresh "L: ") keeps it as a no-break space, so the caret sits after it. */
   /* The nine rows on the card are a view of `shownRows`; anything past them waits in `hiddenRows`
      and is listed in the rows panel. Editing a row's text edits the entry it came from. */
   var shownRows = [], hiddenRows = [];
@@ -945,7 +948,6 @@
   }
   function readSkills(){ return readRows().filter(function(e){ return e.k === "skill"; }).map(function(e){ return {n:e.n, m:e.m}; }); }
   function readExtras(){ return readRows().filter(function(e){ return e.k !== "skill"; }); }
-  function writeSkills(rows){ setRows(cardRows({skills:rows, extras:readExtras()})); }
   function sortRows(){ setRows(cardRows({skills:readSkills(), extras:readExtras()})); }
   /* The rows panel: what is on the card, in order, and what did not fit. */
   var ROW_LABEL = {reaction:"Reaction", action:"Action", spell:"Spell", skill:"Skill"};
@@ -977,75 +979,58 @@
   }
   $("rowList").addEventListener("click", function(e){ var b = e.target.closest(".row-chip"); if(b) dropRow(+b.dataset.row); });
   $("rowExtra").addEventListener("click", function(e){ var b = e.target.closest(".row-chip"); if(b) dropRow(+b.dataset.row); });
-  /* Add a row by hand: a reaction, an action, a melee or ranged Strike, a spell at a rank, or a skill.
-     It drops into its place in the order like an imported one. */
+  /* Add a row: a series of dropdowns — the kind, then what that kind needs (actions, spell rank, or
+     which skill) — then the name and bonus. The row drops into its place in the order. Skills already
+     on the card carry a tick, and picking one again replaces its bonus; Lore asks for its subject and prints as "L: Subject". */
   ORD.forEach(function(o, i){ var op = document.createElement("option"); op.value = i + 1; op.textContent = o + " rank"; $("arRank").appendChild(op); });
+  SKILLS.concat(["Lore"]).forEach(function(s){ var op = document.createElement("option"); op.value = s; op.textContent = s === "Lore" ? "Lore…" : s; $("arSkill").appendChild(op); });
+  function renderSkillOptions(){
+    var have = {};
+    readSkills().forEach(function(s){ have[String(s.n).toLowerCase()] = 1; });
+    Array.prototype.forEach.call($("arSkill").options, function(op){
+      var on = op.value !== "Lore" && have[op.value.toLowerCase()];
+      op.textContent = (op.value === "Lore" ? "Lore…" : op.value) + (on ? " ✓" : "");
+    });
+  }
   function arKindChanged(){
-    var k = $("arKind").value;
-    $("arCost").hidden = k === "reaction" || k === "spell" || k === "skill";
+    var k = $("arKind").value, skill = k === "skill", lore = skill && $("arSkill").value === "Lore";
+    $("arCost").hidden = k !== "action" && k !== "melee" && k !== "ranged";
     $("arRank").hidden = k !== "spell";
+    $("arSkill").hidden = !skill;
+    $("arName").hidden = skill && !lore;
+    $("arName").placeholder = lore ? "Lore subject" : k === "melee" || k === "ranged" ? "Weapon" : "Name";
     $("arMod").placeholder = k === "spell" ? "DC 20" : k === "reaction" || k === "action" ? "(optional)" : "+12";
   }
-  $("arKind").addEventListener("change", arKindChanged); arKindChanged();
+  $("arKind").addEventListener("change", arKindChanged);
+  $("arSkill").addEventListener("change", arKindChanged);
+  renderSkillOptions(); arKindChanged();
   function addRow(){
     var k = $("arKind").value, n = $("arName").value.trim(), m = $("arMod").value.trim();
+    if(k === "skill"){
+      var sk = $("arSkill").value;
+      if(sk === "Lore"){ if(!n){ $("arName").focus(); return; } n = "L: " + n.replace(/^l(ore)?\s*:\s*/i, "").replace(/\s+lore$/i, ""); }
+      else n = sk;
+    }
     if(!n){ $("arName").focus(); return; }
     if(/^\d/.test(m) && k !== "spell") m = "+" + m;
     var all = readRows(), e;
-    if(k === "skill") e = {k:"skill", n:n, m:m, c:"", lvl:0, a:""};
+    if(k === "skill"){
+      /* a skill already on the card just takes the new bonus */
+      all = all.filter(function(r){ return !(r.k === "skill" && r.n.toLowerCase() === n.toLowerCase()); });
+      e = {k:"skill", n:n, m:m, c:"", lvl:0, a:""};
+    }
     else if(k === "spell") e = {k:"spell", n:n, m:m, c:"", lvl:+$("arRank").value || 1, a:""};
     else if(k === "reaction") e = {k:"reaction", n:n, m:m, c:"reaction", lvl:0, a:""};
     else e = {k:"action", n:n, m:m, c:$("arCost").value, lvl:0, a:k === "melee" || k === "ranged" ? k : ""};
     all.push(e);
     setRows(cardRows({skills:all.filter(function(r){ return r.k === "skill"; }),
                       extras:all.filter(function(r){ return r.k !== "skill"; })}));
-    $("arName").value = ""; $("arMod").value = ""; $("arName").focus();
-    refresh(); saveDraft();
+    $("arName").value = ""; $("arMod").value = "";
+    refresh(); saveDraft(); arKindChanged();
+    ($("arName").hidden ? $("arMod") : $("arName")).focus();
   }
   $("arAdd").addEventListener("click", addRow);
   [$("arName"), $("arMod")].forEach(function(el){ el.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); addRow(); } }); });
-  function rowOf(name){
-    for(var i = 0; i < NSK; i++) if(textOf(field("sk" + i + "n")).trim().toLowerCase() === name.trim().toLowerCase()) return i;
-    return -1;
-  }
-  SKILLS.concat(["Lore"]).forEach(function(s){
-    var b = document.createElement("button"); b.type = "button"; b.className = "chip" + (s === "Lore" ? " lore" : "");
-    b.textContent = s === "Lore" ? "+ Lore" : s; b.dataset.skill = s; b.setAttribute("aria-pressed", "false"); chips.appendChild(b);
-  });
-  function renderChips(){
-    chips.querySelectorAll(".chip").forEach(function(b){
-      var on = b.dataset.skill !== "Lore" && rowOf(b.dataset.skill) >= 0;
-      b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
-    });
-  }
-  chips.addEventListener("mousedown", function(e){ if(e.target.dataset && e.target.dataset.skill) e.preventDefault(); });
-  chips.addEventListener("click", function(e){
-    var s = e.target.dataset && e.target.dataset.skill; if(!s) return;
-    var rows = readSkills(), focusName = "", focusMod = false;
-    if(s === "Lore"){
-      /* a fresh lore line, or the empty one already there */
-      var blank = rows.filter(function(r){ return /^l(ore)?\s*:\s*$/i.test(r.n); })[0];
-      if(!blank){
-        if(rows.filter(function(r){ return r.n || r.m; }).length >= NSK){ toast("All " + NSK + " skill rows are full"); return; }
-        blank = {n:"L: ", m:""}; rows.push(blank);
-      }
-      focusName = blank.n;
-    }else{
-      var hit = rows.filter(function(r){ return r.n.toLowerCase() === s.toLowerCase(); })[0];
-      if(hit){ hit.n = ""; hit.m = ""; }
-      else{
-        if(rows.filter(function(r){ return r.n || r.m; }).length >= NSK){ toast("All " + NSK + " skill rows are full"); return; }
-        rows.push({n:s, m:""}); focusName = s; focusMod = true;
-      }
-    }
-    writeSkills(sortSkills(rows));
-    refresh(); saveDraft();
-    if(focusName){
-      var i = rowOf(focusName); if(i < 0) return;
-      var el = field("sk" + i + (focusMod ? "m" : "n")); el.focus();
-      var sel = window.getSelection(), rng = document.createRange(); rng.selectNodeContents(el); rng.collapse(false); sel.removeAllRanges(); sel.addRange(rng);
-    }
-  });
   /* Typed names fall into place once you leave the field. */
   cardbox.addEventListener("focusout", function(e){
     var t = e.target; if(!t || !t.dataset || !/^sk\d+[nm]$/.test(t.dataset.f || "")) return;
@@ -1766,7 +1751,7 @@
     for(var i = 1; i < s.n; i++) line(bx, oy2 + s.y + i * s.rowH, bx + s.boxW, oy2 + s.y + i * s.rowH, 0.75);
     cardRows(d).slice(0, s.n).forEach(function(sk, k){
       var base = oy2 + s.y + k * s.rowH + s.baseline;
-      var lvl = sk.k === "spell" ? rowLabel(sk) : "", glyph = (sk.k === "reaction" || sk.k === "action") ? (ACTICO[sk.c] || ACTICO["1"]) : "";
+      var lvl = sk.k === "spell" ? rowLabel(sk) : "", glyph = sk.k === "action" ? (ACTICO[sk.c] || ACTICO["1"]) : "";
       if(sk.n){
         var mark = glyph ? s.size * 0.78 + s.size * 0.25 : 0;
         if(lvl){ font("normal", s.size * 0.62, "Caps"); mark = tw(lvl) + s.size * 0.25; }
@@ -1784,7 +1769,17 @@
         }
         font("bold", sz); text(sk.n, s.x + s.labelW, base, {align:"right"});
       }
-      if(sk.k === "action" && ATKICO[sk.a] && sk.m){
+      if(sk.k === "reaction"){
+        /* the swoosh fills the box; a reaction with a bonus or DC keeps it beside the swoosh */
+        var rw = s.size * (sk.m ? 0.62 : 0.85), rg = sk.m ? s.size * 0.06 : 0, rsz = sk.m ? fit(sk.m, s.boxW - 2 - rw - rg, s.size) : s.size;
+        if(sk.m){ rw *= rsz / s.size; rg *= rsz / s.size; }
+        var rx0 = bx + (s.boxW - (sk.m ? tw(sk.m) : 0) - rw - rg) / 2, rmid = oy2 + s.y + k * s.rowH + s.rowH / 2;
+        accent();
+        pathSegs(SWOOSH).forEach(function(p){
+          pdf.lines(p.segs, X + rx0 + p.start[0] * rw / 24, Y + rmid - rw / 2 + p.start[1] * rw / 24, [rw / 24, rw / 24], "F", true);
+        });
+        ink(); if(sk.m){ font("bold", rsz); text(sk.m, rx0 + rw + rg, base); }
+      }else if(sk.k === "action" && ATKICO[sk.a] && sk.m){
         /* the sword or bow, then the bonus, centred together in the box */
         var aw = s.size * 0.55, ag = s.size * 0.04, msz = fit(sk.m, s.boxW - 2 - aw - ag, s.size);
         aw *= msz / s.size; ag *= msz / s.size;
