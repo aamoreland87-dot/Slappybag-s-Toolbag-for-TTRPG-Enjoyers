@@ -45,9 +45,11 @@
     melee:"M10,0 L9.6,2.2 L4.1,7.7 L2.3,5.9 L7.8,0.4 Z M0.9,5.1 L1.8,4.2 L5.8,8.2 L4.9,9.1 Z M2.1,7.1 L2.9,7.9 L0.8,10 L0,9.2 Z",
     ranged:"M2.2,0.2 C8.4,1.4 8.4,8.6 2.2,9.8 L2.2,8.6 C6.8,7.5 6.8,2.5 2.2,1.4 Z M1.6,0.8 L2.3,0.8 L2.3,9.2 L1.6,9.2 Z M0,4.7 L8.6,4.7 L8.6,4 L10,5 L8.6,6 L8.6,5.3 L0,5.3 Z"
   };
+  /* a heater shield, for a defensive reaction's box */
+  var SHIELD = "M5,0.3 L9.3,1.7 C9.3,6.1 7.6,8.5 5,9.7 C2.4,8.5 0.7,6.1 0.7,1.7 Z";
   /* The reaction mark, the same swoosh the item, feat and hazard cards draw: a band along three
      quarters of an ellipse, thin at the tail, thick at the head, head pointing left. 24-unit box,
-     kept as one path so the screen and the PDF draw the same shape. It sits in the modifier box. */
+     kept as one path so the screen and the PDF draw the same shape. It sits in front of the name. */
   var SWOOSH = (function(){
     var cx = 13, cy = 11.5, rx = 10, ry = 8.5, a0 = 215, a1 = 480, n = 48, outer = [], inner = [];
     var f = function(v){ return Math.round(v * 100) / 100; };
@@ -184,16 +186,35 @@
   function oldAttacks(d){
     return (Array.isArray(d.attacks) ? d.attacks : []).map(function(a){
       if(!a) return null;
-      if(a.k === "reaction") return {k:"reaction", c:"reaction", n:a.n || "Reaction", m:"", lvl:0};
-      if(a.k === "melee" || a.k === "ranged") return {k:"action", c:"1", n:"Strike" + (a.dmg ? " " + a.dmg : ""), m:a.hit || "", lvl:0, a:a.k};
+      if(a.k === "reaction") return {k:"reaction", c:"reaction", n:a.n || "Reaction", m:"", lvl:0, a:a.role === "def" ? "def" : "off"};
+      if(a.k === "melee" || a.k === "ranged") return {k:"action", c:"1", n:"Strike", m:a.hit || "", lvl:0, a:a.k, d:diceOf(a.dmg)};
       return null;
     }).filter(Boolean);
   }
+  /* the dice a row prints between its name and its box: just the NdX, e.g. "4d6" out of "4d6+8 fire" */
+  function diceOf(s){ var q = /(\d+)\s*d\s*(\d+)/i.exec(String(s || "")); return q ? q[1] + "d" + q[2] : ""; }
+  /* a reaction with no stance given: defensive if its name reads like one, offensive otherwise */
+  function reactStance(n){ return /shield|block|deflect|parry|dodge|ward|guard|wriggle|evade|retreat|protect|brace|sidestep|avoid|escape/i.test(n || "") ? "def" : "off"; }
   function normExtras(d){
     return (Array.isArray(d.extras) ? d.extras : oldAttacks(d)).map(function(e){
-      return {k:(e && e.k) || "action", n:(e && e.n) || "", m:(e && e.m) || "", c:(e && e.c) || "", lvl:+(e && e.lvl) || 0,
-              a:e && ATKICO[e.a] ? e.a : ""};
+      e = e || {};
+      var k = e.k || "action";
+      var a = k === "reaction" ? (e.a === "def" || e.a === "off" ? e.a : reactStance(e.n))
+            : k === "action" && (e.a === "melee" || e.a === "ranged") ? e.a : "";
+      return {k:k, n:e.n || "", m:e.m || "", c:e.c || "", lvl:+e.lvl || 0, a:a,
+              d:k === "action" || k === "reaction" ? diceOf(e.d) : ""};
     }).filter(function(e){ return e.n || e.m; });
+  }
+  /* what sits in a row's box beside the bonus: a bow or sword on a Strike, a sword (offensive) or
+     shield (defensive) on a reaction. All in 10-unit boxes. */
+  function boxIcon(e){
+    if(e.k === "reaction") return e.a === "def" ? SHIELD : ATKICO.melee;
+    if(e.k === "action" && ATKICO[e.a]) return ATKICO[e.a];
+    return "";
+  }
+  function boxTitle(e){
+    if(e.k === "reaction") return e.a === "def" ? "Defensive reaction" : "Offensive reaction";
+    return e.a === "ranged" ? "Ranged Strike" : "Melee Strike";
   }
   function modNum(m){ var v = parseFloat(String(m || "").replace(/[^0-9+-.]/g, "")); return isNaN(v) ? -999 : v; }
   /* the whole list in print order; the first NSK are the ones the card has room for */
@@ -216,18 +237,21 @@
   }
   function rowHtml(e, i, edit){
     var ce = edit ? ' contenteditable="true" spellcheck="false"' : '';
+    /* before the name: the action diamonds, the reaction swoosh, or a spell's rank */
     var mark = e.k === "action"
       ? '<svg class="rico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + (ACTICO[e.c] || ACTICO["1"]) + '"/></svg>'
+      : e.k === "reaction"
+      ? '<svg class="rico" viewBox="0 0 24 24" aria-hidden="true"><path d="' + SWOOSH + '"/></svg>'
       : (rowLabel(e) ? '<span class="rlvl">' + rowLabel(e) + '</span>' : "");
+    /* after the name, before the box: the damage dice */
+    var dice = e.d ? '<span class="rdice">' + esc(e.d) + '</span>' : "";
     var mod = '<span class="fld fit m" data-f="sk' + i + 'm"' + ce + '>' + esc(e.m) + '</span>';
-    if(e.k === "reaction")
-      mod = '<span class="mbox rx" title="Reaction">' +
-        '<svg class="rxico" viewBox="0 0 24 24" aria-hidden="true"><path d="' + SWOOSH + '"/></svg>' + mod + '</span>';
-    else if(e.k === "action" && ATKICO[e.a])
-      mod = '<span class="mbox atk" title="' + (e.a === "ranged" ? "Ranged" : "Melee") + ' Strike">' +
-        '<svg class="aico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + ATKICO[e.a] + '"/></svg>' + mod + '</span>';
-    return '<div class="sk' + (e.k !== "skill" ? " ex" : "") + '">' +
-      '<span class="ncell">' + mark + '<span class="fld fit n" data-f="sk' + i + 'n"' + ce + (edit ? ' data-ph="skill"' : '') + '>' + esc(e.n) + '</span></span><span></span>' +
+    var bi = boxIcon(e);
+    if(bi)
+      mod = '<span class="mbox' + (e.k === "reaction" ? " rx" : "") + '" title="' + boxTitle(e) + (edit && e.k === "reaction" ? " — click to switch" : "") + '">' +
+        '<svg class="aico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + bi + '"/></svg>' + mod + '</span>';
+    return '<div class="sk' + (e.k !== "skill" ? " ex" : "") + '" data-i="' + i + '">' +
+      '<span class="ncell">' + mark + '<span class="fld fit n" data-f="sk' + i + 'n"' + ce + (edit ? ' data-ph="skill"' : '') + '>' + esc(e.n) + '</span>' + dice + '</span><span></span>' +
       mod + '</div>';
   }
   /* ---------------- traits: the line under the creature's name ----------------
@@ -942,7 +966,7 @@
       var e = (shownRows || [])[i] || {k:"skill", n:"", m:"", c:"", lvl:0};
       var n = textOf(field("sk" + i + "n")).trim(), m = textOf(field("sk" + i + "m")).trim();
       if(!n && !m) continue;
-      out.push({k:e.k, n:n, m:m, c:e.c || "", lvl:e.lvl || 0, a:e.a || ""});
+      out.push({k:e.k, n:n, m:m, c:e.c || "", lvl:e.lvl || 0, a:e.a || "", d:e.d || ""});
     }
     return out.concat(hiddenRows || []);
   }
@@ -957,7 +981,8 @@
     b.title = "Remove this row";
     var kind = e.k === "spell" && e.lvl ? (ORD[e.lvl - 1] || e.lvl + "th")
       : e.k === "action" && ATKICO[e.a] ? (e.a === "ranged" ? "Ranged" : "Melee") : ROW_LABEL[e.k] || e.k;
-    b.innerHTML = '<span class="rk">' + esc(kind) + '</span> ' + esc(e.n) + (e.m ? ' <b>' + esc(e.m) + '</b>' : '') + ' <span class="x">&times;</span>';
+    if(e.k === "reaction") kind = e.a === "def" ? "Def. reaction" : "Off. reaction";
+    b.innerHTML = '<span class="rk">' + esc(kind) + '</span> ' + esc(e.n) + (e.d ? ' ' + esc(e.d) : '') + (e.m ? ' <b>' + esc(e.m) + '</b>' : '') + ' <span class="x">&times;</span>';
     return b;
   }
   function renderRowList(){
@@ -995,6 +1020,8 @@
   function arKindChanged(){
     var k = $("arKind").value, skill = k === "skill", lore = skill && $("arSkill").value === "Lore";
     $("arCost").hidden = k !== "action" && k !== "melee" && k !== "ranged";
+    $("arStance").hidden = k !== "reaction";
+    $("arDice").hidden = k !== "action" && k !== "melee" && k !== "ranged" && k !== "reaction";
     $("arRank").hidden = k !== "spell";
     $("arSkill").hidden = !skill;
     $("arName").hidden = skill && !lore;
@@ -1020,17 +1047,26 @@
       e = {k:"skill", n:n, m:m, c:"", lvl:0, a:""};
     }
     else if(k === "spell") e = {k:"spell", n:n, m:m, c:"", lvl:+$("arRank").value || 1, a:""};
-    else if(k === "reaction") e = {k:"reaction", n:n, m:m, c:"reaction", lvl:0, a:""};
-    else e = {k:"action", n:n, m:m, c:$("arCost").value, lvl:0, a:k === "melee" || k === "ranged" ? k : ""};
+    else if(k === "reaction") e = {k:"reaction", n:n, m:m, c:"reaction", lvl:0, a:$("arStance").value, d:diceOf($("arDice").value)};
+    else e = {k:"action", n:n, m:m, c:$("arCost").value, lvl:0, a:k === "melee" || k === "ranged" ? k : "", d:diceOf($("arDice").value)};
     all.push(e);
     setRows(cardRows({skills:all.filter(function(r){ return r.k === "skill"; }),
                       extras:all.filter(function(r){ return r.k !== "skill"; })}));
-    $("arName").value = ""; $("arMod").value = "";
+    $("arName").value = ""; $("arMod").value = ""; $("arDice").value = "";
     refresh(); saveDraft(); arKindChanged();
     ($("arName").hidden ? $("arMod") : $("arName")).focus();
   }
   $("arAdd").addEventListener("click", addRow);
-  [$("arName"), $("arMod")].forEach(function(el){ el.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); addRow(); } }); });
+  /* on the card, clicking a reaction's sword or shield switches it between offensive and defensive */
+  cardbox.addEventListener("click", function(ev){
+    var box = ev.target.closest && ev.target.closest(".mbox.rx"); if(!box || ev.target.closest(".m")) return;
+    var i = +box.closest(".sk").dataset.i, e = shownRows[i]; if(!e || e.k !== "reaction") return;
+    var rows = readRows(); rows[i].a = e.a === "def" ? "off" : "def";
+    setRows(cardRows({skills:rows.filter(function(r){ return r.k === "skill"; }),
+                      extras:rows.filter(function(r){ return r.k !== "skill"; })}));
+    refresh(); saveDraft();
+  });
+  [$("arName"), $("arMod"), $("arDice")].forEach(function(el){ el.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); addRow(); } }); });
   /* Typed names fall into place once you leave the field. */
   cardbox.addEventListener("focusout", function(e){
     var t = e.target; if(!t || !t.dataset || !/^sk\d+[nm]$/.test(t.dataset.f || "")) return;
@@ -1090,13 +1126,15 @@
       if((m = /^(Melee|Ranged)\s*(?:\[(\d|free|reaction)\])?\s*(.+)$/i.exec(l))){
         var rest = m[3].replace(/\([^)]*\)/g, " ");
         var q2 = /^\s*(.+?)\s*([+-])\s*(\d+)/.exec(rest);
-        if(q2) out.extras.push({k:"action", c:m[2] || "1", n:titleCase(q2[1].trim()), m:q2[2] + q2[3], lvl:0, a:m[1].toLowerCase()});
+        if(q2) out.extras.push({k:"action", c:m[2] || "1", n:titleCase(q2[1].trim()), m:q2[2] + q2[3], lvl:0, a:m[1].toLowerCase(),
+                                d:diceOf((/Damage\s+(.*)$/i.exec(m[3]) || [])[1])});
       }
-      /* A named ability with a cost icon: "Wriggle [reaction] Trigger …" */
+      /* A named ability with a cost icon: "Wriggle [reaction] Trigger …"; its dice are the first NdX on the line */
       else if((m = /^(.{2,40}?)\s*\[(\d|free|reaction)\]/.exec(l))){
         var nm = m[1].replace(/[;:,]\s*$/, "").trim();
         if(nm && !/^(melee|ranged|speed|skills|perception|ac|hp)$/i.test(nm))
-          out.extras.push({k:m[2] === "reaction" ? "reaction" : "action", c:m[2], n:titleCase(nm), m:"", lvl:0});
+          out.extras.push({k:m[2] === "reaction" ? "reaction" : "action", c:m[2], n:titleCase(nm), m:"", lvl:0,
+                           a:m[2] === "reaction" ? reactStance(nm) : "", d:diceOf(l.slice(m[0].length))});
       }
       /* Spells: "Primal Innate Spells DC 36; 3rd wall of wind; 2nd gust of wind (at will), obscuring mist" */
       if((m = /^(?:[A-Z][a-z]+\s+)*Spells\b\s*(.*)$/.exec(l))){
@@ -1751,44 +1789,40 @@
     for(var i = 1; i < s.n; i++) line(bx, oy2 + s.y + i * s.rowH, bx + s.boxW, oy2 + s.y + i * s.rowH, 0.75);
     cardRows(d).slice(0, s.n).forEach(function(sk, k){
       var base = oy2 + s.y + k * s.rowH + s.baseline;
-      var lvl = sk.k === "spell" ? rowLabel(sk) : "", glyph = sk.k === "action" ? (ACTICO[sk.c] || ACTICO["1"]) : "";
+      var lvl = sk.k === "spell" ? rowLabel(sk) : "";
+      /* the mark before the name: diamonds (10-unit box) or the reaction swoosh (24-unit box) */
+      var glyph = sk.k === "action" ? {p:ACTICO[sk.c] || ACTICO["1"], u:10} : sk.k === "reaction" ? {p:SWOOSH, u:24} : null;
+      var rmid = oy2 + s.y + k * s.rowH + s.rowH / 2;
+      var icon = function(path, unit, x, w){
+        pathSegs(path).forEach(function(p){
+          pdf.lines(p.segs, X + x + p.start[0] * w / unit, Y + rmid - w / 2 + p.start[1] * w / unit, [w / unit, w / unit], "F", true);
+        });
+      };
       if(sk.n){
+        /* right to left: the dice against the box, then the name, then its mark */
+        var dsz = s.size * 0.72, dw = 0;
+        if(sk.d){ font("normal", dsz); dw = tw(sk.d) + s.size * 0.25; }
         var mark = glyph ? s.size * 0.78 + s.size * 0.25 : 0;
         if(lvl){ font("normal", s.size * 0.62, "Caps"); mark = tw(lvl) + s.size * 0.25; }
-        var sz = fit(sk.n, s.labelW - mark, s.size); font("bold", sz);
-        var nw = tw(sk.n), x0 = s.x + s.labelW - nw - mark;
-        if(glyph){
-          var gw = sz * 0.78;
-          accent();
-          pathSegs(glyph).forEach(function(p){
-            pdf.lines(p.segs, X + x0 + p.start[0] * gw / 10, Y + base - gw * 0.82 + p.start[1] * gw / 10, [gw / 10, gw / 10], "F", true);
-          });
-          ink();
-        }else if(lvl){
-          accent(); font("normal", s.size * 0.62, "Caps"); text(lvl, x0, base - s.size * 0.08); ink();
-        }
-        font("bold", sz); text(sk.n, s.x + s.labelW, base, {align:"right"});
+        var right = s.x + s.labelW - dw;
+        var sz = fit(sk.n, s.labelW - dw - mark, s.size); font("bold", sz);
+        var nw = tw(sk.n), x0 = right - nw - mark;
+        if(glyph){ accent(); icon(glyph.p, glyph.u, x0, sz * 0.78); ink(); }
+        else if(lvl){ accent(); font("normal", s.size * 0.62, "Caps"); text(lvl, x0, base - s.size * 0.08); ink(); }
+        font("bold", sz); text(sk.n, right, base, {align:"right"});
+        if(sk.d){ font("normal", dsz); text(sk.d, s.x + s.labelW, base, {align:"right"}); }
       }
-      if(sk.k === "reaction"){
-        /* the swoosh fills the box; a reaction with a bonus or DC keeps it beside the swoosh */
-        var rw = s.size * (sk.m ? 0.62 : 0.85), rg = sk.m ? s.size * 0.06 : 0, rsz = sk.m ? fit(sk.m, s.boxW - 2 - rw - rg, s.size) : s.size;
-        if(sk.m){ rw *= rsz / s.size; rg *= rsz / s.size; }
-        var rx0 = bx + (s.boxW - (sk.m ? tw(sk.m) : 0) - rw - rg) / 2, rmid = oy2 + s.y + k * s.rowH + s.rowH / 2;
-        accent();
-        pathSegs(SWOOSH).forEach(function(p){
-          pdf.lines(p.segs, X + rx0 + p.start[0] * rw / 24, Y + rmid - rw / 2 + p.start[1] * rw / 24, [rw / 24, rw / 24], "F", true);
-        });
-        ink(); if(sk.m){ font("bold", rsz); text(sk.m, rx0 + rw + rg, base); }
-      }else if(sk.k === "action" && ATKICO[sk.a] && sk.m){
-        /* the sword or bow, then the bonus, centred together in the box */
+      var bi = boxIcon(sk);
+      if(bi && sk.m){
+        /* the sword, bow or shield, then the bonus, centred together in the box */
         var aw = s.size * 0.55, ag = s.size * 0.04, msz = fit(sk.m, s.boxW - 2 - aw - ag, s.size);
         aw *= msz / s.size; ag *= msz / s.size;
         var mx = bx + (s.boxW - tw(sk.m) - aw - ag) / 2;
-        accent();
-        pathSegs(ATKICO[sk.a]).forEach(function(p){
-          pdf.lines(p.segs, X + mx + p.start[0] * aw / 10, Y + base - msz * 0.36 - aw / 2 + p.start[1] * aw / 10, [aw / 10, aw / 10], "F", true);
-        });
+        accent(); icon(bi, 10, mx, aw);
         ink(); font("bold", msz); text(sk.m, mx + aw + ag, base);
+      }else if(bi){
+        var bw = s.size * 0.8;
+        accent(); icon(bi, 10, bx + (s.boxW - bw) / 2, bw); ink();
       }else centred(sk.m, bx, s.boxW, base, s.size);
     });
     /* immunities / resistances / weaknesses: each starts its own line; the box grows with the text up to

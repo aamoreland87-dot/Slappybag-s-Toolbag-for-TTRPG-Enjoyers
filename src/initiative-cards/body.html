@@ -138,9 +138,13 @@
         <option value="1">&#9670; 1 action</option><option value="2">&#9670;&#9670; 2 actions</option><option value="3">&#9670;&#9670;&#9670; 3 actions</option>
         <option value="free">&#9671; Free action</option>
       </select>
+      <select id="arStance" aria-label="Offensive or defensive" hidden>
+        <option value="off">Offensive (sword)</option><option value="def">Defensive (shield)</option>
+      </select>
       <select id="arRank" aria-label="Spell rank" hidden></select>
       <select id="arSkill" aria-label="Skill"></select>
       <input type="text" id="arName" placeholder="Name" aria-label="Name" size="14">
+      <input type="text" id="arDice" placeholder="dice, e.g. 4d6" aria-label="Damage dice" size="9" hidden>
       <input type="text" id="arMod" placeholder="+12" aria-label="Bonus or DC" size="6">
       <button class="btn" id="arAdd" type="button">Add</button>
       <span class="hint">Rows order themselves: reactions, actions, spells by rank, then skills by modifier.</span>

@@ -155,9 +155,10 @@
 .skills .sk .mbox .m{border:0; height:auto; padding:0; flex:0 1 auto; min-width:1ch}
 .aico{width:.55em; height:.55em; flex:none}
 .aico path{fill:var(--card-accent)}
-/* a reaction's swoosh fills its modifier box; a bonus or DC, if it has one, sits beside it */
-.rxico{width:.85em; height:.85em; flex:none}
-.rxico path{fill:var(--card-accent)}
-.mbox.rx .rxico:has(+ .m:not(:empty)){width:.62em; height:.62em}
-.mbox.rx .m:empty{min-width:0}
-.editor .mbox.rx .m:empty{min-width:.5ch}
+/* the damage dice sit between the name and the box, lighter than the name */
+.skills .sk .rdice{flex:none; font-weight:400; font-size:.72em; margin-left:.3em; white-space:nowrap}
+/* a box holding only its sword, bow or shield draws it larger */
+.mbox .aico:has(+ .m:empty){width:.8em; height:.8em}
+.skills .sk .mbox .m:empty{min-width:0}
+.editor .skills .sk .mbox .m:empty{min-width:.5ch}
+.editor .mbox.rx{cursor:pointer}
