@@ -689,11 +689,19 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     <div class="chips" id="selChips"></div>
   </div>
   <div class="picker-group">
+    <span class="bar-label">Kind of feat</span>
+    <div class="chips" id="kindChips"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">Rarity</span>
+    <div class="chips" id="rarChips"></div>
+  </div>
+  <div class="picker-group">
     <span class="bar-label" id="sugLabel">Common traits</span>
     <div class="chips" id="sugChips"></div>
   </div>
   <div class="picker-group">
-    <span class="bar-label">All traits</span>
+    <span class="bar-label">Other traits</span>
     <div class="chips" id="allChips"></div>
   </div>
 </section>
@@ -1297,12 +1305,32 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   /* The picker does two jobs: the card's traits (pick any number), or the kind of one grant row
      (pick one, and it closes). grantFor is that row while it's doing the second. */
   var grantFor = null;
+  /* Picker order, the same on every card builder: what kind of feat it is, rarity, then the traits
+     that usually go with the ones already chosen, then everything else. The pairings (TRAIT_NEAR)
+     come from the feats on Archives of Nethys (2026-09); before anything is chosen, the
+     suggestions are the ones common on the feat type instead. */
+  var KIND = ["General","Skill","Ancestry","Heritage","Lineage","Archetype","Dedication","Multiclass","Class Archetype","Mythic","Deviant"];
+  var TRAIT_NEAR = {"Archetype":"Dedication,Uncommon,Concentrate,Flourish,Skill,Mental,Multiclass,Auditory,Divine,Magical","Uncommon":"Archetype,Dedication,Champion,Dwarf,Mythic,Leshy,Elf,General,Skill,Human","Concentrate":"Metamagic,Spellshape,Archetype,Auditory,Mental,Manipulate,Occult,Linguistic,Emotion,Bard","Skill":"General,Archetype,Uncommon,Secret,Downtime,Exploration,Manipulate,Mental,Linguistic,Rare","General":"Skill,Secret,Uncommon,Downtime,Exploration,Rare,Mental,Manipulate,Healing,Emotion","Dedication":"Archetype,Multiclass,Uncommon,Rare,Magical","Primal":"Kineticist,Impulse,Overflow,Wood,Metal,Water,Earth,Composite,Air,Fire","Rare":"Deviant,Magical,Mythic,Archetype,Dedication,Ranger,Investigator,Gunslinger,General,Downtime","Flourish":"Guardian,Archetype,Fighter,Gunslinger,Ranger,Commander,Barbarian,Monk,Brandish,Rogue","Mental":"Emotion,Fear,Auditory,Linguistic,Visual,Archetype,Concentrate,Aura,Psychic,Occult","Manipulate":"Inventor,Concentrate,Metamagic,Spellshape,Unstable,Healing,Primal,Wizard,Impulse,Kineticist","Mythic":"Rare,Uncommon,Concentrate,Auditory,Mental,Linguistic,Spellshape,Metamagic,Occult,Healing","Metamagic":"Spellshape,Concentrate,Wizard,Sorcerer,Druid,Cleric,Bard,Manipulate,Oracle,Witch","Spellshape":"Metamagic,Concentrate,Wizard,Sorcerer,Druid,Cleric,Bard,Manipulate,Oracle,Witch","Divine":"Cursebound,Oracle,Animist,Archetype,Exemplar,Concentrate,Consecration,Cleric,Tengu,Aura","Auditory":"Linguistic,Mental,Emotion,Concentrate,Archetype,Fear,Visual,Bard,Hobgoblin,Mythic","Kineticist":"Impulse,Primal,Overflow,Metal,Wood,Composite,Air,Earth,Water,Fire","Impulse":"Kineticist,Primal,Overflow,Metal,Wood,Composite,Air,Earth,Fire,Water","Occult":"Psychic,Fetchling,Concentrate,Goblin,Archetype,Nagaji,Mental,Catfolk,Aura,Void","Stance":"Monk,Impulse,Kineticist,Fighter,Primal,Water,Animist,Fire,Archetype,Air","Emotion":"Mental,Fear,Auditory,Visual,Aura,Linguistic,Archetype,Concentrate,Kobold,Merfolk","Magical":"Deviant,Rare,Archetype,Force,Concentrate,Attack,Poison,Healing,Void,Mental","Fighter":"Press,Flourish,Stance,Ranger,Champion,Guardian,Barbarian,Swashbuckler,Uncommon,Rogue","Barbarian":"Rage,Fighter,Concentrate,Flourish,Druid,Polymorph,Primal,Attack,Visual,Fear","Fortune":"Archetype,Esoterica,Swashbuckler,Human,Occult,Elf,Uncommon,Thaumaturge,Psychic,Investigator","Visual":"Mental,Brandish,Emotion,Commander,Fear,Gnome,Auditory,Nagaji,Archetype,Aura","Monk":"Stance,Water,Uncommon,Fire,Attack,Flourish,Occult,Fortune,Emotion,Concentrate","Healing":"Vitality,Manipulate,Hobgoblin,Primal,Exemplar,Archetype,Divine,Cursebound,Occult,Exploration","Rage":"Barbarian,Concentrate,Polymorph,Attack,Visual,Primal,Auditory,Fortune,Flourish,Emotion","Summoner":"Evolution,Tandem,Witch,Wizard,Sorcerer,Bard,Druid,Concentrate,Manipulate,Uncommon","Linguistic":"Auditory,Mental,Emotion,Concentrate,Archetype,Mythic,Skill,Divine,General,Uncommon","Water":"Azarketi,Primal,Impulse,Kineticist,Overflow,Cold,Monk,Composite,Stance,Magus","Fire":"Impulse,Kineticist,Primal,Overflow,Unstable,Composite,Inventor,Manipulate,Stance,Monk","Champion":"Oath,Uncommon,Fighter,Cleric,Bard,Oracle,Commander,Guardian,Magus,Divine","Ranger":"Investigator,Gunslinger,Rogue,Druid,Fighter,Rare,Flourish,Move,Press,Uncommon","Druid":"Spellshape,Metamagic,Witch,Wizard,Sorcerer,Ranger,Manipulate,Oracle,Bard,Exploration","Rogue":"Swashbuckler,Ranger,Investigator,Uncommon,Fear,Bard,Fighter,Stance,Flourish,Manipulate","Overflow":"Impulse,Kineticist,Primal,Wood,Fire,Water,Earth,Air,Metal,Composite","Wizard":"Witch,Sorcerer,Oracle,Metamagic,Spellshape,Cleric,Bard,Druid,Magus,Manipulate","Oracle":"Cursebound,Wizard,Sorcerer,Cleric,Divine,Witch,Spellshape,Metamagic,Bard,Psychic","Sorcerer":"Wizard,Witch,Oracle,Metamagic,Spellshape,Bard,Cleric,Druid,Magus,Concentrate","Bard":"Witch,Sorcerer,Metamagic,Spellshape,Wizard,Concentrate,Oracle,Auditory,Cleric,Psychic","Swashbuckler":"Finisher,Bravado,Rogue,Gunslinger,Fortune,Bard,Fighter,Flourish,Stance,Rare","Cleric":"Oracle,Metamagic,Spellshape,Wizard,Sorcerer,Witch,Concentrate,Champion,Divine,Bard","Exploration":"Consecration,Skill,General,Concentrate,Secret,Druid,Manipulate,Archetype,Healing,Divine","Evolution":"Summoner,Concentrate","Polymorph":"Primal,Concentrate,Kineticist,Impulse,Overflow,Air,Fire,Divine,Rage,Earth","Fear":"Emotion,Mental,Aura,Auditory,Visual,Archetype,Vigilante,Rogue,Divine,Concentrate","Gunslinger":"Ranger,Investigator,Flourish,Swashbuckler,Rare,Concentrate,Fighter,Fortune,Auditory,Mental","Air":"Impulse,Kineticist,Composite,Primal,Overflow,Electricity,Move,Polymorph,Sonic,Metal","Earth":"Impulse,Kineticist,Primal,Composite,Overflow,Polymorph,Manipulate,Stance,Sorcerer,Druid","Arcane":"Magus,Thaumaturge,Automaton,Wizard,Sorcerer,Concentrate,Mythic,Uncommon,Manipulate,Mental","Deviant":"Magical,Rare,Attack,Poison,Healing,Mental","Attack":"Metal,Composite,Deviant,Magical,Impulse,Press,Kineticist,Monk,Archetype,Rare","Alchemist":"Additive,Manipulate,Uncommon,Healing,Rare,Concentrate","Multiclass":"Dedication,Archetype,Uncommon","Press":"Fighter,Attack,Ranger,Flourish,Archetype,Uncommon,Concentrate","Vitality":"Healing,Hobgoblin,Exemplar,Primal,Impulse,Kineticist,Water,Wood,Aura,Divine","Aura":"Fear,Emotion,Mental,Archetype,Divine,Animist,Occult,Vitality,Visual,Concentrate","Inventor":"Modification,Unstable,Manipulate,Fire,Sonic,Uncommon,Auditory","Magus":"Arcane,Wizard,Sorcerer,Force,Witch,Oracle,Water,Thaumaturge,Psychic,Cleric","Investigator":"Ranger,Gunslinger,Rogue,Rare,Uncommon,Concentrate,Fortune","Witch":"Wizard,Sorcerer,Bard,Oracle,Druid,Cleric,Metamagic,Spellshape,Psychic,Magus","Wood":"Impulse,Kineticist,Primal,Overflow,Composite,Vitality,Stance,Healing,Manipulate,Uncommon","Psychic":"Occult,Sorcerer,Witch,Mental,Cleric,Oracle,Bard,Wizard,Magus,Emotion","Guardian":"Flourish,Fighter,Stance,Champion,Archetype","Lineage":"Nephilim,Changeling,Dhampir","Animist":"Divine,Misfortune,Metamagic,Spellshape,Stance,Witch,Aura,Concentrate,Wizard","Thaumaturge":"Esoterica,Arcane,Manipulate,Witch,Magus,Sorcerer,Wizard,Occult,Fortune,Divine","Gnoll":"Kholo","Kholo":"Gnoll","Metal":"Impulse,Kineticist,Composite,Primal,Overflow,Attack,Air,Manipulate,Stance","Dwarf":"Uncommon,Divine","Sonic":"Electricity,Force,Inventor,Archetype,Air,Auditory,Primal,Metamagic,Spellshape,Mythic","Commander":"Brandish,Visual,Manipulate,Mental,Flourish,Champion,Auditory,Healing,Fighter,Emotion","Exemplar":"Void,Divine,Vitality,Concentrate,Healing,Uncommon,Auditory","Additive":"Alchemist,Uncommon","Leshy":"Ghoran,Conrasu,Uncommon,Visual,Emotion,Mental,Primal","Electricity":"Sonic,Air,Force,Impulse,Kineticist,Primal,Archetype,Manipulate,Overflow,Stance","Elf":"Uncommon,Fortune,Primal","Composite":"Impulse,Kineticist,Metal,Primal,Air,Wood,Earth,Fire,Water,Overflow","Cursebound":"Oracle,Divine,Healing,Metamagic,Spellshape,Mental","Void":"Exemplar,Occult,Divine,Magical,Concentrate,Mythic,Rare,Uncommon,Archetype","Secret":"General,Skill,Exploration,Uncommon,Archetype","Move":"Air,Ranger,Flourish,Archetype,Concentrate","Nephilim":"Lineage,Divine","Finisher":"Swashbuckler","Downtime":"General,Skill,Rare,Manipulate,Archetype","Vigilante":"Archetype,Fear,Emotion,Mental","Human":"Uncommon,Fortune","Misfortune":"Animist,Divine,Archetype,Uncommon","Yaksha":"Primal","Esoterica":"Thaumaturge,Manipulate,Fortune,Occult","Changeling":"Lineage","Force":"Electricity,Sonic,Magus,Magical,Manipulate,Concentrate,Archetype,Uncommon","Modification":"Inventor,Manipulate","Unstable":"Inventor,Fire,Manipulate,Uncommon,Archetype","Conrasu":"Ghoran,Leshy,Uncommon","Cold":"Water,Impulse,Kineticist,Primal,Overflow,Manipulate,Rare","Fetchling":"Occult,Uncommon","Poison":"Deviant,Magical,Occult,Rare","Ghoran":"Conrasu,Leshy,Uncommon","Dhampir":"Lineage","Brandish":"Commander,Visual,Manipulate,Emotion,Mental,Flourish","Bravado":"Swashbuckler","Goblin":"Occult,Uncommon","Merfolk":"Primal,Concentrate,Manipulate,Mental,Emotion,Auditory","Gnome":"Visual,Uncommon","Catfolk":"Occult,Concentrate","Automaton":"Arcane,Concentrate","Hobgoblin":"Vitality,Auditory,Healing","Minotaur":"Divine","Halfling":"Uncommon","Kobold":"Emotion,Auditory,Mental","Azarketi":"Water,Primal,Concentrate","Tanuki":"Primal","Orc":"Uncommon","Open":"Archetype,Uncommon","Nagaji":"Visual,Occult,Mental,Concentrate","Tengu":"Divine,Concentrate","Sprite":"Uncommon","Lizardfolk":"Primal,Uncommon","Android":"Concentrate","Oath":"Champion","Tandem":"Summoner","Fleshwarp":"Uncommon","Skeleton":"Uncommon","Consecration":"Exploration,Divine","Goloma":"Concentrate"};
+  function isTop(t){ return KIND.indexOf(t) >= 0 || RARITY.indexOf(t) >= 0; }
+  function suggestions(have, cat){
+    var score = {}, out;
+    /* rarity goes with everything, so it doesn't steer the suggestions */
+    have.filter(function(t){ return RARITY.indexOf(t) < 0; }).forEach(function(t){
+      (TRAIT_NEAR[t] || "").split(",").filter(Boolean).forEach(function(c, i){ score[c] = (score[c] || 0) + (10 - i); });
+    });
+    out = Object.keys(score).sort(function(a, b){ return score[b] - score[a]; });
+    out = uniq(out.concat(SUGGEST[cat] || GENERAL));
+    return out.filter(function(t){ return !isTop(t) && have.indexOf(t) < 0; }).slice(0, 16);
+  }
   function renderPicker(){
     var q = search.value.trim().toLowerCase();
     var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
+    var on = function(t){ return traits.indexOf(t) >= 0; };
+    var fill = function(id, list){ var box = $(id); box.innerHTML = ""; list.filter(match).forEach(function(t){ box.appendChild(chip(t, on(t))); }); };
     var sel = $("selChips"), sug = $("sugChips"), all = $("allChips");
     sel.innerHTML = ""; sug.innerHTML = ""; all.innerHTML = "";
-    all.parentNode.hidden = !!grantFor;
+    /* choosing a grant's kind uses only the suggestion row */
+    all.parentNode.hidden = $("kindChips").parentNode.hidden = $("rarChips").parentNode.hidden = !!grantFor;
     if(grantFor){
       var k = grantFor.dataset.k || "";
       if(k) sel.appendChild(chip(k, true));
@@ -1312,9 +1340,11 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     }
     traits.forEach(function(t){ sel.appendChild(chip(t, true)); });
     var cat = catSel.value;
-    $("sugLabel").textContent = cat ? "Common on " + cat.toLowerCase() + " feats" : "Common traits";
-    uniq(SUGGEST[cat] || GENERAL).filter(match).forEach(function(t){ sug.appendChild(chip(t, traits.indexOf(t) >= 0)); });
-    ALL_TRAITS.filter(match).forEach(function(t){ all.appendChild(chip(t, traits.indexOf(t) >= 0)); });
+    fill("kindChips", KIND);
+    fill("rarChips", RARITY);
+    $("sugLabel").textContent = traits.length ? "Often seen with " + traits.join(", ") : (cat ? "Common on " + cat.toLowerCase() + " feats" : "Common traits");
+    fill("sugChips", suggestions(traits, cat));
+    fill("allChips", ALL_TRAITS.filter(function(t){ return !isTop(t); }));
   }
   function openPicker(row){
     grantFor = row && row.nodeType === 1 ? row : null;

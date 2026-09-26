@@ -5,7 +5,8 @@
 #   ./src/hazard-cards/build.sh artifact → src/hazard-cards/artifact.html
 #                                          (the claude.ai artifact: one file, typefaces embedded)
 #
-# Parts: card.css (the card and print sheet), app.css (editor chrome), body.html (markup), app.js.
+# Parts: card.css (the card and print sheet), app.css (editor chrome), body.html (markup), traits.js
+# (trait vocabulary and co-occurrence, from Archives of Nethys), app.js.
 # The two outputs differ only in how the typefaces arrive and in the nav, marked in body.html with
 # <!-- site-only --> … <!-- /site-only --> and <!-- artifact-only … -->.
 set -euo pipefail
@@ -37,7 +38,7 @@ if [ "$target" = "artifact" ]; then
     echo '<style>'; cat "$here/app.css"; echo '</style>'
     # drop the site nav, restore the plain title
     sed -e '/<!-- site-only -->/,/<!-- \/site-only -->/d' -e 's|<!-- artifact-only \(.*\) -->|\1|' "$here/body.html"
-    echo '<script>'; cat "$here/app.js"; echo '</script>'
+    echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
   } > "$out"
 else
   out="$root/hazard-cards.html"
@@ -46,7 +47,7 @@ else
     echo '<style id="cardCss">'; cat "$here/card.css"; echo '</style>'
     echo '<style>'; cat "$here/app.css"; echo '</style>'
     sed -e '/<!-- artifact-only /d' -e '/<!-- \/\?site-only -->/d' "$here/body.html"
-    echo '<script>'; cat "$here/app.js"; echo '</script>'
+    echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
     echo '</body></html>'
   } > "$out"
 fi

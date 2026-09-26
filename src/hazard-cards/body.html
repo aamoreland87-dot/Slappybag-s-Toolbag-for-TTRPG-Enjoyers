@@ -92,6 +92,11 @@
       <input type="file" accept="image/*,.webp" id="phFile" hidden>
       <span class="hint" id="phMeta">Drop an image on the picture half, or paste one.</span>
     </div>
+    <div class="tool-row">
+      <span class="bar-label">Traits</span>
+      <button class="btn" id="traitBtn">Choose traits</button>
+      <span class="hint">Or click the line under the kicker on the card. Each action's traits are under Actions below, or click “+ traits” on the action itself.</span>
+    </div>
     <div class="tool-row irw-row">
       <span class="bar-label">Imm / Res / Weak</span>
       <label class="field"><span>Immunities</span><textarea id="immuneIn" rows="1" placeholder="e.g. critical hits, object immunities, precision damage" autocomplete="off" spellcheck="false"></textarea></label>
@@ -106,7 +111,7 @@
     <div class="tool-row">
       <span class="bar-label">Actions</span>
       <ul class="acts" id="actList"></ul>
-      <span class="hint">Tick the action cost each one takes — the card prints it as “[reaction]”, “[two actions]”, and so on. Type the name and write-up directly on the card; a fresh action row opens once you fill the last one.</span>
+      <span class="hint">Tick the action cost each one takes — the card prints it as “[reaction]”, “[two actions]”, and so on. The trait chips follow what you’ve already picked; “more…” opens the full list. Type the name and write-up directly on the card; a fresh action row opens once you fill the last one.</span>
     </div>
   </div>
 </section>
@@ -162,4 +167,23 @@
     <button class="btn solid" id="importGo">Fill the card</button>
     <span class="hint" id="importNote"></span>
   </div>
+</section>
+
+<section class="picker" id="traitPicker" hidden role="dialog" aria-labelledby="traitPickerTitle">
+  <div class="picker-head">
+    <h3 id="traitPickerTitle">Hazard traits</h3>
+    <span class="grow"></span>
+    <button class="btn solid" id="traitPickerDone">Done</button>
+  </div>
+  <input type="search" id="traitSearch" placeholder="Search traits, or type your own and press Enter" autocomplete="off">
+  <div class="picker-group">
+    <span class="bar-label">On the card</span>
+    <div class="chips" id="traitSel"></div>
+  </div>
+  <div class="picker-group" id="traitTopWrap"></div>
+  <div class="picker-group">
+    <span class="bar-label" id="traitSugLabel">Common traits</span>
+    <div class="chips" id="traitSug"></div>
+  </div>
+  <div class="picker-group" id="traitAllWrap"></div>
 </section>

@@ -219,18 +219,23 @@
   }
   /* Suggestions: every companion of a chosen trait, scored by how strongly it goes with it, with the
      common traits as the fallback when nothing is chosen yet. Already-chosen traits drop out. */
-  function traitSuggestions(have){
+  function traitSuggestions(have, n){
     var near = (typeof TRAIT_DATA !== "undefined" && TRAIT_DATA.near) || {}, score = {};
-    have.forEach(function(t){
+    /* rarity goes with everything, so it doesn't steer the suggestions */
+    have.filter(function(t){ return TRAIT_KIND[String(t).toLowerCase()] !== "r"; }).forEach(function(t){
       (near[traitName(t)] || "").split(",").filter(Boolean).forEach(function(c, i){
         score[c] = (score[c] || 0) + (10 - i);
       });
     });
     var out = Object.keys(score).sort(function(a, b){ return score[b] - score[a] || TRAIT_ALL.indexOf(a) - TRAIT_ALL.indexOf(b); });
-    if(!have.length) out = TRAIT_ALL.slice(0, 24);
+    if(!out.length) out = TRAIT_ALL.slice(0, 40);
     var lower = have.map(function(t){ return t.toLowerCase(); });
-    return out.filter(function(t){ return lower.indexOf(t.toLowerCase()) < 0; }).slice(0, 14);
+    return out.filter(function(t){ return lower.indexOf(t.toLowerCase()) < 0; }).slice(0, n || 14);
   }
+  /* the core creature types — the "kind of creature" row at the top of the picker */
+  var CREATURE_KINDS = ["Aberration","Animal","Astral","Beast","Celestial","Construct","Dragon","Dream","Elemental",
+    "Ethereal","Fey","Fiend","Fungus","Giant","Humanoid","Monitor","Ooze","Petitioner","Plant","Spirit","Time","Undead"];
+  function isTopTrait(t){ var n = traitName(t); return CREATURE_KINDS.indexOf(n) >= 0 || TRAIT_KIND[n.toLowerCase()] === "r"; }
   /* ---------------- speeds: [{t:"fly", v:"40"}], land first, then the others in SPEEDS order ---------------- */
   /* ---------------- speeds: [{t:"fly", v:"40"}], land first, then the others in SPEEDS order ---------------- */
   /* Imm / Res / Weak: typed in the panel under the card; the strip prints only the filled ones. */
@@ -392,17 +397,26 @@
     var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
     var sel = $("traitSel"); sel.innerHTML = "";
     have.forEach(function(t){ sel.appendChild(traitChip(t, true)); });
-    var sug = $("traitSug"); sug.innerHTML = "";
-    traitSuggestions(have).forEach(function(t){ if(match(t)) sug.appendChild(traitChip(t, has(t))); });
-    $("traitSugLabel").textContent = have.length ? "Often seen with " + have[have.length - 1] : "Common traits";
-    var wrap = $("traitAllWrap"); wrap.innerHTML = "";
-    TRAIT_GROUPS.forEach(function(g){
-      var hits = g.list.filter(match); if(!hits.length) return;
-      var lab = document.createElement("span"); lab.className = "bar-label"; lab.textContent = g.label; wrap.appendChild(lab);
+    /* the same order as every other card builder: kind of creature, rarity, the traits that usually
+       go with what's chosen, then the rest (size, other traits, legacy alignment) */
+    var group = function(dest, label, list){
+      var hits = list.filter(match); if(!hits.length) return;
+      var lab = document.createElement("span"); lab.className = "bar-label"; lab.textContent = label; dest.appendChild(lab);
       var box = document.createElement("div"); box.className = "chips";
       hits.forEach(function(t){ box.appendChild(traitChip(t, has(t))); });
-      wrap.appendChild(box);
-    });
+      dest.appendChild(box);
+    };
+    var byKind = function(k){ return (TRAIT_GROUPS.filter(function(g){ return g.k === k; })[0] || {list:[]}).list; };
+    var top = $("traitTopWrap"), wrap = $("traitAllWrap"); top.innerHTML = ""; wrap.innerHTML = "";
+    group(top, "Kind of creature", CREATURE_KINDS);
+    group(top, "Rarity", byKind("r"));
+    var sug = $("traitSug"); sug.innerHTML = "";
+    traitSuggestions(have, 99).filter(function(t){ return !isTopTrait(t); }).slice(0, 14)
+      .forEach(function(t){ if(match(t)) sug.appendChild(traitChip(t, has(t))); });
+    $("traitSugLabel").textContent = have.length ? "Often seen with " + have.join(", ") : "Common traits";
+    group(wrap, "Size", byKind("s"));
+    group(wrap, "Other traits", byKind("t").filter(function(t){ return !isTopTrait(t); }));
+    group(wrap, "Alignment (legacy)", byKind("a"));
   }
   function toggleTrait(t){
     var list = readTraits(), i = -1;

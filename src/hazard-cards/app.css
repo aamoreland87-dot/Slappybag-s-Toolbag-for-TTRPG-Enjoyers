@@ -201,3 +201,8 @@ span.tog{display:inline-flex; align-items:center}
 .switch .menu a[aria-current="page"]::before{content:"\25B8 "}
 .switch .menu .all{border-top:1px solid var(--rule-soft); margin-top:.3rem; padding-top:.3rem}
 .switch summary:focus-visible,.toolbag .home:focus-visible,.switch .menu a:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+
+/* ================= trait picker (same sheet as the initiative card's) ================= */
+.picker .chips:empty::before{content:"none yet"; font-style:italic; color:var(--ink-3); font-size:.85rem}
+.chip.on{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.chip.more{border-style:dashed; color:var(--ink-3)}

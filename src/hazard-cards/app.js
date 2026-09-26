@@ -10,7 +10,6 @@
   var MULTI = {reset:1};
   var COST_LABEL = {reaction:"Reaction", free:"Free action", "1":"One action", "2":"Two actions", "3":"Three actions"};
   var COSTS = [["reaction","R","Reaction"],["free","F","Free action"],["1","1","One action"],["2","2","Two actions"],["3","3","Three actions"]];
-  var ATRAITS = ["move","attack","concentrate","manipulate","auditory","visual","interact"];
   var EFFECT_KEYWORDS = ["Requirement","Requirements","Frequency","Critical Success","Success","Failure","Critical Failure"];
   var ICON = {
     shield:'<svg class="ico" viewBox="0 0 36 40" aria-hidden="true"><path d="M18,1 C23,4 30,3 36,5 L36,20 C36,31 27,37 18,40 C9,37 0,31 0,20 L0,5 C6,3 13,4 18,1 Z"/></svg>',
@@ -53,7 +52,7 @@
   function costGlyph(cost){ return cost && COST_ICON[cost] ? '<span class="glyph" title="' + esc(COST_LABEL[cost]) + '">' + COST_ICON[cost] + '</span>' : ""; }
 
   var EXAMPLE = {
-    name:"Mindhammer Mushrooms", kicker:"Hazard 3 · Environmental Fungus · Simple",
+    name:"Mindhammer Mushrooms", kicker:"Hazard 3 · Simple", traits:["Environmental","Fungus"],
     ac:"16", hp:"20", hardness:"", fort:"+10", ref:"+8", will:"",
     stealthDc:"20", disableDc:"20",
     actions:[{name:"Psychic Blast", cost:"reaction", traits:[],
@@ -106,7 +105,8 @@
         (edit ? '<span class="ph-hint">Drop picture<br>or tap</span>' : '') + '</div></div>' +
       '<div class="half stats"><div class="hzfit">' +
         fld("name", "c-name fit", "Hazard name") +
-        fld("kicker", "hz-kicker", "Hazard 3 · Environmental · Simple") +
+        fld("kicker", "hz-kicker", "Hazard 3 · Simple") +
+        hazTraitLineHtml(normTraits("hazard", d.traits), edit) +
         '<div class="hz-rule"></div>' +
         '<div class="hz-row">' + row3 + '</div>' +
         '<div class="hz-saves">' + saves + '</div>' +
@@ -126,7 +126,9 @@
     a = a || {name:"", cost:"", traits:[], trigger:"", effect:""};
     var ce = edit ? ' contenteditable="true" spellcheck="false"' : '';
     var traits = a.traits || [];
-    var traitsLine = (edit || traits.length) ? '<div class="hz-traits">' + esc(traitsText(traits)) + '</div>' : "";
+    var traitsLine = edit
+      ? '<div class="hz-traits pick' + (traits.length ? "" : " add") + '" tabindex="0" role="button" aria-label="Edit this action\'s traits">' + esc(traits.length ? traitsText(traits) : "+ traits") + '</div>'
+      : (traits.length ? '<div class="hz-traits">' + esc(traitsText(traits)) + '</div>' : "");
     var showTrigger = edit || a.trigger;
     var triggerLine = showTrigger ? '<div class="hz-trigger"><span class="cap">Trigger</span><span class="fld actbody" data-f="a' + i + 't"' + ce + (edit ? ' data-ph="What sets it off"' : '') + '>' + esc(a.trigger) + '</span></div>' : "";
     var effectInner = edit ? esc(a.effect) : formatEffect(a.effect);
@@ -165,6 +167,57 @@
     var div = document.createElement("div");
     div.innerHTML = actRowHtml({name:"", cost:"", traits:[], trigger:"", effect:""}, rows.length, true, true);
     cardbox.querySelector("#actionsBlock").appendChild(div.firstChild);
+  }
+
+  /* ---------------- traits: the hazard's own line under the kicker, and each action's ----------------
+     HAZ_TRAITS (traits.js) carries both vocabularies and, per trait, the companions it most often
+     appears with, so the picker suggests from what is already chosen — the same picker the
+     initiative card uses for creature traits. Hazard traits print title-case, rarity first, as
+     "Uncommon | Magical | Trap"; action traits print lower-case in brackets, "(mental, emotion)". */
+  var TR = {};
+  ["hazard","action"].forEach(function(set){
+    var src = (typeof HAZ_TRAITS !== "undefined" && HAZ_TRAITS[set]) || {order:"t", t:"", near:{}};
+    var v = {kind:{}, all:[], groups:[], canon:{}, near:src.near || {}};
+    src.order.split(",").forEach(function(k){
+      var list = (src[k] || "").split(",").filter(Boolean);
+      list.forEach(function(t){ v.kind[t.toLowerCase()] = k; v.canon[t.toLowerCase()] = t; });
+      v.groups.push({k:k, label:set === "action" ? "All action traits" : ({r:"Rarity", k:"Kind of hazard", t:"Other traits"}[k] || k), list:list});
+      v.all = v.all.concat(list);
+    });
+    TR[set] = v;
+  });
+  function traitName(set, t){ t = String(t).trim(); return TR[set].canon[t.toLowerCase()] || (set === "action" ? t.toLowerCase() : titleCase(t)); }
+  /* rarity first, then the order they were added */
+  function normTraits(set, list){
+    var seen = {}, out = [];
+    (Array.isArray(list) ? list : []).forEach(function(t){ var n = traitName(set, t); if(n && !seen[n.toLowerCase()]){ seen[n.toLowerCase()] = 1; out.push(n); } });
+    if(set !== "hazard") return out;
+    return out.map(function(t, i){ return {t:t, i:i, r:TR.hazard.kind[t.toLowerCase()] === "r" ? 0 : 1}; })
+      .sort(function(a, b){ return (a.r - b.r) || (a.i - b.i); }).map(function(x){ return x.t; });
+  }
+  function hazTraitLineHtml(list, edit){
+    if(!list.length) return edit ? '<div class="hz-tline add" id="hazTraitLine" tabindex="0" role="button" aria-label="Add traits">+ traits</div>' : "";
+    return '<div class="hz-tline fit"' + (edit ? ' id="hazTraitLine" tabindex="0" role="button" aria-label="Edit traits"' : '') + ' data-traits="' + esc(list.join(",")) + '">' +
+      list.map(function(t){ return '<span class="tr">' + esc(t) + '</span>'; }).join('<span class="sep">|</span>') + '</div>';
+  }
+  function readHazTraits(){ var el = cardbox.querySelector(".hz-tline"); return el ? (el.dataset.traits || "").split(",").filter(Boolean) : []; }
+  function renderHazTraits(list){
+    var el = cardbox.querySelector(".hz-tline"); if(!el) return;
+    el.outerHTML = hazTraitLineHtml(normTraits("hazard", list), true);
+  }
+  /* every companion of a chosen trait, scored by how strongly it goes with it; the commonest
+     traits when nothing is chosen yet. Already-chosen traits drop out. */
+  function traitSuggestions(set, have, n){
+    var v = TR[set], score = {};
+    /* rarity goes with everything, so it doesn't steer the suggestions */
+    have.filter(function(t){ return v.kind[String(t).toLowerCase()] !== "r"; }).forEach(function(t){
+      (v.near[traitName(set, t)] || "").split(",").filter(Boolean).forEach(function(c, i){ score[c] = (score[c] || 0) + (10 - i); });
+    });
+    var out = Object.keys(score).sort(function(a, b){ return score[b] - score[a] || v.all.indexOf(a) - v.all.indexOf(b); });
+    /* top up with the commonest, so there's always a full row to pick from */
+    v.all.forEach(function(t){ if(out.indexOf(t) < 0) out.push(t); });
+    var lower = have.map(function(t){ return t.toLowerCase(); });
+    return out.filter(function(t){ return lower.indexOf(t.toLowerCase()) < 0; }).slice(0, n || 14);
   }
 
   /* ---------------- Imm / Res / Weak: typed in the panel under the card; the strip always prints ---------------- */
@@ -218,6 +271,7 @@
     var d = {imgScale:imgScale, source:source};
     FIELDS.forEach(function(f){ var el = field(f); d[f] = el ? textOf(el) : ""; });
     readIrw(d);
+    d.traits = readHazTraits();
     d.actions = readActions().filter(function(a){ return a.name || a.trigger || a.effect; });
     return d;
   }
@@ -231,6 +285,7 @@
     d = d || {};
     setIrw(d);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = d[f] == null ? "" : d[f]; });
+    renderHazTraits(d.traits || []);
     renderActionsBlock((d.actions || []).map(function(a){ return {name:a.name || "", cost:a.cost || "", traits:a.traits || [], trigger:a.trigger || "", effect:a.effect || ""}; }));
     currentId = d.id || null;
     setImage({src:d.imageSrc || d.image || (d.imageId ? "/_blob/" + d.imageId : ""),
@@ -294,12 +349,16 @@
         del.title = "Remove action"; del.setAttribute("aria-label", "Remove action");
         li.appendChild(del);
       }
+      /* the traits it has, then a few that usually go with them; "more…" opens the full picker */
       var traitsRow = document.createElement("div"); traitsRow.className = "atraits";
-      ATRAITS.forEach(function(t){
+      a.traits.concat(traitSuggestions("action", a.traits, 6)).forEach(function(t){
         var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.trait = t;
         b.textContent = t; b.setAttribute("aria-pressed", a.traits.indexOf(t) >= 0 ? "true" : "false");
         traitsRow.appendChild(b);
       });
+      var more = document.createElement("button"); more.type = "button"; more.className = "chip more"; more.dataset.more = "1";
+      more.textContent = "more…"; more.title = "All action traits, or type your own";
+      traitsRow.appendChild(more);
       li.appendChild(traitsRow);
       box.appendChild(li);
     });
@@ -313,15 +372,9 @@
       refresh(); saveDraft();
       return;
     }
+    if(e.target.closest("button[data-more]")){ openTraitPicker({set:"action", i:i}); return; }
     var traitBtn = e.target.closest("button[data-trait]");
-    if(traitBtn){
-      var t = traitBtn.dataset.trait, traits = (row.dataset.traits || "").split(",").filter(Boolean), idx = traits.indexOf(t);
-      if(idx >= 0) traits.splice(idx, 1); else traits.push(t);
-      row.dataset.traits = traits.join(",");
-      var tdiv = row.querySelector(".hz-traits"); if(tdiv) tdiv.textContent = traitsText(traits);
-      fitCardBox(cardbox); renderActList(); saveDraft();
-      return;
-    }
+    if(traitBtn){ setActionTraits(i, toggled("action", actionTraits(i), traitBtn.dataset.trait)); return; }
     var costBtn = e.target.closest("button[data-cost]"); if(!costBtn) return;
     var c = costBtn.dataset.cost, next = (row.dataset.cost || "") === c ? "" : c;
     row.dataset.cost = next;
@@ -329,6 +382,101 @@
     if(oldGlyph) oldGlyph.remove();
     var g = costGlyph(next); if(g) nameDiv.insertAdjacentHTML("beforeend", g);
     fitCardBox(cardbox); renderActList(); saveDraft();
+  });
+
+  /* ---------------- the trait picker: one sheet, pointed at the hazard or at one action ---------------- */
+  var traitPicker = $("traitPicker"), traitSearch = $("traitSearch"), pickFor = {set:"hazard"};
+  function actionTraits(i){ var row = cardbox.querySelectorAll(".hz-act")[i]; return row ? (row.dataset.traits || "").split(",").filter(Boolean) : []; }
+  function setActionTraits(i, list){
+    var row = cardbox.querySelectorAll(".hz-act")[i]; if(!row) return;
+    list = normTraits("action", list);
+    row.dataset.traits = list.join(",");
+    var tdiv = row.querySelector(".hz-traits");
+    if(tdiv){ tdiv.textContent = list.length ? traitsText(list) : "+ traits"; tdiv.classList.toggle("add", !list.length); }
+    refresh(); saveDraft();
+    if(!traitPicker.hidden) renderTraitPicker();
+  }
+  function pickedTraits(){ return pickFor.set === "hazard" ? readHazTraits() : actionTraits(pickFor.i); }
+  function setPicked(list){
+    if(pickFor.set === "action"){ setActionTraits(pickFor.i, list); return; }
+    renderHazTraits(list); refresh(); saveDraft();
+    if(!traitPicker.hidden) renderTraitPicker();
+  }
+  /* on the hazard, one rarity at a time — picking a second replaces the first */
+  function toggled(set, list, t){
+    var lower = t.toLowerCase(), i = -1;
+    list = list.slice();
+    list.forEach(function(s, k){ if(s.toLowerCase() === lower) i = k; });
+    if(i >= 0){ list.splice(i, 1); return list; }
+    if(set === "hazard" && TR.hazard.kind[lower] === "r") list = list.filter(function(s){ return TR.hazard.kind[s.toLowerCase()] !== "r"; });
+    list.push(traitName(set, t));
+    return list;
+  }
+  function traitChip(t, on){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip" + (on ? " on" : ""); b.dataset.trait = t; b.textContent = t;
+    return b;
+  }
+  function renderTraitPicker(){
+    var set = pickFor.set, q = traitSearch.value.trim().toLowerCase(), have = pickedTraits();
+    var has = function(t){ return have.some(function(s){ return s.toLowerCase() === t.toLowerCase(); }); };
+    var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
+    var nm = set === "action" ? (readActions()[pickFor.i] || {}).name : "";
+    $("traitPickerTitle").textContent = set === "hazard" ? "Hazard traits" : "Traits · " + (nm || "this action");
+    var sel = $("traitSel"); sel.innerHTML = "";
+    have.forEach(function(t){ sel.appendChild(traitChip(t, true)); });
+    var sug = $("traitSug"); sug.innerHTML = "";
+    /* on a hazard, kind and rarity already sit above in full, so the suggestions are the other traits */
+    traitSuggestions(set, have, 99).filter(function(t){ return set !== "hazard" || TR.hazard.kind[t.toLowerCase()] === "t"; }).slice(0, 14)
+      .forEach(function(t){ if(match(t)) sug.appendChild(traitChip(t, has(t))); });
+    $("traitSugLabel").textContent = have.length ? "Often seen with " + have.join(", ") : "Common traits";
+    /* kind of hazard and rarity sit above the suggestions; everything else below them */
+    var top = $("traitTopWrap"), wrap = $("traitAllWrap"); top.innerHTML = ""; wrap.innerHTML = "";
+    top.hidden = set !== "hazard";
+    TR[set].groups.forEach(function(g){
+      var hits = g.list.filter(match); if(!hits.length) return;
+      var dest = set === "hazard" && g.k !== "t" ? top : wrap;
+      var lab = document.createElement("span"); lab.className = "bar-label"; lab.textContent = g.label; dest.appendChild(lab);
+      var box = document.createElement("div"); box.className = "chips";
+      hits.forEach(function(t){ box.appendChild(traitChip(t, has(t))); });
+      dest.appendChild(box);
+    });
+  }
+  function openTraitPicker(target){
+    pickFor = target || {set:"hazard"};
+    traitSearch.value = ""; renderTraitPicker();
+    traitPicker.hidden = false; $("scrim").hidden = false;
+    if(window.innerWidth > 760) traitSearch.focus();
+  }
+  function closeTraitPicker(){ traitPicker.hidden = true; $("scrim").hidden = true; }
+  function pickTargetOf(el){
+    if(el.closest("#hazTraitLine")) return {set:"hazard"};
+    var tl = el.closest(".hz-traits.pick"); if(!tl) return null;
+    var row = tl.closest(".hz-act");
+    return {set:"action", i:Array.prototype.indexOf.call(cardbox.querySelectorAll(".hz-act"), row)};
+  }
+  cardbox.addEventListener("click", function(e){ var t = pickTargetOf(e.target); if(t) openTraitPicker(t); });
+  cardbox.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    var t = pickTargetOf(e.target); if(t){ e.preventDefault(); e.stopPropagation(); openTraitPicker(t); }
+  }, true);
+  $("traitBtn").addEventListener("click", function(){ openTraitPicker({set:"hazard"}); });
+  $("traitPickerDone").addEventListener("click", closeTraitPicker);
+  traitPicker.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-trait]"); if(b) setPicked(toggled(pickFor.set, pickedTraits(), b.dataset.trait));
+  });
+  traitSearch.addEventListener("input", renderTraitPicker);
+  /* Enter takes the first match, or adds what was typed as a trait of its own */
+  traitSearch.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ closeTraitPicker(); return; }
+    if(e.key !== "Enter") return;
+    e.preventDefault();
+    var q = traitSearch.value.trim(); if(!q) return;
+    var first = traitPicker.querySelector("#traitSug button, #traitAllWrap button");
+    var t = first && first.dataset.trait.toLowerCase().indexOf(q.toLowerCase()) === 0 ? first.dataset.trait : q;
+    var have = pickedTraits();
+    if(!have.some(function(s){ return s.toLowerCase() === t.toLowerCase(); })) setPicked(toggled(pickFor.set, have, t));
+    traitSearch.value = ""; renderTraitPicker();
   });
 
   /* ---------------- editor wiring ---------------- */
@@ -523,6 +671,18 @@
     if(li >= 0 && lines[li + 1] && !/^(Source\b|Complexity\b|Stealth\b|Disable\b|AC\s+\d|Description\b)/i.test(lines[li + 1])) typeLine = lines[li + 1];
     var cLine = lines.filter(function(l){ return /^Complexity\s+/i.test(l); })[0];
     var complexity = cLine ? cLine.replace(/^Complexity\s+/i, "").trim() : "";
+    /* the trait line(s) under "Hazard N": when every word is a trait we know, they go on the trait
+       line rather than the kicker; Complex / Simple stay with the kicker as the complexity */
+    out.traits = [];
+    for(var k = li + 1; li >= 0 && k < lines.length; k++){
+      var words = lines[k].split(/[\s,]+/).filter(Boolean);
+      if(!words.length || !words.every(function(w){ return TR.hazard.canon[w.toLowerCase()] || /^(complex|simple|common)$/i.test(w); })) break;
+      words.forEach(function(w){
+        if(/^(complex|simple)$/i.test(w)){ if(!complexity) complexity = titleCase(w); }
+        else if(!/^common$/i.test(w)) out.traits.push(traitName("hazard", w));
+      });
+      if(k === li + 1) typeLine = "";
+    }
     if(li >= 0) out.kicker = ["Hazard " + (out.level || "?"), typeLine, complexity].filter(Boolean).join(" · ");
     var flat = lines.join("\n");
     if((m = /^Stealth\s+DC\s*(\d+)/im.exec(flat))) out.stealthDc = m[1];
@@ -571,6 +731,7 @@
     if(!got.length && !p.actions.length){ toast("No hazard stat block found in that text", 4000); return false; }
     setIrw(p);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = p[f] || ""; });
+    renderHazTraits(p.traits);
     renderActionsBlock(p.actions.length ? p.actions : []);
     if(link) setSource(link);
     refresh(); saveDraft();
@@ -803,11 +964,12 @@
     else toast("Could not open a new tab here — try Print instead", 5000);
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closePreview(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closePreview(); closeTraitPicker(); });
   document.addEventListener("keydown", function(e){
     if(e.key !== "Escape") return;
     if(!printModal.hidden) closePrintModal();
     if(!previewModal.hidden) closePreview();
+    if(!traitPicker.hidden) closeTraitPicker();
   });
   window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
   window.addEventListener("beforeprint", renderSheet);
