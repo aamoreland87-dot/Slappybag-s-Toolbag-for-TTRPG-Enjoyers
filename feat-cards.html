@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>PF2E Item Generator</title><link rel="stylesheet" href="fonts.css"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>PF2E Feat Cards</title><link rel="stylesheet" href="fonts.css"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 
 <style id="cardCss">
 :root{
@@ -6,14 +6,14 @@
   --ink-2:#575060;
   --ink-3:#8A8290;
   --paper:#FFFFFF;
-  --ground:#F1EFEE;
-  --rule:#CBC4C2;
-  --rule-soft:#E4DEDC;
-  --accent:#78202C;
-  --accent-2:#A8434F;
+  --ground:#EEF1EF;
+  --rule:#C3CBC6;
+  --rule-soft:#DCE3DE;
+  --accent:#1E5140;
+  --accent-2:#3F7A63;
   --on-accent:#FFFFFF;
-  --chip:#EDE6E4;
-  --ghost:#B9AFB2;
+  --chip:#E4EBE6;
+  --ghost:#AAB5AE;
   --shadow:0 1px 2px rgba(26,24,32,.06), 0 12px 30px rgba(26,24,32,.10);
   /* A card is exactly 4x5in at 96px/in; its border is the cut line. */
   --card-w:384px; --card-h:480px;
@@ -28,24 +28,24 @@
   :root:not([data-theme="light"]){
     --ink:#EAE4E2; --ink-2:#B0A6AC; --ink-3:#847A82;
     --paper:#1E1B21; --ground:#131215; --rule:#3E3841;
-    --rule-soft:#2C282F; --accent:#D68A93; --accent-2:#B96570;
-    --chip:#2B252B; --on-accent:#1E1B21; --ghost:#6A6068;
+    --rule-soft:#2C282F; --accent:#8CC4A9; --accent-2:#5E9C82;
+    --chip:#232B26; --on-accent:#1E1B21; --ghost:#6A6068;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
   }
 }
 :root[data-theme="dark"]{
   --ink:#EAE4E2; --ink-2:#B0A6AC; --ink-3:#847A82;
   --paper:#1E1B21; --ground:#131215; --rule:#3E3841;
-  --rule-soft:#2C282F; --accent:#D68A93; --accent-2:#B96570;
-  --chip:#2B252B; --on-accent:#1E1B21; --ghost:#6A6068;
+  --rule-soft:#2C282F; --accent:#8CC4A9; --accent-2:#5E9C82;
+  --chip:#232B26; --on-accent:#1E1B21; --ghost:#6A6068;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
 }
 
 /* The card is paper: it keeps the light palette whatever theme the UI around it uses. */
 .cardbox,.page{
-  --ink:#1A1820; --ink-2:#575060; --ink-3:#8A8290; --paper:#FFFFFF; --ground:#F1EFEE;
-  --rule:#CBC4C2; --rule-soft:#E4DEDC; --accent:#78202C; --accent-2:#A8434F; --on-accent:#FFFFFF;
-  --chip:#EDE6E4; --ghost:#B9AFB2; color-scheme:light; color:var(--ink);
+  --ink:#1A1820; --ink-2:#575060; --ink-3:#8A8290; --paper:#FFFFFF; --ground:#EEF1EF;
+  --rule:#C3CBC6; --rule-soft:#DCE3DE; --accent:#1E5140; --accent-2:#3F7A63; --on-accent:#FFFFFF;
+  --chip:#E4EBE6; --ghost:#AAB5AE; color-scheme:light; color:var(--ink);
 }
 
 *{box-sizing:border-box}
@@ -220,7 +220,7 @@ span.tog{display:inline-flex; align-items:center}
   display:flex; align-items:center; justify-content:center;
 }
 .card.stacked .photo{float:none; margin:.15em auto .45em}
-.card.stacked .sec.passive{display:none !important}
+.card.stacked .sec.grants{display:none !important}
 .photo img{width:100%; height:100%; object-fit:contain; display:block}
 .photo .ph-hint{
   font-family:var(--caps); font-size:.85em; letter-spacing:.12em; line-height:1.5;
@@ -259,12 +259,55 @@ span.tog{display:inline-flex; align-items:center}
 .ph-bg input{margin:0; width:1em; height:1em; accent-color:var(--accent)}
 
 /* sections: each box starts at the height its text (and image) needs; leftover card space is
-   shared Description 3 : Passive 2 : Active 2, and when the card is full every box shrinks in
-   proportion (a hidden optional section simply drops out). Every box clips; the fitters shrink
-   the body text until nothing is cut off. The PDF applies the same rule in drawCard. */
+   shared Description 3 : Grants 2 : each action 2 : Special 1 (the prerequisite lines take only
+   what they need), and when the card is full every box shrinks in proportion (a hidden optional
+   section simply drops out). Every box clips; the fitters shrink the body text until nothing is
+   cut off. The PDF applies the same rule in drawCard. */
 .sec{margin-top:.55em; display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden}
 .sec.desc{flex-grow:3}
-.sec.passive,.sec.active{flex-grow:2}
+.sec.active{flex-grow:2}
+
+/* ---- feat parts ---- */
+/* the feat's own action cost rides after its name, as in a stat block */
+.c-name .ncost{display:inline-flex; vertical-align:-.08em; margin-left:.3em}
+.c-name .ncost svg{height:.78em; width:auto}
+.c-name .ncost:empty{display:none}
+/* level, pinned right on the traits row: FEAT 4 */
+.c-meta .lvl{flex:0 0 auto; white-space:nowrap; text-align:right}
+.c-meta .lvl [contenteditable]{display:inline-block; min-width:.6em}
+.blanks .c-meta .lvl [contenteditable]:empty{min-width:1.5em; border-bottom:1px dotted var(--ink-3)}
+.blanks .c-meta .lvl [contenteditable]:empty::before{content:""}
+/* the editor's cost picker for the feat itself sits under the title */
+.selfcost{display:none; justify-content:center; align-items:center; gap:.5em; margin-top:.25em;
+  font-family:var(--caps); font-size:.8em; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.blanks .selfcost{display:flex}
+.selfcost .pl{display:inline-flex}
+.selfcost .pl input{display:inline-block}
+.selfcost .pl:not(.on) .pv{color:var(--ghost)}
+/* prerequisites / access / frequency / trigger / requirements: stat-block lines, no caption */
+.sec.req{flex:0 0 auto; margin-top:.4em; padding-bottom:.25em; border-bottom:1px solid var(--rule)}
+.sec.req .body{white-space:normal; flex:0 0 auto}
+.rq{display:block; white-space:pre-wrap}
+.rq.blank{display:none}
+.blanks .rq.blank{display:block}
+.rq [contenteditable]{display:inline}
+.blanks .rq [contenteditable]:empty{display:inline-block; min-width:8em; border-bottom:1px dotted var(--ink-3)}
+.blanks .rq [contenteditable]:empty::before{content:""}
+/* grants: one line per thing the feat hands out — a bold kind, then the details */
+.sec.grants{flex-grow:2}
+.sec.grants .body{white-space:normal}
+.grant{display:block; white-space:pre-wrap; position:relative}
+.grant .gk{font-weight:700}
+.editor .grant .gk:empty::before{content:"+ kind"; color:var(--ghost); font-weight:400; font-style:italic}
+.editor .grant .gk{cursor:pointer; border-radius:2px}
+.editor .grant .gk:hover{background:var(--chip)}
+.grant .gt{display:inline}
+.grant .gx{display:none; position:absolute; right:0; top:.1em; width:1.3em; height:1.3em; padding:0; line-height:1;
+  font:inherit; border:1px solid var(--rule); border-radius:50%; background:var(--paper); color:var(--ink-3); cursor:pointer}
+.editor .grant:not(.spare):hover .gx,.editor .grant:not(.spare):focus-within .gx{display:inline-block}
+.grant.spare{display:none}
+.blanks .grant.spare{display:block}
+.sec.special{flex-grow:1}
 .sec-cap{
   flex:0 0 auto; display:flex; align-items:baseline; gap:.6em; flex-wrap:wrap;
   font-family:var(--sub); font-weight:700; font-size:1.15em; line-height:1; letter-spacing:.07em;
@@ -425,6 +468,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 .modal .big{display:inline-block; text-decoration:none; padding:.55rem 1rem; font-size:.95rem}
 .modal-row{display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.9rem}
 .modal-row .grow{flex:1 1 1rem}
+.modal input[type=search],.modal textarea{width:100%; font:inherit; font-size:14px; padding:.45rem .6rem; border:1px solid var(--rule); border-radius:2px; background:var(--chip); color:var(--ink)}
+.modal textarea{resize:vertical; min-height:9rem; line-height:1.4}
+.modal input[type=search]:focus,.modal textarea:focus{outline:2px solid var(--accent-2); outline-offset:1px}
+.imp-row{margin:0 0 .5rem}
+.imp-opt{display:flex; align-items:center; gap:.4rem; margin-top:.5rem; font-size:.9rem; color:var(--ink-2)}
+.imp-opt input{accent-color:var(--accent)}
+.imp-note{min-height:1.2em; margin:.4rem 0 0 !important; font-size:.88rem; color:var(--accent) !important}
+.modal{max-height:92vh; overflow:auto}
 .preview-card{display:flex; justify-content:center; margin:.3rem 0 .9rem}
 .preview-card .cardbox{--zoom:.62; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.10); margin:0 auto}
 
@@ -442,7 +493,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 @media print{
   :root{
     --ink:#000; --ink-2:#333; --ink-3:#666; --paper:#fff; --ground:#fff;
-    --rule:#777; --rule-soft:#b3b3b3; --accent:#5E1622; --accent-2:#5E1622;
+    --rule:#777; --rule-soft:#b3b3b3; --accent:#16392D; --accent-2:#16392D;
     --chip:#fff; --on-accent:#fff; --ghost:#fff; --shadow:none; --sheet-zoom:1;
   }
   *{print-color-adjust:exact; -webkit-print-color-adjust:exact}
@@ -474,10 +525,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     <nav class="toolbag" aria-label="Toolbag">
       <a class="home" href="index.html">&lsaquo; Toolbag</a>
       <details class="switch" id="toolSwitch">
-        <summary title="Switch tool"><h1>Item Cards <span class="sub">&middot; PF2e</span></h1></summary>
+        <summary title="Switch tool"><h1>Feat Cards <span class="sub">&middot; PF2e</span></h1></summary>
         <ul class="menu">
-          <li><a href="item-cards.html" aria-current="page">Item Cards</a></li>
-          <li><a href="feat-cards.html">Feat Cards</a></li>
+          <li><a href="item-cards.html">Item Cards</a></li>
+          <li><a href="feat-cards.html" aria-current="page">Feat Cards</a></li>
           <li><a href="initiative-cards.html">Initiative Cards</a></li>
           <li><a href="hazard-cards.html">Hazard Cards</a></li>
           <li class="all"><a href="index.html">All tools</a></li>
@@ -493,13 +544,15 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
     <div class="bar-group" data-for="editor">
       <button class="tog" id="blanks" aria-pressed="true" title="Show every field, and print it empty to fill in by hand">Blank fields</button>
+      <button class="btn" id="importBtn" title="Fetch a feat by name, or paste it from Archives of Nethys or Demiplane">Import</button>
       <button class="btn" id="newCard">New</button>
       <button class="btn solid" id="saveCard">Save</button>
     </div>
     <div class="bar-group" data-for="library" hidden>
       <span class="bar-label">Sort</span>
       <div class="seg" role="group" aria-label="Sort">
-        <button class="tog" data-sort="cat" aria-pressed="false">Category</button>
+        <button class="tog" data-sort="cat" aria-pressed="false">Type</button>
+        <button class="tog" data-sort="level" aria-pressed="false">Level</button>
         <button class="tog" data-sort="created" aria-pressed="true">Created</button>
         <button class="tog" data-sort="edited" aria-pressed="false">Edited</button>
       </div>
@@ -549,25 +602,36 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   <div class="cardbox">
     <article class="card" id="card">
 
-      <h2 class="c-name" contenteditable data-f="name" data-ph="Item Name"></h2>
+      <h2 class="c-name" id="nameLine"><span class="nm" contenteditable data-f="name" data-ph="Feat Name"></span><span class="ncost glyph" id="nameCost"></span></h2>
+      <div class="selfcost" id="selfCost"><span>Feat cost</span><span class="pick" id="selfPick"></span></div>
 
       <div class="c-cat" id="catRow">
         <span class="c-left">
-          <select id="cat" aria-label="Item category"><option value="">Category</option></select>
-          <span class="note" contenteditable data-f="note" data-ph="" aria-label="Note"></span>
+          <select id="cat" aria-label="Feat type"><option value="">Feat type</option></select>
+          <span class="note" contenteditable data-f="note" data-ph="class · archetype" aria-label="Class, ancestry, or archetype"></span>
         </span>
         <span class="charges" id="charges">
-          <button class="chg-btn screen-only" id="chgMinus" aria-label="Fewer charges">&minus;</button>
-          <span class="dots" id="chgDots" aria-label="Charges"></span>
-          <button class="chg-btn screen-only" id="chgPlus" aria-label="More charges">+</button>
-          <span class="per">/ <span contenteditable data-f="per" data-ph="" aria-label="How often the charges refresh"></span></span>
+          <button class="chg-btn screen-only" id="chgMinus" aria-label="Fewer uses">&minus;</button>
+          <span class="dots" id="chgDots" aria-label="Uses"></span>
+          <button class="chg-btn screen-only" id="chgPlus" aria-label="More uses">+</button>
+          <span class="per">/ <span contenteditable data-f="per" data-ph="" aria-label="How often the uses refresh"></span></span>
         </span>
       </div>
 
       <div class="c-meta" id="traitRow">
         <span class="traits" id="traitLine" tabindex="0" role="button" aria-label="Edit traits"></span>
-        <span class="value num" contenteditable data-f="value" data-ph=""></span>
+        <span class="lvl">Feat <span class="num" contenteditable data-f="level" data-ph="" aria-label="Feat level"></span></span>
       </div>
+
+      <section class="sec req" id="reqSec">
+        <div class="body">
+          <span class="rq" data-rq="prereq"><b>Prerequisites</b> <span contenteditable data-f="prereq" data-ph=""></span></span>
+          <span class="rq" data-rq="access"><b>Access</b> <span contenteditable data-f="access" data-ph=""></span></span>
+          <span class="rq" data-rq="freq"><b>Frequency</b> <span contenteditable data-f="freq" data-ph=""></span></span>
+          <span class="rq" data-rq="trigger"><b>Trigger</b> <span contenteditable data-f="trigger" data-ph=""></span></span>
+          <span class="rq" data-rq="reqs"><b>Requirements</b> <span contenteditable data-f="reqs" data-ph=""></span></span>
+        </div>
+      </section>
 
       <section class="sec desc">
         <div class="sec-cap">Description</div>
@@ -580,16 +644,21 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
             <span class="ph-grip screen-only" id="phGrip" tabindex="0" role="slider" aria-label="Image size" title="Drag to resize"></span>
             <input type="file" accept="image/*,.webp" id="phFile" hidden>
           </div>
-          <div class="body" contenteditable data-f="description" data-ph="What it looks like and what it is."></div>
+          <div class="body" contenteditable data-f="description" data-ph="What the feat does, in plain words."></div>
         </div>
       </section>
 
-      <section class="sec passive" id="passiveSec">
-        <div class="sec-cap">Passive</div>
-        <div class="body" contenteditable data-f="passive" data-ph="What it does while worn, held, or invested."></div>
+      <section class="sec grants" id="grantSec">
+        <div class="sec-cap">Grants</div>
+        <div class="body" id="grantBody"></div>
       </section>
 
-      <!-- one Active section per action type is generated here by buildActionSections() -->
+      <!-- one section per action the feat gives is generated here by renderActionSections() -->
+
+      <section class="sec special" id="specialSec">
+        <div class="sec-cap">Special</div>
+        <div class="body" contenteditable data-f="special" data-ph="Can it be taken more than once? Does it lock anything out?"></div>
+      </section>
 
     </article>
   </div>
@@ -600,7 +669,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 <!-- ================= LIBRARY ================= -->
 <section class="view" id="libraryView" hidden>
   <div class="gallery" id="gallery"></div>
-  <p class="empty" id="libEmpty" hidden>No saved cards yet. Build one in the editor and press Save.</p>
+  <p class="empty" id="libEmpty" hidden>No saved feats yet. Build one in the editor and press Save.</p>
 </section>
 
 <!-- ================= SHEET ================= -->
@@ -631,7 +700,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
 <div class="toast hide" id="toast"></div>
 
-<section class="modal" id="previewModal" hidden role="dialog" aria-label="Save this item">
+<section class="modal" id="previewModal" hidden role="dialog" aria-label="Save this feat">
   <h3>This is how it'll look</h3>
   <p>Same picture you'll see in the Library.</p>
   <div class="preview-card" id="previewCard"></div>
@@ -639,6 +708,22 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     <button class="btn" id="previewCancel">Keep editing</button>
     <span class="grow"></span>
     <button class="btn solid" id="previewSave">Save to library</button>
+  </div>
+</section>
+
+<section class="modal" id="importModal" hidden role="dialog" aria-label="Import a feat">
+  <h3>Import a feat</h3>
+  <p id="importLead"></p>
+  <div class="imp-row" id="importNameRow">
+    <input type="search" id="importName" placeholder="Feat name, e.g. Medic Dedication" autocomplete="off" aria-label="Feat name">
+  </div>
+  <textarea id="importText" rows="9" placeholder="Medic Dedication Feat 2&#10;Archetype Dedication&#10;Prerequisites trained in Medicine; Battle Medicine&#10;You become an expert in Medicine…" aria-label="Feat text"></textarea>
+  <label class="imp-opt"><input type="checkbox" id="importGrants" checked> Suggest Grants from the rules text</label>
+  <p class="imp-note" id="importNote" aria-live="polite"></p>
+  <div class="modal-row">
+    <button class="btn" id="importCancel">Cancel</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="importGo">Import</button>
   </div>
 </section>
 
@@ -655,89 +740,79 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   </div>
 </section>
 
-<script src="firebase-config.js"></script>
-<script src="cloud.js"></script>
 <script>
 (function(){
   "use strict";
-  var DRAFT = "pf2e-item-card-v7", OLD = "pf2e-item-card-v6", LIB_LOCAL = "pf2e-item-lib", SEL = "pf2e-item-sel";
+  var DRAFT = "pf2e-feat-card-v1", LIB_LOCAL = "pf2e-feat-lib", SEL = "pf2e-feat-sel";
   var $ = function(id){ return document.getElementById(id); };
   var pane = $("pane"), cardEl = $("card"), photo = $("photo"), phFile = $("phFile");
-  var catSel = $("cat"), traitLine = $("traitLine"), passiveSec = $("passiveSec");
+  var catSel = $("cat"), traitLine = $("traitLine"), grantSec = $("grantSec"), grantBody = $("grantBody"), specialSec = $("specialSec");
   var ZOOMS = [.75, 1, 1.25, 1.5, 2, 2.5];
   var IMG_MIN = 56, IMG_MAX = 250, CHG_MAX = 12;
 
-  /* ---------------- reference lists (static; copied from Archives of Nethys) ---------------- */
-  var CATEGORIES = ["Adjustments","Adventuring Gear","Alchemical Items","Animals and Gear","Apex Items",
-    "Armor","Artifacts","Assistive Items","Banners","Blighted Boons","Censer","Consumables","Contracts",
-    "Cursed Items","Customizations","Figurehead","Grafts","Grimoires","Held Items","High-Tech",
-    "Intelligent Items","Materials","Relics","Runes","Services","Shields","Siege Weapons","Snares",
-    "Spellhearts","Staves","Structures","Tattoos","Trade Goods","Vehicles","Wands","Weapons","Worn Items","Other"];
+  /* ---------------- reference lists (static; after Archives of Nethys) ---------------- */
+  var CATEGORIES = ["Ancestry","Archetype","Class","General","Skill","Deviant","Mythic","Bonus","Other"];
   var RARITY = ["Uncommon","Rare","Unique"];
+  var CLASSES = ["Alchemist","Animist","Barbarian","Bard","Champion","Cleric","Commander","Druid","Exemplar",
+    "Fighter","Guardian","Gunslinger","Inventor","Investigator","Kineticist","Magus","Monk","Oracle","Psychic",
+    "Ranger","Rogue","Sorcerer","Summoner","Swashbuckler","Thaumaturge","Witch","Wizard"];
+  var ANCESTRIES = ["Android","Automaton","Azarketi","Catfolk","Centaur","Changeling","Conrasu","Dhampir","Dwarf",
+    "Elf","Fetchling","Fleshwarp","Ghoran","Gnoll","Gnome","Goblin","Goloma","Grippli","Half-Elf","Half-Orc",
+    "Halfling","Hobgoblin","Human","Kholo","Kitsune","Kobold","Leshy","Lizardfolk","Merfolk","Minotaur",
+    "Nagaji","Nephilim","Orc","Poppet","Ratfolk","Samsaran","Shisk","Skeleton","Sprite","Strix","Tanuki",
+    "Tengu","Vanara","Vishkanya","Yaksha"];
+  var FEAT = ["Archetype","Class Archetype","Dedication","Multiclass","General","Skill","Lineage","Mythic",
+    "Deviant","Ancestry","Heritage","Additive","Evolution","Finisher","Bravado","Flourish","Stance","Press",
+    "Open","Oath","Impulse","Composite","Overflow","Metamagic","Spellshape","Tandem","Tactic","Brandish",
+    "Consecration","Cursebound","Esoterica","Modification","Unstable","Vigilante","Social","Exploration","Downtime",
+    "Secret","Fortune","Misfortune","Rage","Aura","Emotion","Mental","Fear","Healing","Detection","Visual",
+    "Auditory","Linguistic","Concentrate","Manipulate","Move","Attack","Magical","Polymorph","Poison"];
   var TRADITION = ["Arcane","Divine","Occult","Primal"];
   var ENERGY = ["Acid","Cold","Electricity","Fire","Force","Sonic","Vitality","Void"];
   var ELEMENT = ["Air","Earth","Metal","Water","Wood"];
-  var POISON = ["Contact","Ingested","Inhaled","Injury","Poison","Virulent"];
-  var EQUIP = ["Adjustment","Alchemical","Apex","Artifact","Barding","Bomb","Bottled Breath","Catalyst","Censer",
-    "Clockwork","Coda","Companion","Consumable","Contract","Cursed","Drug","Elixir","Figurehead","Focused","Fulu",
-    "Gadget","Graft","Grimoire","Intelligent","Invested","Lozenge","Magical","Mechanical","Missive","Mutagen","Oil",
-    "Potion","Precious","Processed","Relic","Saggorak","Scroll","Snare","Spellgun","Spellheart","Staff","Steam",
-    "Structure","Talisman","Tattoo","Trap","Wand","Whetstone"];
-  var WEAPON = ["Agile","Attached","Backstabber","Backswing","Brace","Brutal","Capacity","Climbing","Cobbled",
-    "Combination","Concealable","Concussive","Critical Fusion","Deadly","Disarm","Double Barrel","Fatal","Fatal Aim",
-    "Finesse","Forceful","Free-Hand","Grapple","Hampering","Injection","Jousting","Kickback","Modular","Monk",
-    "Mounted","Nonlethal","Parry","Portable","Propulsive","Ranged Trip","Razing","Reach","Recovery","Repeating",
-    "Resonant","Scatter","Shove","Sweep","Tearing","Tethered","Thrown","Training","Trip","Twin","Two-Hand",
-    "Unarmed","Vehicular","Venomous","Versatile","Volley"];
-  var ARMOR = ["Adjusted","Aquadynamic","Barding","Bulwark","Comfort","Flexible","Hindering","Inscribed","Laminar","Noisy","Ponderous"];
-  var SHIELD = ["Deflecting","Entrench","Expandable","Foldaway","Harnessed","Hefty","Inscribed","Integrated","Launching","Shield Throw"];
-  var EFFECT = ["Attack","Auditory","Aura","Concentrate","Curse","Darkness","Death","Detection","Disease","Emotion",
-    "Extradimensional","Fear","Fortune","Healing","Holy","Illusion","Incapacitation","Light","Linguistic",
-    "Manipulate","Mental","Misfortune","Morph","Move","Olfactory","Plant","Polymorph","Possession","Prediction",
-    "Radiation","Sanctified","Scrying","Shadow","Sleep","Spirit","Splash","Tech","Teleportation","Unholy","Visual"];
   function uniq(a){ var s = {}, o = []; a.forEach(function(x){ if(!s[x]){ s[x] = 1; o.push(x); } }); return o; }
-  var ALL_TRAITS = uniq([].concat(RARITY, EQUIP, WEAPON, ARMOR, SHIELD, TRADITION, ENERGY, ELEMENT, POISON, EFFECT)).sort();
+  var ALL_TRAITS = uniq([].concat(RARITY, FEAT, CLASSES, ANCESTRIES, TRADITION, ENERGY, ELEMENT)).sort();
   var SUGGEST = {
-    "Weapons":           ["Magical","Agile","Finesse","Reach","Thrown","Versatile","Deadly","Fatal","Forceful","Sweep","Trip","Disarm","Shove","Two-Hand","Backstabber","Parry","Propulsive","Volley","Concealable","Nonlethal","Monk","Unarmed"].concat(WEAPON, ENERGY, RARITY),
-    "Armor":             ["Magical","Invested","Bulwark","Comfort","Flexible","Noisy","Hindering","Ponderous","Laminar"].concat(ARMOR, RARITY),
-    "Shields":           ["Magical","Deflecting","Hefty","Integrated","Foldaway","Harnessed","Launching","Shield Throw","Entrench","Expandable","Inscribed"].concat(RARITY),
-    "Consumables":       ["Consumable","Magical","Alchemical","Potion","Elixir","Oil","Scroll","Talisman","Bomb","Splash","Poison","Drug","Mutagen","Catalyst","Fulu","Gadget","Snare","Healing","Bottled Breath","Lozenge","Missive","Whetstone","Processed"].concat(POISON, TRADITION, ENERGY, RARITY),
-    "Alchemical Items":  ["Alchemical","Consumable","Bomb","Splash","Elixir","Poison","Mutagen","Drug","Healing","Polymorph","Processed"].concat(POISON, ENERGY, RARITY),
-    "Worn Items":        ["Invested","Magical","Apex","Companion","Focused","Clockwork"].concat(TRADITION, EFFECT, RARITY),
-    "Held Items":        ["Magical","Invested","Focused","Clockwork","Censer","Spellgun","Steam"].concat(TRADITION, EFFECT, RARITY),
-    "Staves":            ["Staff","Magical","Coda"].concat(TRADITION, RARITY),
-    "Wands":             ["Wand","Magical"].concat(TRADITION, RARITY),
-    "Runes":             ["Magical","Saggorak"].concat(TRADITION, ENERGY, EFFECT, RARITY),
-    "Artifacts":         ["Artifact","Magical","Invested","Cursed","Intelligent","Unique","Rare"].concat(TRADITION),
-    "Cursed Items":      ["Cursed","Magical","Invested","Misfortune","Rare"].concat(TRADITION),
-    "Intelligent Items": ["Intelligent","Magical","Invested","Artifact"].concat(TRADITION, RARITY),
-    "Relics":            ["Relic","Magical","Invested"].concat(TRADITION, RARITY),
-    "Grimoires":         ["Grimoire","Magical"].concat(TRADITION, RARITY),
-    "Spellhearts":       ["Spellheart","Magical"].concat(TRADITION, ENERGY, RARITY),
-    "Tattoos":           ["Tattoo","Magical","Invested"].concat(TRADITION, RARITY),
-    "Apex Items":        ["Apex","Invested","Magical"].concat(TRADITION, RARITY),
-    "Adjustments":       ["Adjustment"].concat(RARITY),
-    "Assistive Items":   ["Adjustment","Magical","Alchemical","Clockwork","Companion"].concat(RARITY),
-    "Adventuring Gear":  ["Alchemical","Clockwork","Mechanical","Companion"].concat(RARITY),
-    "Animals and Gear":  ["Companion","Barding"].concat(RARITY),
-    "Banners":           ["Magical","Invested"].concat(RARITY),
-    "Blighted Boons":    ["Rare","Unique","Cursed"],
-    "Censer":            ["Censer","Magical","Invested"].concat(TRADITION, RARITY),
-    "Contracts":         ["Contract","Magical","Rare"].concat(TRADITION),
-    "Customizations":    ["Clockwork","Mechanical"].concat(RARITY),
-    "Figurehead":        ["Figurehead","Magical"].concat(RARITY),
-    "Grafts":            ["Graft","Magical","Invested"].concat(RARITY),
-    "High-Tech":         ["Tech","Radiation","Clockwork"].concat(RARITY),
-    "Materials":         ["Precious"].concat(RARITY),
-    "Siege Weapons":     ["Mounted","Portable","Mechanical"].concat(RARITY),
-    "Snares":            ["Snare","Consumable","Mechanical","Trap"].concat(RARITY),
-    "Structures":        ["Structure","Magical"].concat(RARITY),
-    "Trade Goods":       ["Precious"].concat(RARITY),
-    "Vehicles":          ["Mechanical","Clockwork","Steam"].concat(RARITY),
-    "Services":          RARITY,
-    "Other":             ["Magical","Alchemical","Invested","Consumable"].concat(RARITY)
+    "Ancestry":  ["Lineage","Heritage","Fortune","Magical","Concentrate","Manipulate"].concat(ANCESTRIES, RARITY),
+    "Archetype": ["Archetype","Dedication","Multiclass","Class Archetype","Skill","Flourish","Stance","Press","Magical"].concat(TRADITION, RARITY),
+    "Class":     ["Flourish","Stance","Press","Open","Rage","Metamagic","Spellshape","Finisher","Bravado","Oath","Impulse","Composite","Overflow","Additive","Evolution","Tandem","Tactic","Brandish","Esoterica","Modification","Unstable","Consecration","Cursebound","Aura","Concentrate","Manipulate","Move","Attack"].concat(CLASSES, RARITY),
+    "General":   ["General","Skill","Exploration","Downtime","Fortune","Magical"].concat(RARITY),
+    "Skill":     ["General","Skill","Exploration","Downtime","Secret","Social","Healing","Manipulate","Concentrate","Linguistic","Auditory","Visual","Mental","Emotion","Fear"].concat(RARITY),
+    "Deviant":   ["Deviant","Magical","Concentrate","Manipulate","Aura","Mental","Polymorph","Fortune"].concat(TRADITION, ENERGY, ELEMENT, RARITY),
+    "Mythic":    ["Mythic","Fortune","Aura","Magical"].concat(TRADITION, RARITY),
+    "Bonus":     ["General","Skill","Magical"].concat(RARITY),
+    "Other":     ["General","Skill","Magical","Fortune"].concat(RARITY)
   };
-  var GENERAL = ["Magical","Invested","Consumable","Alchemical"].concat(RARITY, TRADITION);
+  var GENERAL = ["General","Skill","Archetype","Dedication","Magical"].concat(RARITY, TRADITION);
+  /* What a feat can hand out, each with a hint of how it's written. Anything else can be typed in. */
+  var GRANTS = [
+    ["Skill", "Trained in Athletics; if you already are, another skill of your choice"],
+    ["Lore", "Trained in Gate Lore"],
+    ["Attribute", "+1 Constitution (or +2 if it's below +4)"],
+    ["Perception", "Expert"],
+    ["Saving Throw", "Expert in Will; success becomes critical success"],
+    ["Class DC", "Trained in fighter class DC"],
+    ["Weapons", "Trained in martial weapons"],
+    ["Armor", "Trained in medium armor"],
+    ["Spellcasting", "Occult innate spells, Charisma; trained spell attack and DC"],
+    ["Cantrip", "Detect Magic, heightened to half your level"],
+    ["Spell", "Soothe, 1st rank, once per day"],
+    ["Spell Slots", "One 1st-rank slot; more at 6th and 8th"],
+    ["Focus Spell", "Lay on Hands; you gain a focus pool of 1"],
+    ["Focus Point", "Your focus pool increases by 1"],
+    ["Feat", "A 1st-level class feat from that class"],
+    ["Action", "Its name — the action itself is written out below"],
+    ["Hit Points", "+2 per level"],
+    ["Speed", "+5 feet"],
+    ["Sense", "Low-light vision; darkvision if you have it"],
+    ["Language", "Two languages of your choice"],
+    ["Resistance", "Fire resistance equal to half your level"],
+    ["Companion", "A young animal companion"],
+    ["Item", "A bandolier and two lesser elixirs, free"],
+    ["Other", "Anything else the feat changes"]
+  ];
+  var GRANT_KINDS = GRANTS.map(function(g){ return g[0]; });
+  function grantHint(k){ for(var i = 0; i < GRANTS.length; i++) if(GRANTS[i][0] === k) return GRANTS[i][1]; return "What it gives"; }
   /* Action icons as inline SVG, drawn after the Paizo glyphs: a diamond notched with a
      chevron, plus one chevron per extra action; a hooked arrow; a hollow diamond. */
   var ICON = (function(){
@@ -789,50 +864,54 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   var GLYPH = ICON;
   document.querySelectorAll(".glyph[data-g]").forEach(function(el){ el.innerHTML = ICON[el.dataset.g]; });
   var ATRAITS = ["move","attack","concentrate","manipulate","auditory","visual","interact"];
-  /* One section per action type; an item never has two of the same type. */
+  /* The cost boxes, in the order they sit on the card. */
   var ATYPES = ["ar","af","a1","a2","a3"];   /* order on the card: Reaction, Free, 1, 2, 3 */
-  var ALABEL = {a1:"Action", a2:"Actions", a3:"Actions", af:"Free action", ar:"Reaction", "":"Active"};
-  /* A card's actions in ATYPES order, each {type, text, html, range, traits}. Newer cards store
-     `actions:{a1:{on,text,html,range,traits},…}`; older ones one Active with the cost ticked in `c`. */
+  var ALABEL = {a1:"Action", a2:"Actions", a3:"Actions", af:"Free action", ar:"Reaction", "":"Action"};
+  /* A card's actions in card order, each {type, text, html, range, traits}. */
   function actionsOf(d){
     var out = [], trim = function(s){ return String(s || "").trim(); };
-    var keep = function(t, a){
-      if(t || trim(a.text) || trim(a.range) || (a.traits || []).length)
-        out.push({type:t, text:a.text || "", html:a.html || "", range:a.range || "", traits:a.traits || []});
-    };
-    /* current shape: a list of actions in card order, any number of each type */
-    if(Array.isArray(d.actions)){ d.actions.forEach(function(a){ if(a) keep(a.type || "", a); }); return out; }
-    /* the shape before: one slot per type, keyed by type */
-    if(d.actions){
-      ATYPES.forEach(function(t){ var a = d.actions[t]; if(a && (a.on || trim(a.text) || trim(a.range) || (a.traits || []).length)) keep(t, a); });
-      return out;
-    }
-    var types = ATYPES.filter(function(t){ return d.c && d.c[t]; });
-    var traits = ATRAITS.filter(function(t){ return d.c && d.c["t-" + t]; });
-    if(trim(d.active) || trim(d.range) || traits.length || types.length)
-      out.push({type:types[0] || "", text:d.active || "", html:d.activeHtml || "", range:d.range || "", traits:traits});
+    (Array.isArray(d.actions) ? d.actions : []).forEach(function(a){
+      if(a && (a.type || trim(a.text) || trim(a.range) || (a.traits || []).length))
+        out.push({type:a.type || "", text:a.text || "", html:a.html || "", range:a.range || "", traits:a.traits || []});
+    });
     return out;
+  }
+  /* A card's grants, each {k, text, html}; rows with nothing in them are dropped. */
+  function grantsOf(d){
+    return (Array.isArray(d.grants) ? d.grants : []).filter(function(g){
+      return g && (String(g.k || "").trim() || String(g.text || "").trim());
+    });
+  }
+  /* Grants as one block of styled runs: a bold kind, then the details, one grant per line. */
+  function grantsHtml(list){
+    return list.map(function(g){ return (g.k ? "<b>" + esc(g.k) + "</b> " : "") + (g.html ? safeHtml(g.html) : esc(g.text)); }).join("\n");
   }
 
   var EXAMPLE = {
-    name:"Cloak of Gnawing Leaves", cat:"Worn Items", note:"worn cloak", traits:["Rare","Invested","Primal"], value:"20 gp",
-    chg:1, per:"day",
-    description:"This cloak appears to be woven from a thousand living leaves, hungry for flesh and eager to defend the cloak's wearer.",
-    passive:"While invested, the leaves rustle a warning: you gain a +1 item bonus to Perception checks to Seek in forests.",
-    passiveOn:true, range:"adjacent",
-    active:"Bite Back — Frequency once per day; Trigger you are damaged by a melee attack from an adjacent creature; Effect the leaves lash out with jaws of wicked thorns. The attacker attempts a DC 17 Reflex save.\nSuccess unaffected. Failure 2d6 piercing. Critical Failure 4d6 piercing and it is grabbed until the end of its next turn.",
-    c:{ar:true}, used:[], imgW:120, imgAr:1
+    name:"Rift-Touched Dedication", cat:"Archetype", note:"Rift-Touched", traits:["Uncommon","Archetype","Dedication","Occult"], level:"2",
+    cost:"", chg:0, per:"",
+    prereq:"You were caught in the opening of a gate", access:"",
+    freq:"", trigger:"", reqs:"",
+    description:"The moment the gate opened, part of you stayed on the other side. Space bends a little around you now, and you can feel the seams where it's thinnest.",
+    grants:[
+      {k:"Skill", text:"Trained in Occultism; if you already are, another skill of your choice"},
+      {k:"Lore", text:"Trained in Planar Lore"},
+      {k:"Cantrip", text:"Void Warp as an occult innate cantrip, using Charisma"}
+    ],
+    actions:[{type:"a1", range:"", traits:["move","concentrate"], text:"Slip the Seam — Frequency once per 10 minutes. You Step up to 10 feet through a gap only you can see. This movement doesn't trigger reactions."}],
+    special:"You can't take another dedication feat until you've gained two other feats from this archetype.",
+    used:[], imgW:110, imgAr:1
   };
 
   /* ---------------- editor state ---------------- */
   var zoom = 1, currentId = null, bodyScale = 1, nameScale = 1;
   var img = {src:"", data:"", id:"", meta:"", dirty:false};   /* what's shown, a pending upload, the stored asset */
-  var imgW = 120, imgAr = 1, traits = [], chg = 1, used = [];
+  var imgW = 120, imgAr = 1, traits = [], chg = 0, used = [], cost = "";
 
   /* The flat fields (name, category, description…); the action sections are handled on their own. */
   function texts(){ return Array.prototype.filter.call(pane.querySelectorAll("[data-f]"), function(el){ return !el.closest(".sec.active"); }); }
   function checks(){ return Array.prototype.filter.call(pane.querySelectorAll("[data-c]"), function(el){ return !el.closest(".sec.active"); }); }
-  /* The editor's Active sections: one per action the item has, in card order, plus one spare slot
+  /* The editor's action sections: one per action the feat gives, in card order, plus one spare slot
      at the end. A slot with no type yet shows the five cost boxes; tick one and it becomes that
      action — the other boxes go, the range, traits and write-up appear, and a fresh spare slot is
      added below. Untick the cost and the slot goes back to the five boxes (and away, if empty). */
@@ -847,7 +926,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         '<span class="range"><b>Range</b> <span contenteditable class="num" data-f="range" data-ph=""></span></span>' +
         '<span class="pick atr">' + ATRAITS.map(function(tr){ return '<label class="pl"><input type="checkbox" data-c="t-' + tr + '"' + ((a.traits || []).indexOf(tr) >= 0 ? ' checked' : '') + '><span class="pv">' + tr + '</span></label>'; }).join("") + '</span>' +
       '</div>' +
-      '<div class="body" contenteditable data-f="active" data-ph="Frequency, trigger, and what happens when you use it."></div>';
+      '<div class="body" contenteditable data-f="active" data-ph="The action’s name, then its frequency, trigger, and effect."></div>';
     var body = s.querySelector(".body");
     if(a.html) body.innerHTML = safeHtml(a.html); else body.innerText = a.text || "";
     s.querySelector('[data-f="range"]').innerText = a.range || "";
@@ -862,7 +941,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   function renderActionSections(list){
     actionSecs().forEach(function(s){ s.remove(); });
-    list.forEach(function(a){ cardEl.appendChild(actionSection(a)); });
+    list.forEach(function(a){ cardEl.insertBefore(actionSection(a), specialSec); });
     ensureSpareSlot();
   }
   /* Slots keep card order — reaction, free action, 1, 2, 3 — the moment a cost is ticked (ties keep
@@ -872,12 +951,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var secs = Array.prototype.slice.call(actionSecs());
     var rank = function(s){ return s.dataset.type ? ATYPES.indexOf(s.dataset.type) : (secEmpty(s) ? 99 : 50); };
     secs.slice().sort(function(a, b){ return (rank(a) - rank(b)) || (secs.indexOf(a) - secs.indexOf(b)); })
-      .forEach(function(s){ cardEl.appendChild(s); });
+      .forEach(function(s){ cardEl.insertBefore(s, specialSec); });
   }
   function ensureSpareSlot(){
     var spares = Array.prototype.filter.call(actionSecs(), function(s){ return !s.dataset.type && secEmpty(s); });
     spares.slice(0, -1).forEach(function(s){ s.remove(); });   /* never more than one */
-    if(!spares.length) cardEl.appendChild(actionSection());
+    if(!spares.length) cardEl.insertBefore(actionSection(), specialSec);
     sortActionSlots();
   }
   /* a cost box in a slot: pick that type (only one), or untick it to clear the type */
@@ -888,11 +967,69 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     ensureSpareSlot();
   }
   renderActionSections([]);
+
+  /* ---------------- grants: one row per thing the feat hands out ----------------
+     Each row is a kind (picked from GRANTS or typed) and a line of detail. There is always one
+     empty row at the bottom to start the next grant; it only shows while blank fields are on. */
+  function grantRow(g){
+    g = g || {};
+    var row = document.createElement("div"); row.className = "grant";
+    row.innerHTML = '<span class="gk" tabindex="0" role="button" aria-label="Kind of grant"></span> ' +
+      '<span class="gt" contenteditable data-g="1"></span>' +
+      '<button type="button" class="gx screen-only" aria-label="Remove this grant" title="Remove">&times;</button>';
+    setGrantKind(row, g.k || "");
+    var gt = row.querySelector(".gt");
+    if(g.html) gt.innerHTML = safeHtml(g.html); else gt.innerText = g.text || "";
+    return row;
+  }
+  function setGrantKind(row, k){
+    row.dataset.k = k;
+    row.querySelector(".gk").textContent = k;
+    row.querySelector(".gt").dataset.ph = k ? grantHint(k) : "";
+  }
+  function grantRows(){ return Array.prototype.slice.call(grantBody.querySelectorAll(".grant")); }
+  function rowEmpty(row){ return !row.dataset.k && isEmpty(row.querySelector(".gt")); }
+  function renderGrants(list){
+    grantBody.innerHTML = "";
+    (list || []).forEach(function(g){ grantBody.appendChild(grantRow(g)); });
+    ensureSpareGrant();
+  }
+  function ensureSpareGrant(){
+    var rows = grantRows(), last = rows[rows.length - 1];
+    if(!last || !rowEmpty(last)){ last = grantRow(); grantBody.appendChild(last); rows.push(last); }
+    rows.forEach(function(r){ r.classList.toggle("spare", r === last); });
+  }
+  grantBody.addEventListener("click", function(e){
+    var row = e.target.closest(".grant"); if(!row) return;
+    if(e.target.classList.contains("gx")){ row.remove(); ensureSpareGrant(); refresh(); saveDraft(); return; }
+    if(e.target.classList.contains("gk")) openPicker(row);
+  });
+  grantBody.addEventListener("keydown", function(e){
+    if(e.target.classList.contains("gk") && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openPicker(e.target.closest(".grant")); }
+    /* Enter at the end of a grant starts the next one rather than a new line */
+    if(e.target.classList.contains("gt") && e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      ensureSpareGrant();
+      var rows = grantRows(), next = rows[rows.indexOf(e.target.closest(".grant")) + 1];
+      if(next) openPicker(next);
+    }
+  });
+  renderGrants([]);
+
+  /* ---------------- the feat's own action cost (none, or one of the five) ---------------- */
+  $("selfPick").innerHTML = ATYPES.map(function(t){
+    return '<label class="pl" title="' + ALABEL[t] + '"><input type="checkbox" data-cost="' + t + '"><span class="pv glyph">' + ICON[t] + '</span></label>';
+  }).join("");
+  function setCost(t){
+    cost = ATYPES.indexOf(t) >= 0 ? t : "";
+    $("selfPick").querySelectorAll("input").forEach(function(i){ i.checked = i.dataset.cost === cost; });
+    $("nameCost").innerHTML = cost ? ICON[cost] : "";
+  }
   function isEmpty(el){ return el.innerText.replace(/\s+/g,"") === ""; }
   function blanksOn(){ return pane.classList.contains("blanks"); }
 
   /* Body fields keep bold / italic / underline and line breaks; everything else is stripped. */
-  var RICH = ["description","passive","active"];
+  var RICH = ["description","special","active"];
   function richHtml(root){
     var out = "";
     function walk(n){
@@ -924,9 +1061,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var usedFlags = [];
     for(var i = 0; i < chg; i++) usedFlags.push(!!used[i]);   /* no holes or undefineds in the record */
     var d = {traits:traits.slice(), c:{}, chg:chg, used:usedFlags, imgW:imgW, imgAr:imgAr,
-             cat:catSel.value, bodyScale:bodyScale, nameScale:nameScale};
+             cat:catSel.value, cost:cost, bodyScale:bodyScale, nameScale:nameScale};
+    d.grants = grantRows().filter(function(r){ return !rowEmpty(r); }).map(function(r){
+      var gt = r.querySelector(".gt");
+      return {k:r.dataset.k || "", text:gt.innerText, html:richHtml(gt)};
+    });
     texts().forEach(function(el){
-      d[el.dataset.f] = el.innerText;
+      /* one-line fields as typed (innerText would hand back the caps the card displays them in) */
+      d[el.dataset.f] = RICH.indexOf(el.dataset.f) >= 0 ? el.innerText : el.textContent;
       if(RICH.indexOf(el.dataset.f) >= 0) d[el.dataset.f + "Html"] = richHtml(el);
     });
     checks().forEach(function(el){ d.c[el.dataset.c] = el.checked; });
@@ -958,8 +1100,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       else el.innerText = (v === undefined || v === null) ? "" : v;
     });
     checks().forEach(function(el){ el.checked = !!(d.c && d.c[el.dataset.c]); });
-    /* Actions in any stored shape (list, per-type slots, or the oldest single Active) become slots. */
     renderActionSections(actionsOf(d));
+    renderGrants(grantsOf(d));
+    setCost(d.cost || "");
     catSel.value = d.cat || ""; if(catSel.selectedIndex < 0) catSel.value = "";
     traits = orderTraits(d.traits || splitTraits(d.traitsText));
     chg = Math.max(0, Math.min(CHG_MAX, d.chg || 0));
@@ -1005,9 +1148,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   /* Remove-background switch: a preference, applied to the next image dropped. */
   var bgToggle = $("bgToggle");
-  try{ bgToggle.checked = localStorage.getItem("pf2e-item-bg") !== "off"; }catch(e){}
+  try{ bgToggle.checked = localStorage.getItem("pf2e-feat-bg") !== "off"; }catch(e){}
   bgToggle.addEventListener("change", function(){
-    try{ localStorage.setItem("pf2e-item-bg", this.checked ? "on" : "off"); }catch(e){}
+    try{ localStorage.setItem("pf2e-feat-bg", this.checked ? "on" : "off"); }catch(e){}
     toast(this.checked ? "Next image: background removed" : "Next image: left as is");
   });
   $("phBg").addEventListener("click", function(e){ e.stopPropagation(); });
@@ -1151,33 +1294,62 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     b.type = "button"; b.className = "chip" + (on ? " on" : "") + (RARITY.indexOf(name) >= 0 ? " rare" : "");
     b.textContent = name; b.dataset.trait = name; return b;
   }
+  /* The picker does two jobs: the card's traits (pick any number), or the kind of one grant row
+     (pick one, and it closes). grantFor is that row while it's doing the second. */
+  var grantFor = null;
   function renderPicker(){
     var q = search.value.trim().toLowerCase();
     var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
-    var sel = $("selChips"); sel.innerHTML = "";
+    var sel = $("selChips"), sug = $("sugChips"), all = $("allChips");
+    sel.innerHTML = ""; sug.innerHTML = ""; all.innerHTML = "";
+    all.parentNode.hidden = !!grantFor;
+    if(grantFor){
+      var k = grantFor.dataset.k || "";
+      if(k) sel.appendChild(chip(k, true));
+      $("sugLabel").textContent = "What the feat gives";
+      GRANT_KINDS.filter(match).forEach(function(t){ sug.appendChild(chip(t, t === k)); });
+      return;
+    }
     traits.forEach(function(t){ sel.appendChild(chip(t, true)); });
     var cat = catSel.value;
-    $("sugLabel").textContent = cat ? "Common on " + cat.toLowerCase() : "Common traits";
-    var sug = $("sugChips"); sug.innerHTML = "";
+    $("sugLabel").textContent = cat ? "Common on " + cat.toLowerCase() + " feats" : "Common traits";
     uniq(SUGGEST[cat] || GENERAL).filter(match).forEach(function(t){ sug.appendChild(chip(t, traits.indexOf(t) >= 0)); });
-    var all = $("allChips"); all.innerHTML = "";
     ALL_TRAITS.filter(match).forEach(function(t){ all.appendChild(chip(t, traits.indexOf(t) >= 0)); });
   }
-  function openPicker(){ search.value = ""; renderPicker(); picker.hidden = false; scrim.hidden = false; if(window.innerWidth > 760) search.focus(); }
-  function closePicker(){ picker.hidden = true; scrim.hidden = true; traitLine.focus(); }
-  traitLine.addEventListener("click", openPicker);
+  function openPicker(row){
+    grantFor = row && row.nodeType === 1 ? row : null;
+    search.value = "";
+    search.placeholder = grantFor ? "Search, or type your own kind and press Enter" : "Search traits, or type a new one and press Enter";
+    renderPicker(); picker.hidden = false; scrim.hidden = false;
+    if(window.innerWidth > 760) search.focus();
+  }
+  function closePicker(){
+    picker.hidden = true; scrim.hidden = true;
+    var row = grantFor; grantFor = null;
+    if(row && row.isConnected) row.querySelector(row.dataset.k ? ".gt" : ".gk").focus(); else traitLine.focus();
+  }
+  /* a kind picked for a grant row: set it (tapping the current one clears it) and go write the details */
+  function pickKind(k){
+    var row = grantFor;
+    setGrantKind(row, row.dataset.k === k ? "" : k);
+    ensureSpareGrant(); refresh(); saveDraft(); closePicker();
+  }
+  function pick(name){ if(grantFor) pickKind(name); else toggleTrait(name); }
+  traitLine.addEventListener("click", function(){ openPicker(); });
   traitLine.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openPicker(); } });
-  picker.addEventListener("click", function(e){ var t = e.target.dataset && e.target.dataset.trait; if(t) toggleTrait(t); });
+  picker.addEventListener("click", function(e){ var t = e.target.dataset && e.target.dataset.trait; if(t) pick(t); });
   $("pickerDone").addEventListener("click", closePicker);
-  scrim.addEventListener("click", closePicker);
+  scrim.addEventListener("click", function(){ if(!picker.hidden) closePicker(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !picker.hidden) closePicker(); });
   search.addEventListener("input", renderPicker);
   search.addEventListener("keydown", function(e){
     if(e.key !== "Enter") return;
     e.preventDefault();
     var q = search.value.trim(); if(!q) return;
-    var hit = ALL_TRAITS.filter(function(t){ return t.toLowerCase() === q.toLowerCase(); })[0];
-    toggleTrait(hit || q.replace(/\b\w/g, function(c){ return c.toUpperCase(); }));
+    var list = grantFor ? GRANT_KINDS : ALL_TRAITS;
+    var hit = list.filter(function(t){ return t.toLowerCase() === q.toLowerCase(); })[0];
+    pick(hit || q.replace(/\b\w/g, function(c){ return c.toUpperCase(); }));
+    if(grantFor || picker.hidden) return;
     search.value = ""; renderPicker();
   });
 
@@ -1200,9 +1372,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
   /* How many lines the title occupies — one client rect per line box, zoom-proof. */
   function nameLines(card){
+    var nm = card.querySelector(".c-name .nm") || card.querySelector(".c-name");
     var r = document.createRange();
-    r.selectNodeContents(card.querySelector(".c-name"));
-    return r.getClientRects().length;
+    r.selectNodeContents(nm);
+    var rects = r.getClientRects(), n = rects.length;
+    /* the cost glyph after the name can wrap onto a line of its own */
+    var g = card.querySelector(".c-name .ncost svg");
+    if(g && n){ var gr = g.getBoundingClientRect(), last = rects[n - 1]; if(gr.top + gr.height / 2 > last.bottom) n++; }
+    return n;
   }
   /* Title at 16pt on up to two lines; shrink only when a third line would be needed. */
   function fitName(card){
@@ -1243,13 +1420,17 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       sec.querySelector(".range").classList.toggle("blank", isEmpty(sec.querySelector('[data-f="range"]')));
     });
     pane.querySelectorAll(".pl").forEach(function(l){ l.classList.toggle("on", l.querySelector("input").checked); });
-    /* No Passive text (and not showing blanks): image centres above a full-width description. */
-    cardEl.classList.toggle("stacked", isEmpty(passiveSec.querySelector(".body")) && !blanksOn());
+    ensureSpareGrant();
+    var hasGrants = grantRows().some(function(r){ return !rowEmpty(r); });
+    /* No grants (and not showing blanks): image centres above a full-width description. */
+    cardEl.classList.toggle("stacked", !hasGrants && !blanksOn());
+    pane.querySelectorAll(".rq").forEach(function(l){ l.classList.toggle("blank", isEmpty(l.querySelector("[data-f]"))); });
     pane.querySelectorAll(".sec").forEach(function(sec){
       var filled = false;
       sec.querySelectorAll("[data-f]").forEach(function(el){ if(!isEmpty(el)) filled = true; });
       if(sec.querySelector(".pl.on")) filled = true;
       if(sec.classList.contains("desc") && img.src) filled = true;   /* an image is content too */
+      if(sec === grantSec && hasGrants) filled = true;
       sec.classList.toggle("blank", !filled);
     });
     photo.classList.toggle("blank", !img.src);
@@ -1259,7 +1440,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var noCharges = chg === 0 && isEmpty(f("per"));
     $("charges").classList.toggle("blank", noCharges);
     $("catRow").classList.toggle("blank", !catSel.value && isEmpty(f("note")) && noCharges);
-    $("traitRow").classList.toggle("blank", traits.length === 0 && isEmpty(f("value")));
+    $("traitRow").classList.toggle("blank", traits.length === 0 && isEmpty(f("level")));
     nameScale = fitName(cardEl);
     bodyScale = fitCard(cardEl);
     $("cardCount").innerHTML = overflows(cardEl)
@@ -1272,6 +1453,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   document.addEventListener("change", function(e){
     var t = e.target;
     if(t && t.dataset && t.dataset.t && t.closest(".sec.active")){ setSlotType(t.closest(".sec.active"), t.checked ? t.dataset.t : ""); refresh(); saveDraft(); return; }
+    if(t && t.dataset && t.dataset.cost){ setCost(t.checked ? t.dataset.cost : ""); refresh(); saveDraft(); return; }
     if(t === catSel || (t && t.dataset && t.dataset.c)){ refresh(); saveDraft(); }
   });
   document.addEventListener("paste", function(e){
@@ -1335,22 +1517,32 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
   /* Art from another origin (the cloud library) needs CORS to reach the PDF canvas; local and data: art does not. */
   function cors(src){ return /^https?:/i.test(src) ? ' crossorigin="anonymous"' : ""; }
+  /* The prerequisite-style lines under the traits, in stat-block order. */
+  var REQ = [["prereq","Prerequisites"],["access","Access"],["freq","Frequency"],["trigger","Trigger"],["reqs","Requirements"]];
   function renderCard(d, opts){
     opts = opts || {};
     var box = document.createElement("div");
     box.className = "cardbox" + (opts.blanks ? " blanks" : "");
-    var stacked = !(d.passive || "").trim() && !opts.blanks;
     var has = function(s){ return !!(s || "").trim(); };
+    var grants = grantsOf(d);
+    var stacked = !grants.length && !opts.blanks;
     var src = d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : "");
     var imgAr = d.imgAr || 1;
     var rich = function(f){ return d[f + "Html"] ? safeHtml(d[f + "Html"]) : esc(d[f]); };
-    var sec = function(cls, cap, f, extra){
-      var body = d[f];
-      var has = (body || "").trim() || extra;
-      if(!has && !opts.blanks) return "";
+    var sec = function(cls, cap, f){
+      if(!has(d[f]) && !opts.blanks) return "";
       return '<section class="sec ' + cls + '"><div class="sec-cap">' + cap + '</div><div class="body">' + rich(f) + '</div></section>';
     };
-    /* One Active section per action, captioned by its type; a blank card gets one generic Active section. */
+    var reqs = REQ.filter(function(r){ return has(d[r[0]]); });
+    if(opts.blanks) reqs = [REQ[0], REQ[3], REQ[4]];
+    var reqHtml = reqs.length ? '<section class="sec req"><div class="body">' + reqs.map(function(r){
+      return '<span class="rq"><b>' + r[1] + '</b> <span>' + esc(d[r[0]]) + '</span></span>';
+    }).join("") + '</div></section>' : "";
+    var grantHtml = (grants.length || opts.blanks) ? '<section class="sec grants"><div class="sec-cap">Grants</div><div class="body">' +
+      grants.map(function(g){
+        return '<div class="grant"><span class="gk">' + esc(g.k) + '</span> <span class="gt">' + (g.html ? safeHtml(g.html) : esc(g.text)) + '</span></div>';
+      }).join("") + '</div></section>' : "";
+    /* One section per action, captioned by its type; a blank card gets one generic Action section. */
     var actionHtml = function(a){
       return '<section class="sec active"><div class="sec-cap"><span>' + ALABEL[a.type] + '</span>' +
         (a.type ? '<span class="pick"><span class="glyph">' + GLYPH[a.type] + '</span></span>' : '') +
@@ -1358,23 +1550,26 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         (a.traits.length ? '<span class="atr">(' + a.traits.join(", ") + ')</span>' : '') +
         '</div><div class="body">' + (a.html ? safeHtml(a.html) : esc(a.text)) + '</div></section>';
     };
-    var blankActive = '<section class="sec active"><div class="sec-cap"><span>Active</span><span class="range"><b>Range</b> </span></div><div class="body"></div></section>';
+    var blankActive = '<section class="sec active"><div class="sec-cap"><span>Action</span><span class="range"><b>Range</b> </span></div><div class="body"></div></section>';
     var actions = opts.blanks ? blankActive : actionsOf(d).map(actionHtml).join("");
+    var level = has(d.level) ? "Feat " + esc(d.level) : (opts.blanks ? "Feat " : "");
     box.innerHTML =
       '<article class="card' + (stacked ? " stacked" : "") + '" style="--img-w:' + (d.imgW || 120) + 'px;--img-ar:' + (1 / imgAr).toFixed(3) + ';--body-scale:' + (d.bodyScale || 1) + ';--name-scale:' + (d.nameScale || 1) + '">' +
-        '<h2 class="c-name">' + esc(d.name) + '</h2>' +
+        '<h2 class="c-name"><span class="nm">' + esc(d.name) + '</span><span class="ncost glyph">' + (ICON[d.cost] && ATYPES.indexOf(d.cost) >= 0 ? ICON[d.cost] : "") + '</span></h2>' +
         ((d.cat || has(d.note) || d.chg > 0 || has(d.per) || opts.blanks) ?
-          '<div class="c-cat"><span class="c-left"><span>' + esc(d.cat || (opts.blanks ? "Category" : "")) + '</span>' +
+          '<div class="c-cat"><span class="c-left"><span>' + esc(d.cat || (opts.blanks ? "Feat type" : "")) + '</span>' +
             (has(d.note) ? '<span class="note">' + esc(d.note) + '</span>' : '') + '</span>' +
             ((d.chg > 0 || has(d.per) || opts.blanks) ? '<span class="charges"><span class="dots">' + dotsHtml(d.chg || 0, d.used || []) + '</span>' +
               ((has(d.per) || opts.blanks) ? '<span class="per">/ ' + esc(d.per) + '</span>' : '') + '</span>' : '') + '</div>' : '') +
-        (((d.traits || []).length || has(d.value) || opts.blanks) ?
-          '<div class="c-meta"><span class="traits">' + esc((d.traits || []).join(" | ")) + '</span><span class="value num">' + esc(d.value) + '</span></div>' : '') +
+        (((d.traits || []).length || level) ?
+          '<div class="c-meta"><span class="traits">' + esc((d.traits || []).join(" | ")) + '</span><span class="lvl">' + level + '</span></div>' : '') +
+        reqHtml +
         '<section class="sec desc"><div class="sec-cap">Description</div><div class="flow">' +
           ((src || opts.blanks) ? '<div class="photo' + (src ? " has-img" : "") + '">' + (src ? '<img alt=""' + cors(src) + ' src="' + esc(src) + '">' : '') + '</div>' : '') +
           '<div class="body">' + rich("description") + '</div></div></section>' +
-        sec("passive", "Passive", "passive") +
+        grantHtml +
         actions +
+        sec("special", "Special", "special") +
       '</article>';
     return box;
   }
@@ -1512,13 +1707,254 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
      .then(function(){ btn.disabled = false; });
   });
 
+
+  /* ---------------- import: a feat by name (Demiplane), or pasted from AoN / Demiplane ----------------
+     Whatever comes in is turned into plain text, one stat-block line or paragraph per line, then
+     parseFeat() splits it into the card's fields and guessGrants() reads the rules text for the
+     things the feat hands out. The result lands in the editor as a new, unsaved card. */
+  var COST_WORDS = [
+    [/\[(?:one-action|1-action|a)\]|\bsingle action\b|\bone action\b|◆/i, "a1"],
+    [/\[(?:two-actions|2-actions|aa)\]|\btwo actions\b|◆◆/i, "a2"],
+    [/\[(?:three-actions|3-actions|aaa)\]|\bthree actions\b|◆◆◆/i, "a3"],
+    [/\[(?:reaction|r)\]|\breaction\b|⬲/i, "ar"],
+    [/\[(?:free-action|f)\]|\bfree action\b|◇/i, "af"]
+  ];
+  var COST_TOKEN = /\s*(\[(?:one-action|two-actions|three-actions|reaction|free-action|1-action|2-actions|3-actions)\]|\b(?:single action|one action|two actions|three actions|reaction|free action)\b|[◆◇⬲]+)\s*/i;
+  function costOf(tok){
+    for(var i = COST_WORDS.length - 1; i >= 0; i--) if(COST_WORDS[i][0].test(tok)) return COST_WORDS[i][1];
+    return "";
+  }
+  var HEAD_LABELS = {"prerequisites":"prereq", "prerequisite":"prereq", "access":"access", "frequency":"freq",
+    "trigger":"trigger", "requirements":"reqs", "requirement":"reqs", "archetype":"note", "archetypes":"note",
+    "source":"", "pfs note":"", "pfs":"", "cost":"", "legacy content":"", "remastered":"", "effect":""};
+  var SKILLS = ["Acrobatics","Arcana","Athletics","Crafting","Deception","Diplomacy","Intimidation","Medicine",
+    "Nature","Occultism","Performance","Religion","Society","Stealth","Survival","Thievery"];
+  function cap1(s){ s = String(s || "").trim(); return s.charAt(0).toUpperCase() + s.slice(1); }
+  /* "Class Archetype Dedication" → ["Class Archetype","Dedication"]: known two-word traits stay together */
+  function splitTraitWords(line){
+    if(/,/.test(line)) return line.split(",").map(function(t){ return t.trim(); }).filter(Boolean);
+    var w = line.split(/\s+/).filter(Boolean), out = [];
+    var known = function(t){ return ALL_TRAITS.some(function(x){ return x.toLowerCase() === t.toLowerCase(); }); };
+    for(var i = 0; i < w.length; i++){
+      if(i + 1 < w.length && known(w[i] + " " + w[i + 1])){ out.push(w[i] + " " + w[i + 1]); i++; }
+      else out.push(w[i]);
+    }
+    return out.map(function(t){ var hit = ALL_TRAITS.filter(function(x){ return x.toLowerCase() === t.toLowerCase(); })[0]; return hit || cap1(t); });
+  }
+  function labelOf(line){
+    for(var k in HEAD_LABELS){
+      if(line.toLowerCase() === k || line.toLowerCase().indexOf(k + " ") === 0 || line.toLowerCase().indexOf(k + ":") === 0)
+        return {key:HEAD_LABELS[k], rest:line.slice(k.length).replace(/^\s*:?\s*/, "")};
+    }
+    return null;
+  }
+  /* A paragraph that opens with a name and an action cost is an action the feat gives. */
+  function actionFrom(para){
+    var m = /^([A-Z][\w'’ -]{1,40}?)\s*(\[(?:one-action|two-actions|three-actions|reaction|free-action|1-action|2-actions|3-actions)\]|\b(?:Single Action|One Action|Two Actions|Three Actions|Reaction|Free Action)\b|[◆◇⬲]+)\s*(?:\(([^)]*)\))?\s*([\s\S]*)$/.exec(para);
+    if(!m || !m[4]) return null;
+    var tr = (m[3] || "").split(",").map(function(t){ return t.trim().toLowerCase(); }).filter(Boolean);
+    var keep = tr.filter(function(t){ return ATRAITS.indexOf(t) >= 0; }), rest = tr.filter(function(t){ return ATRAITS.indexOf(t) < 0; });
+    var lead = "<b>" + esc(m[1].trim()) + "</b>" + (rest.length ? " (" + esc(rest.join(", ")) + ")" : "") + " ";
+    return {type:costOf(m[2]), range:"", traits:keep, name:m[1].trim(),
+            text:m[1].trim() + (rest.length ? " (" + rest.join(", ") + ")" : "") + " " + m[4].trim(), html:lead + esc(m[4].trim())};
+  }
+  function parseFeat(raw){
+    var lines = String(raw || "").replace(/\r/g, "").replace(/ /g, " ").split("\n")
+      .map(function(l){ return l.replace(/\s+/g, " ").trim(); })
+      .filter(function(l){ return l && !/^-{3,}$/.test(l) && !/^(may contain spoilers|legacy content|there is a (?:remastered|legacy) version)/i.test(l); });
+    var d = {name:"", level:"", cost:"", traits:[], cat:"", note:"", prereq:"", access:"", freq:"", trigger:"", reqs:"",
+             description:"", special:"", actions:[], grants:[], chg:0, used:[], imgW:120, imgAr:1};
+    if(!lines.length) return null;
+    /* the title: "Name [cost] Feat 4", or the name on one line and "Feat 4" on the next */
+    var i = 0, t = lines[0], m = /^(.*?)\s*Feat\s+(\d+)\s*$/i.exec(t);
+    if(!m && lines[1] && /^Feat\s+\d+$/i.test(lines[1])){ m = [null, t, lines[1].replace(/\D+/g, "")]; i = 1; }
+    var title = m ? m[1] : t; if(m) d.level = m[2];
+    var ct = COST_TOKEN.exec(title);
+    if(ct){ d.cost = costOf(ct[1]); title = title.replace(COST_TOKEN, " ").trim(); }
+    d.name = title.replace(/\s+$/, "");
+    i++;
+    /* traits: the lines before the first labelled one, if they read as traits */
+    var isTraitLine = function(l){
+      var tw = splitTraitWords(l);
+      if(tw.every(function(x){ return ALL_TRAITS.indexOf(x) >= 0; })) return true;
+      return !labelOf(l) && tw.length <= 8 && !/[.;:]$/.test(l);
+    };
+    if(lines[i] && isTraitLine(lines[i])){
+      d.traits = orderTraits(splitTraitWords(lines[i])); i++;
+    }
+    /* labelled lines: Source, Archetype, Prerequisites, Frequency, Trigger, Requirements… */
+    for(; i < lines.length; i++){
+      var L = labelOf(lines[i]); if(!L) break;
+      if(L.key === "note") d.note = L.rest.replace(/\*$/, "");
+      else if(L.key) d[L.key] = L.rest;
+    }
+    /* the body: description paragraphs, actions, and Special; "X leads to…" and after is dropped */
+    var desc = [];
+    for(; i < lines.length; i++){
+      var p = lines[i];
+      if(/leads to\.{3}|leads to…/i.test(p)) break;
+      var sp = /^Special:?\s+(.*)$/.exec(p);
+      if(sp){ d.special = (d.special ? d.special + "\n" : "") + sp[1]; continue; }
+      if(d.special){ d.special += "\n" + p; continue; }
+      var a = actionFrom(p);
+      if(a){ d.actions.push(a); continue; }
+      if(d.actions.length && /^(Frequency|Trigger|Requirements|Effect|Critical Success|Success|Failure|Critical Failure)\b/.test(p)){
+        var last = d.actions[d.actions.length - 1];
+        last.text += "\n" + p; last.html += "\n" + esc(p).replace(/^(\w+(?: \w+)?)/, "<b>$1</b>");
+        continue;
+      }
+      desc.push(p);
+    }
+    d.description = desc.join("\n");
+    /* the feat type from its traits */
+    var has = function(x){ return d.traits.indexOf(x) >= 0; };
+    d.cat = has("Deviant") ? "Deviant" : has("Mythic") ? "Mythic" : (has("Archetype") || has("Dedication")) ? "Archetype" :
+      has("Skill") ? "Skill" : has("General") ? "General" :
+      d.traits.some(function(x){ return CLASSES.indexOf(x) >= 0; }) ? "Class" :
+      d.traits.some(function(x){ return ANCESTRIES.indexOf(x) >= 0; }) ? "Ancestry" : "";
+    if(!d.note){
+      var cl = d.traits.filter(function(x){ return CLASSES.indexOf(x) >= 0 || ANCESTRIES.indexOf(x) >= 0; })[0];
+      if(cl && d.cat !== "Archetype") d.note = cl;
+      else if(/ Dedication$/.test(d.name)) d.note = d.name.replace(/ Dedication$/, "");
+    }
+    return d;
+  }
+  /* Read the rules text for what the feat hands out: one suggestion per sentence at most. */
+  function guessGrants(d){
+    var out = [], seen = {};
+    var add = function(k, text){ text = cap1(text).replace(/[.;,]\s*$/, ""); var key = k + "|" + text.toLowerCase(); if(!seen[key]){ seen[key] = 1; out.push({k:k, text:text}); } };
+    var clean = function(s){ return s.replace(/^(additionally|also|in addition|then),?\s+/i, "").replace(/^you(?:'|’)re\s+|^you (?:either )?(?:become|are|gain|learn(?: to)?)\s+(?:either\s+)?/i, ""); };
+    var actionNames = d.actions.map(function(a){ return (a.name || "").toLowerCase(); });
+    var desc = String(d.description || ""), sentences = desc.split(/(?<=[.!?])\s+/);
+    /* Spellcasting is spread over several sentences; it becomes one line:
+       "Spontaneous · occult · Intelligence · trained in spell attacks and DCs" */
+    var sc = {
+      kind:(/\b(spontaneous|prepared)\s+spell/i.exec(desc) || [])[1],
+      trad:(/\b(arcane|divine|occult|primal)\s+(?:spells|spell attack|spellcasting)/i.exec(desc) || [])[1],
+      attr:(/key spellcasting (?:ability|attribute)[^.]*?\bis\s+(\w+)/i.exec(desc) || [])[1],
+      rank:(/\b(trained|expert|master|legendary)\s+in\s+(?:\w+\s+)?spell attack/i.exec(desc) || [])[1]
+    };
+    var isCasting = function(s){ return /\b(?:spontaneous|prepared) spells\b|key spellcasting|spell attack|Cast a Spell/i.test(s); };
+    var scLine = (sc.kind || sc.attr || sc.rank) ? [sc.kind && cap1(sc.kind), sc.trad && sc.trad.toLowerCase(), sc.attr, sc.rank && sc.rank.toLowerCase() + " in spell attacks and DCs"].filter(Boolean).join(" · ") : "";
+    sentences.forEach(function(s){
+      /* the spellcasting line goes where the text first talks about casting */
+      if(scLine && isCasting(s) && !/\bcantrip/i.test(s)){ add("Spellcasting", scLine); return; }
+      /* "You become an expert in…", not "If you're a master in…" */
+      var m = /^(?:if|when|once|while|until|after)\b/i.test(s) ? null :
+        /\b(?:become|you(?:'|’)re|you are|gain|increases? to)\s+(?:either\s+)?(?:an?\s+)?(trained|expert|master|legendary)\s+in\s+(?:your\s+)?([^.]+)/i.exec(s);
+      if(m){
+        var rank = m[1].replace(/^an? /i, ""), obj = m[2];
+        var k = /\bLore\b/.test(obj.split(/,| or /)[0]) ? "Lore"
+          : /spell attack|spell DC/i.test(obj) ? "Spellcasting"
+          : /\b(Fortitude|Reflex|Will)\b/.test(obj) ? "Saving Throw"
+          : /^Perception/.test(obj) ? "Perception"
+          : /class DC/i.test(obj) ? "Class DC"
+          : /weapons?\b|unarmed attacks/i.test(obj) ? "Weapons"
+          : /armor\b|unarmored defense/i.test(obj) ? "Armor"
+          : "Skill";
+        add(k, rank + " in " + obj);
+        return;
+      }
+      if(/\bcantrips?\b/i.test(s) && /\b(gain|learn|repertoire|choose)\b/i.test(s)){ add("Cantrip", clean(s)); return; }
+      if(/\bfocus (?:pool|point)/i.test(s)){ add("Focus Point", clean(s)); return; }
+      if(/\bfocus spell\b/i.test(s) && /\bgain|learn\b/i.test(s)){ add("Focus Spell", clean(s)); return; }
+      if(/\bspell slot/i.test(s)){ add("Spell Slots", clean(s)); return; }
+      if(/\bkey spellcasting (?:ability|attribute)\b/i.test(s)){ add("Spellcasting", clean(s).replace(/^your\s+/i, "")); return; }
+      if(/\b(?:cast|learn to cast)\b.*\b(?:spontaneous|prepared) spells\b/i.test(s)){ add("Spellcasting", clean(s)); return; }
+      if(/\binnate spell/i.test(s)){ add("Spell", clean(s)); return; }
+      var ft = /\bgain (?:the )?([A-Z][\w'’ -]+?) (?:skill |general |class |ancestry )?feat\b/.exec(s);
+      if(ft){ add("Feat", ft[1]); return; }
+      var ac = /\bgain (?:the )?([A-Z][\w'’ -]+?) (action|reaction|free action|activity)\b/.exec(s);
+      if(ac && !/^Cast a Spell$/i.test(ac[1]) && actionNames.indexOf(ac[1].toLowerCase()) < 0){ add("Action", ac[1]); return; }
+      var sn = /\b(greater darkvision|darkvision|low-light vision|scent|tremorsense|echolocation|wavesense|lifesense)\b/i.exec(s);
+      if(sn && /\bgain|have\b/i.test(s)){ add("Sense", sn[1]); return; }
+      if(/\bHit Points\b/.test(s) && /\b(?:increase|additional|maximum)\b/i.test(s) && !/\bregains?\b/i.test(s)){ add("Hit Points", clean(s)); return; }
+      if(/\bresistance\b/i.test(s) && /\bgain|have\b/i.test(s)){ add("Resistance", clean(s)); return; }
+      if(/\bbonus to (?:your )?(?:land )?Speed|\bSpeed increases|\bgain a \w+ Speed/i.test(s)){ add("Speed", clean(s)); return; }
+      if(/\blanguages?\b/i.test(s) && /\blearn|gain|speak\b/i.test(s)){ add("Language", clean(s)); return; }
+      if(/\banimal companion|familiar\b/i.test(s) && /\bgain\b/i.test(s)){ add("Companion", clean(s)); return; }
+    });
+    return out;
+  }
+
+  /* Demiplane: its GraphQL API answers without a login and allows other sites; a claude.ai artifact
+     can't reach it, so there only pasting works. Remaster entries win over legacy ones. */
+  var DP_API = "https://apiv4.demiplane.com/v1/graphql";
+  function canFetch(){ return !(window.claude && window.claude.use); }
+  function dpFeat(name){
+    var q = function(pattern){
+      return fetch(DP_API, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({
+        query:'query($n:String!){ demiplane_element_display_version(order_by:{version_number:desc}, where:{name:{_ilike:$n}, elementDisplayByElementDisplayId:{category:{_eq:"feat"}, nexus:{slug:{_eq:"pathfinder2e"}}}}, limit:12){ name level traits element_display is_legacy activation_unit activation_value } }',
+        variables:{n:pattern}})})
+        .then(function(r){ if(!r.ok) throw new Error("Demiplane answered " + r.status); return r.json(); })
+        .then(function(j){ if(j.errors) throw new Error(j.errors[0].message); return (j.data && j.data.demiplane_element_display_version) || []; });
+    };
+    return q(name).then(function(list){ return list.length ? list : q("%" + name + "%"); }).then(function(list){
+      list.sort(function(a, b){ return (a.is_legacy ? 1 : 0) - (b.is_legacy ? 1 : 0); });
+      if(!list[0]) throw new Error("No feat called “" + name + "” on Demiplane.");
+      return dpText(list[0]);
+    });
+  }
+  /* A Demiplane entry as the text parseFeat reads; action icons become [two-actions] and the like. */
+  function dpText(v){
+    var html = String(v.element_display || "")
+      .replace(/<span[^>]*aria-label="([^"]+)"[^>]*>\s*<\/span>/gi, function(m, lab){ return " [" + lab.toLowerCase().replace(/^single action$/, "one-action").replace(/ /g, "-").replace(/^two-actions?$/, "two-actions").replace(/^three-actions?$/, "three-actions") + "] "; })
+      .replace(/<\/p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+    var ta = document.createElement("textarea"); ta.innerHTML = html;
+    var traits = String(v.traits || "").split(",").map(function(t){ return t.split("|")[0].trim(); }).filter(Boolean);
+    /* the feat's own cost isn't in the text; Demiplane keeps it as activation unit and count */
+    var u = String(v.activation_unit || "").toLowerCase(), n = +v.activation_value || 0;
+    var cost = u === "reaction" ? " [reaction]" : /free/.test(u) ? " [free-action]" :
+      (u === "action" && n >= 1 && n <= 3) ? [" [one-action]", " [two-actions]", " [three-actions]"][n - 1] : "";
+    return v.name + cost + " Feat " + v.level + "\n" + traits.join(", ") + "\n" + ta.value;
+  }
+
+  var importModal = $("importModal");
+  function openImport(){
+    $("importText").value = ""; $("importNote").textContent = "";
+    $("importName").value = ""; $("importNameRow").hidden = !canFetch();
+    $("importLead").textContent = canFetch()
+      ? "Type a feat's name to fetch it from Demiplane, or paste the feat from Archives of Nethys or Demiplane."
+      : "Paste the feat from Archives of Nethys or Demiplane — from the title line down.";
+    importModal.hidden = false; scrim.hidden = false;
+    $(canFetch() ? "importName" : "importText").focus();
+  }
+  function closeImport(){ importModal.hidden = true; scrim.hidden = true; }
+  function fillFromText(txt){
+    var d = parseFeat(txt);
+    if(!d || !d.name){ $("importNote").textContent = "Couldn't find a feat in that text — start from the title line (“Name Feat 2”)."; return false; }
+    if($("importGrants").checked) d.grants = guessGrants(d);
+    d.id = null; d.blanks = false;
+    load(d); saveDraft(); closeImport(); showView("editor");
+    toast("Imported " + d.name + " — check it, then Save");
+    return true;
+  }
+  function runImport(){
+    var txt = $("importText").value.trim(), name = $("importName").value.trim();
+    if(txt){ fillFromText(txt); return; }
+    if(name && canFetch()){
+      var btn = $("importGo"); btn.disabled = true; $("importNote").textContent = "Asking Demiplane…";
+      dpFeat(name).then(fillFromText).catch(function(e){ $("importNote").textContent = errText(e); })
+        .then(function(){ btn.disabled = false; });
+      return;
+    }
+    $("importNote").textContent = canFetch() ? "Type a feat's name, or paste its text." : "Paste the feat's text first.";
+  }
+  $("importBtn").addEventListener("click", openImport);
+  $("importCancel").addEventListener("click", closeImport);
+  $("importGo").addEventListener("click", runImport);
+  $("importName").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); runImport(); } });
+  scrim.addEventListener("click", function(){ if(!importModal.hidden) closeImport(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !importModal.hidden) closeImport(); });
   /* ---------------- library view ---------------- */
   var sortMode = "created", selected = [];
   try{ selected = JSON.parse(localStorage.getItem(SEL)) || []; }catch(e){}
   function saveSel(){ try{ localStorage.setItem(SEL, JSON.stringify(selected)); }catch(e){} }
   function sorted(){
     var a = Lib.cards.slice();
-    if(sortMode === "cat") a.sort(function(x, y){ return (x.cat || "~").localeCompare(y.cat || "~") || (x.name || "").localeCompare(y.name || ""); });
+    var lvl = function(c){ var n = parseInt(c.level, 10); return isNaN(n) ? 99 : n; };
+    if(sortMode === "level") a.sort(function(x, y){ return (lvl(x) - lvl(y)) || (x.name || "").localeCompare(y.name || ""); });
+    else if(sortMode === "cat") a.sort(function(x, y){ return (x.cat || "~").localeCompare(y.cat || "~") || (x.name || "").localeCompare(y.name || ""); });
     else if(sortMode === "edited") a.sort(function(x, y){ return (y.updatedAt || "").localeCompare(x.updatedAt || ""); });
     else a.sort(function(x, y){ return (y.createdAt || "").localeCompare(x.createdAt || ""); });
     return a;
@@ -1536,7 +1972,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       var del = document.createElement("button"); del.className = "gdel"; del.innerHTML = "&times;"; del.title = "Delete card";
       w.appendChild(cb); w.appendChild(del); w.appendChild(renderCard(d));
       var meta = document.createElement("div"); meta.className = "gmeta";
-      meta.innerHTML = "<b>" + esc(d.cat || "uncategorised") + "</b><span>" + (sortMode === "edited" ? "edited " + fmtDate(d.updatedAt) : "made " + fmtDate(d.createdAt)) + "</span>";
+      meta.innerHTML = "<b>" + esc([d.cat, (d.level || "").trim() ? "feat " + d.level.trim() : ""].filter(Boolean).join(" · ") || "untyped") + "</b><span>" + (sortMode === "edited" ? "edited " + fmtDate(d.updatedAt) : "made " + fmtDate(d.createdAt)) + "</span>";
       w.appendChild(meta);
       g.appendChild(w);
     });
@@ -1571,7 +2007,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     b.addEventListener("click", function(){
       sortMode = b.dataset.sort;
       document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-      try{ localStorage.setItem("pf2e-item-sort", sortMode); }catch(e){}
+      try{ localStorage.setItem("pf2e-feat-sort", sortMode); }catch(e){}
       renderGallery();
     });
   });
@@ -1587,7 +2023,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var order = sorted().filter(function(c){ return selected.indexOf(c.id) >= 0; });
     var items = order.map(function(c){ return {d:c}; });
     sheetItems = items;
-    for(var i = 0; i < blankCount; i++) items.push({d:{name:"", traits:[], passiveOn:true, imgW:120, imgAr:1, chg:0}, blanks:true});
+    for(var i = 0; i < blankCount; i++) items.push({d:{name:"", traits:[], grants:[], imgW:120, imgAr:1, chg:0}, blanks:true});
     var z = Math.min(1, (window.innerWidth - 32) / 816);
     document.documentElement.style.setProperty("--sheet-zoom", z.toFixed(3));
     for(var p = 0; p < items.length; p += 4){
@@ -1623,7 +2059,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     return libsReady;
   }
   var PT = 0.75;                                  /* px -> pt */
-  var INK = [0, 0, 0], INK2 = [51, 51, 51], INK3 = [102, 102, 102], ACCENT = [94, 22, 34], RULE = [119, 119, 119];
+  var INK = [0, 0, 0], INK2 = [51, 51, 51], INK3 = [102, 102, 102], ACCENT = [22, 57, 45], RULE = [119, 119, 119];
   var fontsLoaded = false, fontData = null;
   /* The same files fonts.css uses, as base64 for jsPDF. The site fetches them from fonts/ on the
      first export; the artifact build carries them inline in #pdfFonts. */
@@ -1712,12 +2148,36 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     /* card frame */
     if(!measure){ color(INK); pdf.setLineWidth(pt(BORDER)); pdf.rect(pt(X + BORDER / 2), pt(Y + BORDER / 2), pt(W - BORDER), pt(H - BORDER), "S"); }
 
-    /* title: 16pt, two lines at most */
+    /* An action glyph ih px tall with its top-left at (x, iy); returns its width. */
+    var glyphAt = function(k, x, iy, ih){
+      var sc = ih / 24, G = ICON.geom;
+      color(INK);
+      if(k === "af"){
+        poly(G.freeOuter, x, iy, sc, "F"); if(!measure){ pdf.setFillColor(255, 255, 255); pdf.setDrawColor(255, 255, 255); }
+        poly(G.freeDot, x, iy, sc, "F"); stroked(G.freeChev, x, iy, sc, 3.4); color(INK);
+      }else if(k === "ar"){
+        poly(G.swooshBody, x, iy, sc, "F"); poly(G.swooshHead, x, iy, sc, "F");
+      }else{
+        poly(G.dot, x, iy, sc, "F");
+        var n = k === "a1" ? 1 : k === "a2" ? 2 : 3;
+        for(var c = 0; c < n; c++) stroked(G.chev(10 + 11 * c), x, iy, sc, 5.2);
+      }
+      return G.widths[k] * sc;
+    };
+
+    /* title: 16pt, two lines at most, the feat's own cost glyph after the last word */
     var tsize = 21.33 * ns;
     setFont("Serif", "bold", tsize); color(INK);
-    var tlines = wrapPlain(d.name || (opts.blanks ? "" : ""), cw, width);
+    var cost = ATYPES.indexOf(d.cost) >= 0 ? d.cost : "";
+    var tl = titleLines(d.name, cost, cw, width, tsize), tlines = tl.lines;
     var tlh = tsize * 1.1;
-    tlines.forEach(function(l, k){ text(l, x0 + cw / 2, y + k * tlh + tlh * 0.5 + tsize * 0.32, {align:"center"}); });
+    tlines.forEach(function(l, k){
+      var lastLine = k === tlines.length - 1, gap = lastLine && tl.gw && l ? tl.gap : 0;
+      var lw = width(l) + (lastLine ? gap + tl.gw : 0), lx = x0 + (cw - lw) / 2;
+      var base = y + k * tlh + tlh * 0.5 + tsize * 0.32;
+      color(INK); text(l, lx, base);
+      if(lastLine && tl.gw){ var ih = tsize * 0.78; glyphAt(cost, lx + width(l) + gap, base + tsize * 0.08 - ih, ih); }
+    });
     y += Math.max(1, tlines.length) * tlh + 3.2;
     rule(x0, x0 + cw, y + 0.75, 1.5, INK); y += 1.5;
 
@@ -1739,17 +2199,17 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         if(perTxt){ color(INK); text(perTxt, rx + 4, base, {charSpace:pt(0.5)}); }
       }
       setFont("Caps", "bold", rf); color(ACCENT);
-      var catTxt = up(d.cat || (opts.blanks ? "Category" : ""));
+      var catTxt = up(d.cat || (opts.blanks ? "Feat type" : ""));
       text(catTxt, x0, base, {charSpace:pt(0.9)});
       if(has(d.note)){ color(INK); text(up(d.note), x0 + width(catTxt) + 0.9 * catTxt.length + 6, base, {charSpace:pt(0.5)}); }
       y += rlh;
     }
-    /* traits row: traits left (wrapping), value right */
+    /* traits row: traits left (wrapping), FEAT n right */
     var traits = (d.traits || []).join(" | ");
-    if(traits || has(d.value) || opts.blanks){
+    if(traits || has(d.level) || opts.blanks){
       y += 2.5; var tf = 9.5, tlh2 = tf * 1.35;
       setFont("Sub", "bold", tf); color(INK);
-      var valTxt = up(d.value), valW = valTxt ? width(valTxt) + 0.4 * valTxt.length : 0;
+      var valTxt = has(d.level) ? "FEAT " + up(d.level).trim() : (opts.blanks ? "FEAT" : ""), valW = valTxt ? width(valTxt) + 0.4 * valTxt.length : 0;
       if(valTxt) text(valTxt, x0 + cw, y + tlh2 * 0.5 + tf * 0.35, {align:"right", charSpace:pt(0.4)});
       var lines = wrapPlain(up(traits), cw - valW - 10, function(s){ return width(s) + 0.4 * s.length; });
       lines.forEach(function(l, k){ text(l, x0, y + k * tlh2 + tlh2 * 0.5 + tf * 0.35, {charSpace:pt(0.4)}); });
@@ -1757,13 +2217,15 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     }
 
     /* sections — the same rule as the page's CSS: each box starts at the height its text (and
-       image) needs; leftover card space is shared Description 3 : Passive 2 : Active 2; when the
-       card is full every box shrinks in proportion and clips. The worst spill (px) is returned so
-       the fitter can shrink the text. Pass 1 measures, pass 2 draws. */
+       image) needs; leftover card space is shared Description 3 : Grants 2 : each action 2 :
+       Special 1 (the prerequisite lines take only what they need); when the card is full every
+       box shrinks in proportion and clips. The worst spill (px) is returned so the fitter can
+       shrink the text. Pass 1 measures, pass 2 draws. */
     var PADB = 18, SEC_GAP = 5.5;
-    var stacked = !has(d.passive) && !opts.blanks;
+    var grants = grantsOf(d);
+    var stacked = !grants.length && !opts.blanks;
     var actions = actionsOf(d);
-    var showPassive = has(d.passive) || opts.blanks;
+    var reqs = opts.blanks ? [REQ[0], REQ[3], REQ[4]] : REQ.filter(function(r){ return has(d[r[0]]); });
     var drawing = false, vis = function(){ return !measure && drawing; };
 
     var capFont = 9, capLH = capFont * 1.35, CAP_BLOCK = capLH + 1 + 1 + 2;
@@ -1816,21 +2278,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     };
     /* An action's caption extras: its cost glyph, range, and traits. */
     var actionCap = function(a){ return function(x, top, lh){
-      var ih = 10.35, sc = ih / 24, iy = top + (lh - ih) / 2, G = ICON.geom;
-      (a.type ? [a.type] : []).forEach(function(k){
-        color(INK);
-        if(k === "af"){
-          poly(G.freeOuter, x, iy, sc, "F"); pdf.setFillColor(255, 255, 255); pdf.setDrawColor(255, 255, 255);
-          poly(G.freeDot, x, iy, sc, "F"); stroked(G.freeChev, x, iy, sc, 3.4); color(INK);
-        }else if(k === "ar"){
-          poly(G.swooshBody, x, iy, sc, "F"); poly(G.swooshHead, x, iy, sc, "F");
-        }else{
-          poly(G.dot, x, iy, sc, "F");
-          var n = k === "a1" ? 1 : k === "a2" ? 2 : 3;
-          for(var c = 0; c < n; c++) stroked(G.chev(10 + 11 * c), x, iy, sc, 5.2);
-        }
-        x += G.widths[k] * sc + 4;
-      });
+      var ih = 10.35, iy = top + (lh - ih) / 2;
+      if(a.type) x += glyphAt(a.type, x, iy, ih) + 4;
       var base = top + lh * 0.5 + 9 * 0.35;
       if(has(a.range)){
         setFont("Caps", "bold", 8.1); color(INK2); text("RANGE", x, base, {charSpace:pt(0.5)}); x += width("RANGE") + 0.5 * 5 + 3;
@@ -1838,21 +2287,34 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       }
       if(a.traits.length){ setFont("Sans", "normal", 10); color(INK); text("(" + a.traits.join(", ") + ")", x, base); }
     }; };
-    var secs = [{label:"Description", w:3, extra:null, body:descBody}];
-    if(showPassive) secs.push({label:"Passive", w:2, extra:null, body:function(){ return body("passive", null); }});
-    /* One section per action; a blank card gets a single generic Active section. */
-    if(opts.blanks) secs.push({label:"Active", w:2, extra:null, body:function(){ return bodyRuns([], null); }});
+    /* Prerequisites and friends: a bold label, then the text, one per line. */
+    var reqRuns = [];
+    reqs.forEach(function(r, k){
+      if(k) reqRuns.push({t:"\n", b:false, i:false});
+      reqRuns.push({t:r[1] + " ", b:true, i:false});
+      reqRuns = reqRuns.concat(runsOf("", d[r[0]] || ""));
+    });
+    /* the req block has no caption: .4em above it, then .25em and a rule under it */
+    var REQ_GAP = 4, REQ_TAIL = 2.5 + 1;
+    var secs = [];
+    if(reqs.length) secs.push({label:null, w:0, gap:REQ_GAP, tail:REQ_TAIL, body:function(){ return bodyRuns(reqRuns, null); }});
+    secs.push({label:"Description", w:3, extra:null, body:descBody});
+    if(grants.length || opts.blanks) secs.push({label:"Grants", w:2, extra:null, body:function(){ return bodyRuns(runsOf(grantsHtml(grants), ""), null); }});
+    /* One section per action; a blank card gets a single generic Action section. */
+    if(opts.blanks) secs.push({label:"Action", w:2, extra:null, body:function(){ return bodyRuns([], null); }});
     else actions.forEach(function(a){ secs.push({label:ALABEL[a.type], w:2, extra:actionCap(a), body:function(){ return bodyRuns(runsOf(a.html, a.text), null); }}); });
+    if(has(d.special) || opts.blanks) secs.push({label:"Special", w:1, extra:null, body:function(){ return body("special", null); }});
+    secs.forEach(function(s){ s.head = s.label === null ? 0 : CAP_BLOCK; s.gap = s.gap || SEC_GAP; s.tail = s.tail || 0; });
 
     /* pass 1: natural heights (caption block + body), measured without drawing */
-    var yTop = y, natSum = 0, wsum = 0;
+    var yTop = y, natSum = 0, wsum = 0, gaps = 0;
     secs.forEach(function(s){
-      var y0 = yTop + CAP_BLOCK; y = y0;      /* s.body() may advance y itself (stacked image) */
-      s.nat = CAP_BLOCK + (s.body() - y0);
-      natSum += s.nat; wsum += s.w;
+      var y0 = yTop + s.head; y = y0;      /* s.body() may advance y itself (stacked image) */
+      s.nat = s.head + (s.body() - y0) + s.tail;
+      natSum += s.nat; wsum += s.w; gaps += s.gap;
     });
     y = yTop;
-    var free = (Y + H - BORDER - PADB) - y - SEC_GAP * secs.length;
+    var free = (Y + H - BORDER - PADB) - y - gaps;
     var spill = Math.max(0, natSum - free);
     secs.forEach(function(s){
       s.box = spill > 0 ? s.nat - spill * s.nat / natSum : s.nat + (free - natSum) * s.w / wsum;
@@ -1861,15 +2323,26 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     /* pass 2: draw each section clipped to its box; y lands on the box's bottom edge */
     drawing = true;
     secs.forEach(function(s){
-      y += SEC_GAP;
+      y += s.gap;
       var bottom = y + s.box;
-      cap(s.label, s.extra);
-      if(!measure){ pdf.saveGraphicsState(); pdf.rect(pt(x0 - 2), pt(y), pt(cw + 4), pt(Math.max(0, bottom - y)), null); pdf.clip(); pdf.discardPath(); }
+      if(s.head) cap(s.label, s.extra);
+      var clipTo = bottom - s.tail;
+      if(!measure){ pdf.saveGraphicsState(); pdf.rect(pt(x0 - 2), pt(y), pt(cw + 4), pt(Math.max(0, clipTo - y)), null); pdf.clip(); pdf.discardPath(); }
       s.body();
       if(!measure) pdf.restoreGraphicsState();
+      if(s.tail) rule(x0, x0 + cw, bottom - 0.5, 1, RULE);
       y = bottom;
     });
     return spill;
+  }
+  /* The title wrapped to a width, with room for the feat's cost glyph after the last word (it drops to a
+     line of its own when it won't fit). */
+  function titleLines(name, cost, w, meas, tsize){
+    var lines = wrapPlain(name || "", w, meas);
+    var gw = ATYPES.indexOf(cost) >= 0 ? ICON.geom.widths[cost] * (tsize * 0.78 / 24) : 0, gap = gw ? tsize * 0.3 : 0;
+    var last = lines[lines.length - 1] || "";
+    if(gw && last && meas(last) + gap + gw > w) lines.push("");
+    return {lines:lines, gw:gw, gap:gap};
   }
   /* Word-wrap plain text to a width using a measuring function (px). */
   function wrapPlain(s, w, meas){
@@ -1921,7 +2394,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var ns = 1;
     for(; ns >= 0.6; ns -= 0.05){
       pdf.setFont(fontsLoaded ? "Serif" : "times", "bold"); pdf.setFontSize(21.33 * ns * PT);
-      if(wrapPlain(d.name || "", 384 - 42, function(s){ return pdf.getTextWidth(s) / PT; }).length <= 2) break;
+      if(titleLines(d.name, d.cost, 384 - 42, function(s){ return pdf.getTextWidth(s) / PT; }, 21.33 * ns).lines.length <= 2) break;
     }
     var bs = 1, best = 0.46;
     for(; bs >= 0.46 - 1e-9; bs -= 0.04){
@@ -1959,7 +2432,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     copy.querySelectorAll("[contenteditable]").forEach(function(el){ el.removeAttribute("contenteditable"); });
     var n = copy.querySelectorAll(".page").length;
     return '<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">' +
-      '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Item cards</title>' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Feat cards</title>' +
       '<style>' + fontsCssAbs() + '</style><style>' + $("cardCss").textContent + '</style>' +
       '<style>:root{--sheet-zoom:1}body{margin:0;padding:1.5rem 0 3rem;background:#DDD9D6}' +
       '.hint{text-align:center;font-style:italic;font-size:.9rem;color:#575060;margin:0 0 1.2rem}' +
@@ -1996,8 +2469,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   });
   $("saveSheet").addEventListener("click", function(){
     if(!dlNs || !lastPdf) return;
-    dlNs.save({filename:"item-cards.pdf", data:lastPdf})
-      .then(function(){ toast("Saved item-cards.pdf"); closePrintModal(); })
+    dlNs.save({filename:"feat-cards.pdf", data:lastPdf})
+      .then(function(){ toast("Saved feat-cards.pdf"); closePrintModal(); })
       .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e)); });
   });
   $("openHtml").addEventListener("click", function(){
@@ -2008,8 +2481,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(w){ toast("Sheet opened in a new tab"); closePrintModal(); return; }
     /* Pop-ups are blocked here (the desktop app): hand the page over as a file instead. */
     if(!dlNs){ toast("Could not open a tab here, and saving isn't available", 6000); return; }
-    dlNs.save({filename:"item-cards.html", data:blob})
-      .then(function(){ toast("Saved item-cards.html — open it in your browser to view or print", 6000); closePrintModal(); })
+    dlNs.save({filename:"feat-cards.html", data:blob})
+      .then(function(){ toast("Saved feat-cards.html — open it in your browser to view or print", 6000); closePrintModal(); })
       .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e), 6000); });
   });
   $("printModalClose").addEventListener("click", closePrintModal);
@@ -2032,7 +2505,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(name === "library") renderGallery();
     if(name === "sheet") renderSheet();
     if(name === "editor") refresh();
-    try{ localStorage.setItem("pf2e-item-view", name); }catch(e){}
+    try{ localStorage.setItem("pf2e-feat-view", name); }catch(e){}
   }
   document.querySelectorAll("[data-view]").forEach(function(b){ b.addEventListener("click", function(){ showView(b.dataset.view); }); });
 
@@ -2042,30 +2515,20 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     document.querySelectorAll("[data-theme]").forEach(function(b){
       if(b.tagName === "BUTTON") b.setAttribute("aria-pressed", b.dataset.theme === (t || "") ? "true" : "false");
     });
-    try{ localStorage.setItem("pf2e-item-theme", t || ""); }catch(e){}
+    try{ localStorage.setItem("pf2e-feat-theme", t || ""); }catch(e){}
   }
   document.querySelectorAll("button[data-theme]").forEach(function(b){ b.addEventListener("click", function(){ setTheme(b.dataset.theme); }); });
-  try{ setTheme(localStorage.getItem("pf2e-item-theme") || ""); }catch(e){}
+  try{ setTheme(localStorage.getItem("pf2e-feat-theme") || ""); }catch(e){}
 
   /* ---------------- start ---------------- */
   CATEGORIES.forEach(function(c){ var o = document.createElement("option"); o.textContent = c; catSel.appendChild(o); });
   $("opts").open = window.innerWidth > 760;
-  try{ sortMode = localStorage.getItem("pf2e-item-sort") || "created"; }catch(e){}
+  try{ sortMode = localStorage.getItem("pf2e-feat-sort") || "created"; }catch(e){}
   document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.sort === sortMode ? "true" : "false"); });
 
   var draft = null;
   try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
-  if(!draft){
-    /* Carry the previous version's draft forward. */
-    try{
-      var old = JSON.parse(localStorage.getItem(OLD));
-      if(old && old.t){
-        draft = Object.assign({}, old.t, {traits:old.traits, c:old.c, chg:old.chg, used:old.used, imgW:old.imgW, imgAr:old.imgAr,
-                 image:old.photo, imageMeta:old.photoMeta, imageDirty:!!old.photo, blanks:old.blanks, passiveOn:true});
-      }
-    }catch(e){}
-  }
-  if(draft && (draft.name || draft.description || draft.image || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
+  if(draft && (draft.name || draft.description || draft.image || draft.imageId || (draft.grants || []).length)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
   else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
   /* The embedded fonts arrive a beat after first paint; a fit measured with fallback metrics wraps differently. */
   whenFontsReady(refresh);
@@ -2074,7 +2537,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   });
   Lib.start();
   var lastView = "editor";
-  try{ lastView = localStorage.getItem("pf2e-item-view") || "editor"; }catch(e){}
+  try{ lastView = localStorage.getItem("pf2e-feat-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
 })();
 </script>

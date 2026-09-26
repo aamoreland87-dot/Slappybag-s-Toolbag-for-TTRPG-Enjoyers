@@ -31,6 +31,7 @@ from the site sources on `main` and republished whenever the user asks them to m
   then copy to `G:\My Drive\TTRPGs\Pathfinder\Gatewalkers\Items\.sync\app.html` and publish that
   (an hourly job mirrors its library to 4×5 PDFs using the card code it lifts out of that file).
 - Hazard Cards — https://claude.ai/artifact/LMxUYsTeuiDPHyHSyqk193 — `src/hazard-cards/build.sh artifact`.
+- Feat Cards — https://claude.ai/artifact/8H9F6XhrkDcPrwhxqu2Rq2 — `src/feat-cards/build-artifact.sh`, publish with that `url`. Capabilities db (`cards`) + assets + downloads. Import fetches from Demiplane only on the site; the artifact is paste-only.
   Library is per-browser (no db) for now, same as the site.
 The site is still the product; the artifacts follow it.
 
