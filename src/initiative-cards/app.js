@@ -40,6 +40,11 @@
     "reaction":"M8.6,9.2 C8.6,5.6 7.4,3.2 4.2,3.2 L4.2,5.6 L0.4,2.4 L4.2,0 L4.2,1.9 C8.4,1.9 10,5 10,9.2 Z",
     "r":"M8.6,9.2 C8.6,5.6 7.4,3.2 4.2,3.2 L4.2,5.6 L0.4,2.4 L4.2,0 L4.2,1.9 C8.4,1.9 10,5 10,9.2 Z"
   };
+  /* Strike marks, set in the modifier box beside the bonus: a sword for melee, a bow for ranged. */
+  var ATKICO = {
+    melee:"M10,0 L9.6,2.2 L4.1,7.7 L2.3,5.9 L7.8,0.4 Z M0.9,5.1 L1.8,4.2 L5.8,8.2 L4.9,9.1 Z M2.1,7.1 L2.9,7.9 L0.8,10 L0,9.2 Z",
+    ranged:"M2.2,0.2 C8.4,1.4 8.4,8.6 2.2,9.8 L2.2,8.6 C6.8,7.5 6.8,2.5 2.2,1.4 Z M1.6,0.8 L2.3,0.8 L2.3,9.2 L1.6,9.2 Z M0,4.7 L8.6,4.7 L8.6,4 L10,5 L8.6,6 L8.6,5.3 L0,5.3 Z"
+  };
   var SPICO = {
     land:"M0.6,8.4 L0.6,3.2 C0.6,2.3 1.2,1.7 2.1,1.7 L3.1,1.7 C3.9,1.8 4.5,2.4 4.8,3.2 C5.4,4.8 6.9,5.6 8.5,6.3 C9.4,6.7 9.8,7.2 9.8,7.9 L9.8,8.4 Z M0.6,8.75 L9.8,8.75 L9.8,10 L4.2,10 L4.2,9.45 L2.7,9.45 L2.7,10 L0.6,10 Z",
     fly:"M0,9.2 C0.8,4.2 4,1 10,0.4 C8.6,1.9 7.6,3 6.7,3.7 L8.8,3.5 C7.7,4.9 6.5,5.7 5.3,6.1 L7.1,6.3 C5.6,7.8 3.6,8.9 0,9.2 Z",
@@ -155,9 +160,20 @@
      Stored as `extras` (everything that isn't a skill) alongside the existing `skills`. */
   var ACT_COST = {r:"reaction", f:"free", 1:"one", 2:"two", 3:"three"};
   var ORD = ["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"];
+  /* an earlier artifact build stored `attacks` ({k:"melee"|"ranged", hit, dmg} or {k:"reaction", n});
+     read them as rows when a card has no `extras` yet */
+  function oldAttacks(d){
+    return (Array.isArray(d.attacks) ? d.attacks : []).map(function(a){
+      if(!a) return null;
+      if(a.k === "reaction") return {k:"reaction", c:"reaction", n:a.n || "Reaction", m:"", lvl:0};
+      if(a.k === "melee" || a.k === "ranged") return {k:"action", c:"1", n:"Strike" + (a.dmg ? " " + a.dmg : ""), m:a.hit || "", lvl:0, a:a.k};
+      return null;
+    }).filter(Boolean);
+  }
   function normExtras(d){
-    return (Array.isArray(d.extras) ? d.extras : []).map(function(e){
-      return {k:(e && e.k) || "action", n:(e && e.n) || "", m:(e && e.m) || "", c:(e && e.c) || "", lvl:+(e && e.lvl) || 0};
+    return (Array.isArray(d.extras) ? d.extras : oldAttacks(d)).map(function(e){
+      return {k:(e && e.k) || "action", n:(e && e.n) || "", m:(e && e.m) || "", c:(e && e.c) || "", lvl:+(e && e.lvl) || 0,
+              a:e && ATKICO[e.a] ? e.a : ""};
     }).filter(function(e){ return e.n || e.m; });
   }
   function modNum(m){ var v = parseFloat(String(m || "").replace(/[^0-9+-.]/g, "")); return isNaN(v) ? -999 : v; }
@@ -184,9 +200,13 @@
     var mark = e.k === "reaction" || e.k === "action"
       ? '<svg class="rico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + (ACTICO[e.c] || ACTICO["1"]) + '"/></svg>'
       : (rowLabel(e) ? '<span class="rlvl">' + rowLabel(e) + '</span>' : "");
+    var mod = '<span class="fld fit m" data-f="sk' + i + 'm"' + ce + '>' + esc(e.m) + '</span>';
+    if(e.k === "action" && ATKICO[e.a])
+      mod = '<span class="mbox atk" title="' + (e.a === "ranged" ? "Ranged" : "Melee") + ' Strike">' +
+        '<svg class="aico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + ATKICO[e.a] + '"/></svg>' + mod + '</span>';
     return '<div class="sk' + (e.k !== "skill" ? " ex" : "") + '">' +
       '<span class="ncell">' + mark + '<span class="fld fit n" data-f="sk' + i + 'n"' + ce + (edit ? ' data-ph="skill"' : '') + '>' + esc(e.n) + '</span></span><span></span>' +
-      '<span class="fld fit m" data-f="sk' + i + 'm"' + ce + '>' + esc(e.m) + '</span></div>';
+      mod + '</div>';
   }
   /* ---------------- traits: the line under the creature's name ----------------
      Stored as a list of names in print order — rarity, size, legacy alignment, then types, which is
@@ -689,8 +709,8 @@
   }
   function refresh(){
     fitAll(cardbox); renderChips(); renderSpeedList();
-    var n = collect().skills.filter(function(s){ return s.n; }).length;
-    $("cardNote").innerHTML = "2.6 &times; 7.8 in, folded at the middle &middot; <b>" + n + "</b> of " + NSK + " skill rows used";
+    var n = Math.min(NSK, readRows().length);
+    $("cardNote").innerHTML = "2.6 &times; 7.8 in, folded at the middle &middot; <b>" + n + "</b> of " + NSK + " rows used";
   }
 
   /* speeds: a checklist of movement types, stacked; tick as many as the creature has and type each speed */
@@ -916,12 +936,12 @@
   function readRows(){
     var out = [];
     for(var i = 0; i < NSK; i++){
-      var e = shownRows[i] || {k:"skill", n:"", m:"", c:"", lvl:0};
+      var e = (shownRows || [])[i] || {k:"skill", n:"", m:"", c:"", lvl:0};
       var n = textOf(field("sk" + i + "n")).trim(), m = textOf(field("sk" + i + "m")).trim();
       if(!n && !m) continue;
-      out.push({k:e.k, n:n, m:m, c:e.c || "", lvl:e.lvl || 0});
+      out.push({k:e.k, n:n, m:m, c:e.c || "", lvl:e.lvl || 0, a:e.a || ""});
     }
-    return out.concat(hiddenRows);
+    return out.concat(hiddenRows || []);
   }
   function readSkills(){ return readRows().filter(function(e){ return e.k === "skill"; }).map(function(e){ return {n:e.n, m:e.m}; }); }
   function readExtras(){ return readRows().filter(function(e){ return e.k !== "skill"; }); }
@@ -933,7 +953,8 @@
     var b = document.createElement("button");
     b.type = "button"; b.className = "chip row-chip" + (on ? " on" : " off"); b.dataset.row = i;
     b.title = "Remove this row";
-    var kind = e.k === "spell" && e.lvl ? (ORD[e.lvl - 1] || e.lvl + "th") : ROW_LABEL[e.k] || e.k;
+    var kind = e.k === "spell" && e.lvl ? (ORD[e.lvl - 1] || e.lvl + "th")
+      : e.k === "action" && ATKICO[e.a] ? (e.a === "ranged" ? "Ranged" : "Melee") : ROW_LABEL[e.k] || e.k;
     b.innerHTML = '<span class="rk">' + esc(kind) + '</span> ' + esc(e.n) + (e.m ? ' <b>' + esc(e.m) + '</b>' : '') + ' <span class="x">&times;</span>';
     return b;
   }
@@ -956,6 +977,33 @@
   }
   $("rowList").addEventListener("click", function(e){ var b = e.target.closest(".row-chip"); if(b) dropRow(+b.dataset.row); });
   $("rowExtra").addEventListener("click", function(e){ var b = e.target.closest(".row-chip"); if(b) dropRow(+b.dataset.row); });
+  /* Add a row by hand: a reaction, an action, a melee or ranged Strike, a spell at a rank, or a skill.
+     It drops into its place in the order like an imported one. */
+  ORD.forEach(function(o, i){ var op = document.createElement("option"); op.value = i + 1; op.textContent = o + " rank"; $("arRank").appendChild(op); });
+  function arKindChanged(){
+    var k = $("arKind").value;
+    $("arCost").hidden = k === "reaction" || k === "spell" || k === "skill";
+    $("arRank").hidden = k !== "spell";
+    $("arMod").placeholder = k === "spell" ? "DC 20" : k === "reaction" || k === "action" ? "(optional)" : "+12";
+  }
+  $("arKind").addEventListener("change", arKindChanged); arKindChanged();
+  function addRow(){
+    var k = $("arKind").value, n = $("arName").value.trim(), m = $("arMod").value.trim();
+    if(!n){ $("arName").focus(); return; }
+    if(/^\d/.test(m) && k !== "spell") m = "+" + m;
+    var all = readRows(), e;
+    if(k === "skill") e = {k:"skill", n:n, m:m, c:"", lvl:0, a:""};
+    else if(k === "spell") e = {k:"spell", n:n, m:m, c:"", lvl:+$("arRank").value || 1, a:""};
+    else if(k === "reaction") e = {k:"reaction", n:n, m:m, c:"reaction", lvl:0, a:""};
+    else e = {k:"action", n:n, m:m, c:$("arCost").value, lvl:0, a:k === "melee" || k === "ranged" ? k : ""};
+    all.push(e);
+    setRows(cardRows({skills:all.filter(function(r){ return r.k === "skill"; }),
+                      extras:all.filter(function(r){ return r.k !== "skill"; })}));
+    $("arName").value = ""; $("arMod").value = ""; $("arName").focus();
+    refresh(); saveDraft();
+  }
+  $("arAdd").addEventListener("click", addRow);
+  [$("arName"), $("arMod")].forEach(function(el){ el.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); addRow(); } }); });
   function rowOf(name){
     for(var i = 0; i < NSK; i++) if(textOf(field("sk" + i + "n")).trim().toLowerCase() === name.trim().toLowerCase()) return i;
     return -1;
@@ -1057,7 +1105,7 @@
       if((m = /^(Melee|Ranged)\s*(?:\[(\d|free|reaction)\])?\s*(.+)$/i.exec(l))){
         var rest = m[3].replace(/\([^)]*\)/g, " ");
         var q2 = /^\s*(.+?)\s*([+-])\s*(\d+)/.exec(rest);
-        if(q2) out.extras.push({k:"action", c:m[2] || "1", n:titleCase(q2[1].trim()), m:q2[2] + q2[3], lvl:0});
+        if(q2) out.extras.push({k:"action", c:m[2] || "1", n:titleCase(q2[1].trim()), m:q2[2] + q2[3], lvl:0, a:m[1].toLowerCase()});
       }
       /* A named ability with a cost icon: "Wriggle [reaction] Trigger …" */
       else if((m = /^(.{2,40}?)\s*\[(\d|free|reaction)\]/.exec(l))){
@@ -1736,7 +1784,17 @@
         }
         font("bold", sz); text(sk.n, s.x + s.labelW, base, {align:"right"});
       }
-      centred(sk.m, bx, s.boxW, base, s.size);
+      if(sk.k === "action" && ATKICO[sk.a] && sk.m){
+        /* the sword or bow, then the bonus, centred together in the box */
+        var aw = s.size * 0.55, ag = s.size * 0.04, msz = fit(sk.m, s.boxW - 2 - aw - ag, s.size);
+        aw *= msz / s.size; ag *= msz / s.size;
+        var mx = bx + (s.boxW - tw(sk.m) - aw - ag) / 2;
+        accent();
+        pathSegs(ATKICO[sk.a]).forEach(function(p){
+          pdf.lines(p.segs, X + mx + p.start[0] * aw / 10, Y + base - msz * 0.36 - aw / 2 + p.start[1] * aw / 10, [aw / 10, aw / 10], "F", true);
+        });
+        ink(); font("bold", msz); text(sk.m, mx + aw + ag, base);
+      }else centred(sk.m, bx, s.boxW, base, s.size);
     });
     /* immunities / resistances / weaknesses: each starts its own line; the box grows with the text up to
        G.irw.max (the saves and Recall box move down), and only shrinks the text past that */

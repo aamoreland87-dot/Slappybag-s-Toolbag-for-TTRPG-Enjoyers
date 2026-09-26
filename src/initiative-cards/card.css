@@ -146,3 +146,12 @@
 .rlvl{font-family:var(--font-caps,sans-serif); font-size:.62em; letter-spacing:.04em; color:var(--card-accent); margin-right:.3em; vertical-align:.12em}
 .skills .sk .ncell{display:flex; align-items:center; justify-content:flex-end; gap:0; min-width:0; overflow:hidden; height:var(--rowh)}
 .skills .sk .ncell .n{flex:0 1 auto; min-width:0}
+/* a Strike's bonus shares its box with a sword (melee) or a bow (ranged) */
+.skills .sk .mbox{
+  display:flex; align-items:center; justify-content:center; gap:.04em; min-width:0; overflow:hidden;
+  font-size:var(--skfs); border:.75pt solid #000; border-top-width:0; height:var(--rowh); box-sizing:border-box; padding:0 .5pt;
+}
+.skills .sk:first-child .mbox{border-top-width:.75pt}
+.skills .sk .mbox .m{border:0; height:auto; padding:0; flex:0 1 auto; min-width:1ch}
+.aico{width:.55em; height:.55em; flex:none}
+.aico path{fill:var(--card-accent)}
