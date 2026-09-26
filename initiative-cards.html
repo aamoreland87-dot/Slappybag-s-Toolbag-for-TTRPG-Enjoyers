@@ -1703,10 +1703,10 @@ var TRAIT_DATA = {
     $("arSkill").hidden = !skill;
     $("arName").hidden = skill && !lore;
     $("arName").placeholder = lore ? "Lore subject" : k === "melee" || k === "ranged" ? "Weapon" : "Name";
-    var strike = k === "melee" || k === "ranged", attack = strike || k === "action" || k === "reaction";
-    $("arMod").placeholder = k === "spell" ? "DC 20" : attack ? "to hit +12" : "+12";
-    $("arMod").setAttribute("aria-label", k === "spell" ? "Spell DC" : attack ? "Attack modifier (to hit)" : "Bonus");
-    $("arMod").title = strike ? "The Strike's attack modifier: the bonus to hit" : attack ? "The bonus to hit, if this ability makes an attack" : "";
+    var strike = k === "melee" || k === "ranged";
+    $("arMod").placeholder = k === "spell" ? "DC 20" : strike ? "to hit +12" : k === "reaction" || k === "action" ? "(optional)" : "+12";
+    $("arMod").setAttribute("aria-label", k === "spell" ? "Spell DC" : strike ? "Attack modifier (to hit)" : "Bonus");
+    $("arMod").title = strike ? "The Strike's attack modifier: the bonus to hit" : "";
   }
   $("arKind").addEventListener("change", arKindChanged);
   $("arSkill").addEventListener("change", arKindChanged);
