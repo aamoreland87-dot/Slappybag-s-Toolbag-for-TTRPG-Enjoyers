@@ -123,7 +123,17 @@
     <div class="tool-row">
       <span class="bar-label">Skills</span>
       <div class="chips" id="skillChips"></div>
-      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows stay alphabetical, lores last.</span>
+      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows order themselves: reactions, actions, spells by rank, then skills by modifier.</span>
+    </div>
+    <div class="tool-row rows-row">
+      <span class="bar-label">Card rows</span>
+      <div class="chips" id="rowList"></div>
+      <span class="hint" id="rowNote"></span>
+    </div>
+    <div class="tool-row rows-row" id="rowExtraWrap" hidden>
+      <span class="bar-label">Not on the card</span>
+      <div class="chips" id="rowExtra"></div>
+      <span class="hint">The card holds nine rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
     </div>
   </div>
 </section>
