@@ -45,7 +45,7 @@ if [ "$target" = "artifact" ]; then
     printf '"sub":"%s",' "$(b64 "$root/fonts/teko-700.ttf")"
     printf '"caps":"%s"' "$(b64 "$root/fonts/tauri-400.ttf")"
     echo '}</script>'
-    echo '<script>'; cat "$here/app.js"; echo '</script>'
+    echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
   } > "$out"
 else
   out="$root/initiative-cards.html"
@@ -54,7 +54,8 @@ else
     echo '<style id="cardCss">'; cat "$here/card.css"; echo '</style>'
     echo '<style>'; cat "$here/app.css"; echo '</style>'
     sed -e '/<!-- artifact-only /d' -e '/<!-- \/\?site-only -->/d' "$here/body.html"
-    echo '<script>'; cat "$here/app.js"; echo '</script>'
+    echo '<script src="firebase-config.js"></script><script src="cloud.js"></script>'
+    echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
     echo '</body></html>'
   } > "$out"
 fi

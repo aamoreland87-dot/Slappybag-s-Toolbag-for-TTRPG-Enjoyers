@@ -73,6 +73,8 @@ span.tog{display:inline-flex; align-items:center}
 .opts-body{display:flex; flex-wrap:wrap; gap:.5rem 1.1rem; align-items:center; padding-top:.45rem; margin-top:.35rem; border-top:1px solid var(--rule-soft)}
 .status{font-family:var(--caps); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 .status b{color:var(--accent); font-weight:400}
+.account-slot:empty{display:none}
+.btn.account .who{display:inline-block; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom}
 
 /* ================= views ================= */
 .view{padding:1.5rem 1rem 0}
@@ -216,3 +218,13 @@ span.tog{display:inline-flex; align-items:center}
 .switch .menu a[aria-current="page"]::before{content:"\25B8 "}
 .switch .menu .all{border-top:1px solid var(--rule-soft); margin-top:.3rem; padding-top:.3rem}
 .switch summary:focus-visible,.toolbag .home:focus-visible,.switch .menu a:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+
+/* the rows panel: what is on the card, and what did not fit */
+.rows-row .chips{flex:1 1 20rem}
+.row-chip{display:inline-flex; align-items:center; gap:.3rem; cursor:pointer}
+.row-chip .rk{font-family:var(--caps); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
+.row-chip.on{border-color:var(--rule)}
+.row-chip.off{opacity:.65; border-style:dashed}
+.row-chip .x{color:var(--ink-3)}
+.row-chip:hover{border-color:var(--accent); color:var(--accent)}
+.row-chip:hover .x{color:var(--accent)}

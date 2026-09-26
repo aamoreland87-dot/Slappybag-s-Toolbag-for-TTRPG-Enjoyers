@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://aamoreland87-dot.github.io", "http://localhost:8741"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]

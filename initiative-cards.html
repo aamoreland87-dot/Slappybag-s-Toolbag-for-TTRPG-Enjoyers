@@ -132,6 +132,22 @@
 .spv{display:inline-block; min-width:1em; text-align:center}
 
 .spv[contenteditable]:empty::before{content:"0"; color:#b5b5b5; font-weight:400}
+
+/* traits: the stat-block line under the name — rarity, size, then types, like the item card's line */
+.traits{display:flex; align-items:center; justify-content:center; gap:.3em; font-family:var(--font-caps,sans-serif);
+  font-size:6.6pt; line-height:1; letter-spacing:.06em; text-transform:uppercase; color:var(--card-accent); white-space:nowrap; overflow:hidden}
+.traits .sep{color:#000}
+.editor .traits{cursor:pointer}
+.editor .traits:hover{background:#e9edf3}
+.traits.add{color:#b5b5b5; font-style:italic; letter-spacing:.04em; text-transform:none}
+
+/* rows: a reaction, action or spell sits in the same row a skill would, with its cost glyph or rank */
+.skills .sk.ex .n{font-weight:700}
+.rico{width:.78em; height:.78em; display:inline-block; vertical-align:-.08em; margin-right:.25em}
+.rico path{fill:var(--card-accent)}
+.rlvl{font-family:var(--font-caps,sans-serif); font-size:.62em; letter-spacing:.04em; color:var(--card-accent); margin-right:.3em; vertical-align:.12em}
+.skills .sk .ncell{display:flex; align-items:center; justify-content:flex-end; gap:0; min-width:0; overflow:hidden; height:var(--rowh)}
+.skills .sk .ncell .n{flex:0 1 auto; min-width:0}
 </style>
 <style>
 
@@ -209,6 +225,8 @@ span.tog{display:inline-flex; align-items:center}
 .opts-body{display:flex; flex-wrap:wrap; gap:.5rem 1.1rem; align-items:center; padding-top:.45rem; margin-top:.35rem; border-top:1px solid var(--rule-soft)}
 .status{font-family:var(--caps); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 .status b{color:var(--accent); font-weight:400}
+.account-slot:empty{display:none}
+.btn.account .who{display:inline-block; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom}
 
 /* ================= views ================= */
 .view{padding:1.5rem 1rem 0}
@@ -352,6 +370,16 @@ span.tog{display:inline-flex; align-items:center}
 .switch .menu a[aria-current="page"]::before{content:"\25B8 "}
 .switch .menu .all{border-top:1px solid var(--rule-soft); margin-top:.3rem; padding-top:.3rem}
 .switch summary:focus-visible,.toolbag .home:focus-visible,.switch .menu a:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+
+/* the rows panel: what is on the card, and what did not fit */
+.rows-row .chips{flex:1 1 20rem}
+.row-chip{display:inline-flex; align-items:center; gap:.3rem; cursor:pointer}
+.row-chip .rk{font-family:var(--caps); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
+.row-chip.on{border-color:var(--rule)}
+.row-chip.off{opacity:.65; border-style:dashed}
+.row-chip .x{color:var(--ink-3)}
+.row-chip:hover{border-color:var(--accent); color:var(--accent)}
+.row-chip:hover .x{color:var(--accent)}
 </style>
 
 <div class="bar">
@@ -423,6 +451,7 @@ span.tog{display:inline-flex; align-items:center}
         <button class="btn" id="clear">Clear card</button>
       </div>
       <span class="status" id="status">Library: starting…</span>
+      <span class="account-slot" id="account"></span>
     </div>
   </details>
 </div>
@@ -450,6 +479,11 @@ span.tog{display:inline-flex; align-items:center}
       <span class="hint">Tick every movement type the creature has and type its speed. Each type gets its own icon on the card: foot, wing, shovel, ladder, fin.</span>
     </div>
     <div class="tool-row">
+      <span class="bar-label">Traits</span>
+      <button class="btn" id="traitBtn">Choose traits</button>
+      <span class="hint">Or click the line under the creature&rsquo;s name. Imports fill it in; suggestions follow what you have already picked.</span>
+    </div>
+    <div class="tool-row">
       <span class="bar-label">Senses</span>
       <button class="btn" id="senseBtn">Choose senses</button>
       <span class="hint">Or click the sense line under Perception on the card. They print like traits: darkvision | scent 60 ft | mist vision.</span>
@@ -469,7 +503,17 @@ span.tog{display:inline-flex; align-items:center}
     <div class="tool-row">
       <span class="bar-label">Skills</span>
       <div class="chips" id="skillChips"></div>
-      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows stay alphabetical, lores last.</span>
+      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows order themselves: reactions, actions, spells by rank, then skills by modifier.</span>
+    </div>
+    <div class="tool-row rows-row">
+      <span class="bar-label">Card rows</span>
+      <div class="chips" id="rowList"></div>
+      <span class="hint" id="rowNote"></span>
+    </div>
+    <div class="tool-row rows-row" id="rowExtraWrap" hidden>
+      <span class="bar-label">Not on the card</span>
+      <div class="chips" id="rowExtra"></div>
+      <span class="hint">The card holds nine rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
     </div>
   </div>
 </section>
@@ -548,7 +592,36 @@ span.tog{display:inline-flex; align-items:center}
     <div class="chips" id="senseAll"></div>
   </div>
 </section>
+
+<section class="picker" id="traitPicker" hidden role="dialog" aria-label="Traits">
+  <div class="picker-head">
+    <input type="search" id="traitSearch" placeholder="Search traits, or type your own and press Enter" autocomplete="off">
+    <button class="btn solid" id="traitPickerDone">Done</button>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">On the card</span>
+    <div class="chips" id="traitSel"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label" id="traitSugLabel">Common traits</span>
+    <div class="chips" id="traitSug"></div>
+  </div>
+  <div class="picker-group" id="traitAllWrap"></div>
+</section>
+<script src="firebase-config.js"></script><script src="cloud.js"></script>
 <script>
+/* PF2e creature traits and how often they appear together, distilled from the Demiplane creature list
+   (2,598 distinct trait sets, 2026-09). `near` holds each trait's strongest companions by lift, so the
+   picker can surface what usually accompanies what is already chosen. Groups: r rarity, s size,
+   a legacy alignment, t type and subtype. */
+var TRAIT_DATA = {
+  order:"r,s,a,t",
+  t:"Humanoid,Undead,Beast,Fiend,Mindless,Amphibious,Unholy,Aberration,Elemental,Human,Dragon,Fey,Construct,Animal,Incorporeal,Plant,Fire,Spirit,Earth,Water,Troop,Giant,Aquatic,Swarm,Air,Fungus,Monitor,Cold,Celestial,Demon,Ooze,Wood,Shadow,Elf,Zombie,Dwarf,Holy,Orc,Ghost,Mutant,Skeleton,Genie,Elite,Vampire,Ghoul,Dream,Mummy,Dinosaur,Devil,Werecreature,Metal,Leshy,Hag,Gremlin,Electricity,Daemon,Troll,Nymph,Clockwork,Psychopomp,Mythic,Goblin,Cosmic,Xulgath,Divine,Protean,Primal,Halfling,Gnome,Ethereal,Qlippoth,Oni,Lizardfolk,Kami,Caligni,Angel,Aeon,Wraith,Golem,Astral,Tengu,Soulbound,Phantom,Kobold,Velstrac,Time,Tech,Sprite,Sahkil,Hryngar,Azata,Mortic,Boggard,Archon,Acid,Wight,Serpentfolk,Rakshasa,Minion,Gnoll,Arcane,Ratfolk,Nephilim,Dero,Charau-ka,Agathion,Tiefling,Kitsune,Catfolk,Azarketi,Urdefhan,Tane,Siktempora,Nagaji,Dromaar,Div,Changeling,Anadi,Vishkanya,Titan,Shade,Occult,Mental,Illusion,Drow,Dhampir,Darvakka,Couatl,Asura,Aiuvarin,Aesir,Wild hunt,Void,Vesk,Tanggal,Strix,Samsaran,Robot,Positive,Nindoru,Negative,Light,Kucharn,Inevitable,Herald,Grippli,Grioth,Ganzi,Formian,Fetchling,Duergar,Beastkin,Ardande,Any,Alchemical,Aasimar,Ysoki,Wyrwood,Vanara,Undine,Sylph,Spriggan,Spectra,Skulk,Skelm,Shoony,Shabti,Seugathi,Sea devil,Petitioner,Palinthanos,Oread,Munavri,Morlock,Merfolk,Magical,Lilu,Kholo,Ikeshti,Ifrit,Hobgoblin,Hantu,Half-elf,Graveknight,Ghoran,Evil,Eidolon,Duskwalker,Bugbear,Automaton,Android",
+  r:"Common,Uncommon,Rare,Unique",
+  s:"Medium,Large,Small,Huge,Gargantuan,Tiny",
+  a:"N,Ce,Ne,Le,Cn,Ln,Ng,Cg,Lg",
+  near:{"Medium":"Catfolk,Azarketi,Nymph,Beastkin,Dhampir,Tiefling","Humanoid":"Gnoll,Catfolk,Azarketi,Hag,Halfling,Beastkin","Uncommon":"Alchemical,Anadi,Couatl,Qlippoth,Serpentfolk,Nymph","Large":"Alchemical,Giant,Couatl,Troll,Oni,Swarm","Unique":"Herald,Kitsune,Illusion,Mental,Catfolk,Tiefling","Rare":"Tane,Titan,Wild,Siktempora,Mortic,Time","N":"Golem,Clockwork,Psychopomp,Ooze,Animal,Construct","Ce":"Darvakka,Grioth,Nindoru,Acid,Charau-ka,Gnoll","Undead":"Vampire,Darvakka,Ghoul,Wraith,Skeleton,Mummy","Ne":"Sahkil,Urdefhan,Daemon,Zombie,Time,Serpentfolk","Small":"Dero,Grippli,Gnome,Halfling,Charau-ka,Kobold","Huge":"Arcane,Divine,Primal,Cosmic,Dragon,Mutant","Gargantuan":"Titan,Troop,Darvakka,Tane,Acid,Dinosaur","Beast":"Beastkin,Werecreature,Couatl,Tane,Electricity,Ethereal","Fiend":"Div,Sahkil,Qlippoth,Nindoru,Velstrac,Demon","Mindless":"Golem,Alchemical,Clockwork,Zombie,Ooze,Skeleton","Amphibious":"Azarketi,Boggard,Acid,Water,Primal,Nymph","Unholy":"Demon,Qlippoth,Skeleton,Devil,Rakshasa,Wight","Le":"Duergar,Div,Velstrac,Asura,Rakshasa,Devil","Aberration":"Tanggal,Dream,Time,Elite,Cosmic,Swarm","Elemental":"Genie,Metal,Air,Wood,Water,Earth","Human":"Dhampir,Aiuvarin,Aasimar,Werecreature,Dromaar,Changeling","Dragon":"Occult,Acid,Arcane,Primal,Divine,Charau-ka","Fey":"Sprite,Nymph,Gremlin,Wild,Light,Tiny","Construct":"Robot,Golem,Soulbound,Clockwork,Tech,Mindless","Cn":"Protean,Caligni,Sprite,Kami,Halfling,Monitor","Tiny":"Gremlin,Sprite,Soulbound,Psychopomp,Aeon,Fey","Animal":"Dinosaur,Minion,Swarm,Aquatic,N,Elite","Incorporeal":"Wraith,Ghost,Spirit,Phantom,Ethereal,Undead","Plant":"Leshy,Wood,Nymph,Fey,Elemental,Fungus","Fire":"Charau-ka,Genie,Elemental,Metal,Dragon,Lg","Spirit":"Phantom,Ghost,Ethereal,Incorporeal,Kami,Rakshasa","Earth":"Genie,Elemental,Nymph,Troll,Metal,Giant","Ln":"Formian,Inevitable,Aeon,Monitor,Spirit,Dwarf","Water":"Nymph,Aquatic,Elemental,Genie,Amphibious,Metal","Troop":"Gargantuan,Xulgath,Zombie,Wood,Elemental,Unholy","Giant":"Oni,Troll,Mutant,Cold,Earth,Large","Aquatic":"Water,Animal,Elemental,Aberration,N,Ooze","Swarm":"Animal,Large,Aberration,Mindless,N,Earth","Ng":"Agathion,Angel,Kami,Celestial,Orc,Elf","Air":"Genie,Electricity,Elemental,Metal,Wood,Earth","Fungus":"Leshy,Demon,Unholy,Rare,Mindless,Fiend","Monitor":"Psychopomp,Aesir,Inevitable,Protean,Aeon,Ln","Cg":"Azata,Nymph,Celestial,Elf,Fey,Water","Cold":"Oni,Mummy,Giant,Lg,Dragon,Water","Celestial":"Angel,Agathion,Azata,Archon,Holy,Ng","Demon":"Fiend,Unholy,Fungus,Ooze,Ce,Amphibious","Ooze":"Mindless,Demon,N,Aquatic,Rare,Amphibious","Wood":"Plant,Genie,Troll,Metal,Elemental,Mutant","Shadow":"Darvakka,Vampire,Dragon,Giant,Undead,Ne","Elf":"Aiuvarin,Drow,Human,Cg,Humanoid,Ng","Zombie":"Mindless,Undead,Ne,Unholy,Troop,Uncommon","Lg":"Archon,Electricity,Celestial,Dragon,Cold,Fire","Dwarf":"Hryngar,Duergar,Le,Humanoid,Ln,Medium","Holy":"Archon,Azata,Angel,Celestial,Divine,Beast","Orc":"Dromaar,Human,Ng,Humanoid,Medium,Unique","Ghost":"Spirit,Incorporeal,Undead,Unique,Unholy,Medium","Mutant":"Serpentfolk,Wood,Giant,Huge,Animal,Rare","Skeleton":"Mindless,Undead,Unholy,Ne,Gargantuan,Huge","Genie":"Metal,Elemental,Air,Wood,Earth,Water","Elite":"Aberration,Animal,Mindless,N,Ne,Undead","Vampire":"Shadow,Undead,Unholy,Le,Unique,Medium","Ghoul":"Undead,Amphibious,Unholy,Ce,Medium,Uncommon","Dream":"Aberration,Incorporeal,Cn,Huge,Uncommon,Rare","Mummy":"Undead,Cold,Le,Ne,Medium,Unholy","Dinosaur":"Animal,Gargantuan,N,Huge","Devil":"Fiend,Le,Unholy","Werecreature":"Human,Beast,Humanoid,Le,Ne,Large","Metal":"Genie,Elemental,Wood,Air,Fire,Water","Leshy":"Fungus,Plant,Small,Unholy,N,Undead","Hag":"Humanoid,Ce,Amphibious,Unique,Fiend,Medium","Gremlin":"Fey,Tiny,Ce,Le,Small","Electricity":"Lg,Air,Dragon,Fire,Beast,Gargantuan","Daemon":"Fiend,Ne,Unholy,Human,Gargantuan","Troll":"Giant,Wood,Earth,Ce,Large,Uncommon","Nymph":"Light,Fey,Cg,Water,Plant,Amphibious","Clockwork":"Construct,Mindless,N,Tiny,Rare,Gargantuan","Psychopomp":"Monitor,Tiny,N,Unique","Mythic":"Gargantuan,Rare,Unique,Beast","Goblin":"Small,Humanoid,Le,Unique","Cosmic":"Huge,Aberration,Uncommon","Xulgath":"Troop,Humanoid,Ce,Gargantuan,Ne,Medium","Divine":"Holy,Dragon,Construct,Mindless,Huge,Unholy","Protean":"Monitor,Cn","Primal":"Dragon,Amphibious,Gargantuan,Huge","Halfling":"Small,Humanoid,Cn,Unique","Gnome":"Small,Humanoid,Ce,Unique","Ethereal":"Phantom,Spirit,Incorporeal,Rare,Beast,Medium","Qlippoth":"Fiend,Unholy,Ce,Uncommon,Huge,Large","Oni":"Giant,Cold,Fiend,Humanoid,Large,Le","Lizardfolk":"Humanoid,Ne,Medium,Uncommon,N,Unique","Kami":"Spirit,Ng,Cn,Small","Caligni":"Cn,Humanoid,Small,Medium,Ce,Unique","Angel":"Celestial,Holy,Ng,Unique,Large","Aeon":"Inevitable,Monitor,Ln,Tiny,Large","Wraith":"Incorporeal,Undead,Le,Unholy,Medium,Rare","Golem":"Construct,Mindless,N,Rare,Uncommon,Large","Astral":"N,Rare","Tengu":"Humanoid,Unique,Medium","Soulbound":"Construct,Tiny,Ne,Rare","Phantom":"Ethereal,Spirit,Incorporeal,Rare,Medium","Kobold":"Small,Le,Humanoid,Unique","Velstrac":"Fiend,Le,Unique","Time":"Siktempora,Aberration,Rare,Ne,Medium","Tech":"Robot,Construct,Small","Sprite":"Fey,Tiny,Cn,Small,Unique","Sahkil":"Fiend,Ne,Rare","Hryngar":"Dwarf,Le,Humanoid,Medium","Azata":"Celestial,Holy,Cg,Large","Mortic":"Rare,Humanoid,Small,Medium","Boggard":"Amphibious,Humanoid,Ce,Unique,Medium","Archon":"Holy,Celestial,Lg","Acid":"Dragon,Amphibious,Ce,Gargantuan,Unique,Uncommon","Wight":"Le,Undead,Unholy,Medium,Uncommon","Serpentfolk":"Mutant,Humanoid,Ne,Medium,Uncommon","Rakshasa":"Spirit,Le,Fiend,Unholy,Medium","Minion":"Animal,N,Unique,Medium","Gnoll":"Ce,Humanoid,Unique,Medium","Arcane":"Dragon,Huge,Uncommon","Ratfolk":"Small,Humanoid,Unique","Nephilim":"Human,Humanoid,Unique,Medium","Dero":"Small,Humanoid,Ce,Unique","Charau-ka":"Fire,Small,Dragon,Ce,Humanoid","Agathion":"Celestial,Ng,Small","Tiefling":"Human,Humanoid,Unique,Medium","Kitsune":"Unique,Humanoid,Medium","Catfolk":"Humanoid,Unique,Medium","Azarketi":"Amphibious,Humanoid,Medium","Urdefhan":"Ne,Humanoid,Unique,Medium","Tane":"Beast,Gargantuan,Rare,Ce","Siktempora":"Time,Rare,Medium","Nagaji":"Humanoid,Medium","Dromaar":"Orc,Human,Humanoid,Medium","Div":"Fiend,Le,Medium","Changeling":"Human,Humanoid,Medium","Anadi":"Humanoid,Uncommon,Medium","Vishkanya":"Humanoid,Medium","Titan":"Gargantuan,Rare,Humanoid","Shade":"Medium","Occult":"Dragon","Mental":"Illusion,Unique","Illusion":"Mental,Unique","Drow":"Elf,Humanoid,Medium","Dhampir":"Human,Humanoid,Medium","Darvakka":"Shadow,Gargantuan,Undead,Ce","Couatl":"Beast,Large,Uncommon","Asura":"Le,Fiend","Aiuvarin":"Elf,Human,Humanoid,Medium","Aesir":"Monitor","Wild hunt":"Fey,Rare","Vesk":"Humanoid,Medium","Tanggal":"Aberration,Medium","Strix":"Medium","Samsaran":"Humanoid,Medium","Robot":"Tech,Construct","Positive":"Medium","Nindoru":"Fiend,Ce","Light":"Nymph,Fey,Medium","Inevitable":"Aeon,Monitor,Ln","Herald":"Unique","Grippli":"Small,Humanoid","Grioth":"Ce,Humanoid,Medium","Ganzi":"Humanoid,Medium","Formian":"Ln","Fetchling":"Humanoid,Medium","Duergar":"Dwarf,Le,Humanoid,Medium","Beastkin":"Beast,Humanoid,Medium","Ardande":"Humanoid,Medium","Alchemical":"Mindless,Large,Uncommon","Aasimar":"Human,Humanoid,Medium"}
+};
 (function(){
   "use strict";
   var DRAFT = "pf2e-init-draft-v1", LIB_LOCAL = "pf2e-init-lib", SEL = "pf2e-init-sel";
@@ -579,6 +652,18 @@ span.tog{display:inline-flex; align-items:center}
   ];
   var SENSE = {}; SENSES.forEach(function(s){ SENSE[s[0]] = {name:s[1], label:s[2], ranged:s[3]}; });
   var COMMON_SENSES = ["darkvision","low-light","scent","tremorsense","greater-darkvision"];
+  /* action-cost glyphs, in the same 10-unit boxes as the speed icons: a diamond per action,
+     an open diamond for a free action, a curved arrow for a reaction (drawn, never a font —
+     Paizo's icon font may not be redistributed). */
+  var ACTICO = {
+    "1":"M5,0.6 L8.2,5 L5,9.4 L1.8,5 Z",
+    "2":"M3.2,0.6 L6.1,5 L3.2,9.4 L0.3,5 Z M6.8,0.6 L9.7,5 L6.8,9.4 L3.9,5 Z",
+    "3":"M2.2,1.4 L4.4,5 L2.2,8.6 L0,5 Z M5,1.4 L7.2,5 L5,8.6 L2.8,5 Z M7.8,1.4 L10,5 L7.8,8.6 L5.6,5 Z",
+    "free":"M5,0.6 L8.2,5 L5,9.4 L1.8,5 Z M5,2.6 L2.9,5 L5,7.4 L7.1,5 Z",
+    "f":"M5,0.6 L8.2,5 L5,9.4 L1.8,5 Z M5,2.6 L2.9,5 L5,7.4 L7.1,5 Z",
+    "reaction":"M8.6,9.2 C8.6,5.6 7.4,3.2 4.2,3.2 L4.2,5.6 L0.4,2.4 L4.2,0 L4.2,1.9 C8.4,1.9 10,5 10,9.2 Z",
+    "r":"M8.6,9.2 C8.6,5.6 7.4,3.2 4.2,3.2 L4.2,5.6 L0.4,2.4 L4.2,0 L4.2,1.9 C8.4,1.9 10,5 10,9.2 Z"
+  };
   var SPICO = {
     land:"M0.6,8.4 L0.6,3.2 C0.6,2.3 1.2,1.7 2.1,1.7 L3.1,1.7 C3.9,1.8 4.5,2.4 4.8,3.2 C5.4,4.8 6.9,5.6 8.5,6.3 C9.4,6.7 9.8,7.2 9.8,7.9 L9.8,8.4 Z M0.6,8.75 L9.8,8.75 L9.8,10 L4.2,10 L4.2,9.45 L2.7,9.45 L2.7,10 L0.6,10 Z",
     fly:"M0,9.2 C0.8,4.2 4,1 10,0.4 C8.6,1.9 7.6,3 6.7,3.7 L8.8,3.5 C7.7,4.9 6.5,5.7 5.3,6.1 L7.1,6.3 C5.6,7.8 3.6,8.9 0,9.2 Z",
@@ -596,6 +681,7 @@ span.tog{display:inline-flex; align-items:center}
     W:187.2, H:561.6, HALF:280.8,
     name:{x:4, y:4, w:177.2, h:18, size:15},
     rule:{x:24, y:24.5, w:139.2, h:2},
+    traits:{x:6, y:22.6, w:175.2, h:8.4, size:6.6},   /* the line under the name; it takes the rule's band when the creature has traits */
     hdr:{y:31, h:15.5, w:48, xs:[5, 69.6], size:10.4},   /* the Speed header is centred over whichever frame is in use */
     shield:{x:10.4, y:50, w:36, h:40, path:"M18,1 C23,4 30,3 36,5 L36,20 C36,31 27,37 18,40 C9,37 0,31 0,20 L0,5 C6,3 13,4 18,1 Z"},
     heart:{x:73.6, y:51, w:40, h:38, path:"M20,37 C12,30 0,22 0,11 C0,5 4.5,1 10,1 C14.5,1 18,3.5 20,7.5 C22,3.5 25.5,1 30,1 C35.5,1 40,5 40,11 C40,22 28,30 20,37 Z"},
@@ -631,6 +717,8 @@ span.tog{display:inline-flex; align-items:center}
   };
 
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  /* Art from another origin (the cloud library) needs CORS to reach the PDF canvas; local and data: art does not. */
+  function cors(src){ return /^https?:/i.test(src) ? ' crossorigin="anonymous"' : ""; }
   function pt(v){ return (Math.round(v * 100) / 100) + "pt"; }
   function pos(x, y, w, h){ return 'style="left:' + pt(x) + ';top:' + pt(y) + ';width:' + pt(w) + ';height:' + pt(h) + '"'; }
 
@@ -649,24 +737,23 @@ span.tog{display:inline-flex; align-items:center}
     var ico = function(g, cls){
       return '<svg class="ico ' + cls + '" viewBox="0 0 ' + g.w + ' ' + g.h + '" ' + pos(g.x, g.y, g.w, g.h) + ' aria-hidden="true"><path d="' + g.path + '"/></svg>';
     };
-    var src = d.image || (d.imageId ? "/_blob/" + d.imageId : "");
+    var src = d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : "");
     var scale = (d.imgScale || 100) / 100;
     var sp = normSpeeds(d), sg = placeSpeeds(sp).g;   /* the speed frame is sized to the number of speeds */
+    var tl = normTraits(d);
     var s = G.skills, sv = G.saves, p = G.per, r = G.rec;
-    var skills = "";
-    for(var i = 0; i < NSK; i++){
-      var sk = (d.skills || [])[i] || {};
-      skills += '<div class="sk">' +
-        '<span class="fld fit n" data-f="sk' + i + 'n"' + ce + (edit ? ' data-ph="skill"' : '') + '>' + esc(sk.n) + '</span><span></span>' +
-        '<span class="fld fit m" data-f="sk' + i + 'm"' + ce + '>' + esc(sk.m) + '</span></div>';
-    }
+    var rows = cardRows(d), skills = "";
+    for(var i = 0; i < NSK; i++) skills += rowHtml(rows[i] || {k:"skill", n:"", m:"", c:"", lvl:0}, i, edit);
     return '<article class="card">' +
       '<div class="half top"><div class="photo' + (src ? " has-img" : "") + (flipped ? " flip" : "") + '"' + (edit ? ' id="photo"' : "") + ' style="--img-scale:' + scale + '"' + (edit ? ' tabindex="0" role="button" aria-label="Add a picture"' : '') + '>' +
-        (src ? '<img alt="" src="' + esc(src) + '">' : '') +
+        (src ? '<img alt=""' + cors(src) + ' src="' + esc(src) + '">' : '') +
         (edit ? '<span class="ph-hint">Drop picture<br>or tap</span>' : '') + '</div></div>' +
       '<div class="half stats">' +
         fld("name", "c-name fit", "Creature name", " " + pos(G.name.x, G.name.y, G.name.w, G.name.h)) +
-        '<div class="rule" ' + pos(G.rule.x, G.rule.y, G.rule.w, G.rule.h) + '></div>' +
+        (tl.length
+          ? '<div class="traits fit"' + (edit ? ' id="traitLine" tabindex="0" role="button" aria-label="Edit traits"' : '') + ' ' + pos(G.traits.x, G.traits.y, G.traits.w, G.traits.h) + '>' + traitsHtml(tl) + '</div>'
+          : '<div class="rule" ' + pos(G.rule.x, G.rule.y, G.rule.w, G.rule.h) + '></div>' +
+            (edit ? '<div class="traits add" id="traitLine" tabindex="0" role="button" aria-label="Add traits" ' + pos(G.traits.x, G.traits.y, G.traits.w, G.traits.h) + '>+ traits</div>' : '')) +
         ["AC","HP","Speed"].map(function(t, k){ return '<div class="hdr" ' + pos(G.hdr.xs.concat(sg.hdrX)[k], G.hdr.y, G.hdr.w, G.hdr.h) + '>' + t + '</div>'; }).join("") +
         ico(G.shield, "shield") + ico(G.heart, "heart") + ico(sg, "speed") +
         fld("ac", "big fit", "", " " + pos(G.shield.x, G.shield.y + 7, G.shield.w, 26)) +
@@ -684,6 +771,89 @@ span.tog{display:inline-flex; align-items:center}
         (showIrw ? '<div class="irw" ' + pos(G.irw.x, G.irw.y, G.irw.w, G.irw.h) + '><div class="irw-in">' +
           irwHtml(d) + '</div></div>' : '') +
       '</div></article>';
+  }
+  /* ---------------- the nine rows: reactions, actions, spells, then skills ----------------
+     The card's row block is one ordered list, not a skill list: reactions first, then actions,
+     then spells lowest rank first, then skills by modifier, highest first. Whatever doesn't fit
+     is still kept on the card's record and listed in the editor under the rows panel.
+     Stored as `extras` (everything that isn't a skill) alongside the existing `skills`. */
+  var ACT_COST = {r:"reaction", f:"free", 1:"one", 2:"two", 3:"three"};
+  var ORD = ["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"];
+  function normExtras(d){
+    return (Array.isArray(d.extras) ? d.extras : []).map(function(e){
+      return {k:(e && e.k) || "action", n:(e && e.n) || "", m:(e && e.m) || "", c:(e && e.c) || "", lvl:+(e && e.lvl) || 0};
+    }).filter(function(e){ return e.n || e.m; });
+  }
+  function modNum(m){ var v = parseFloat(String(m || "").replace(/[^0-9+-.]/g, "")); return isNaN(v) ? -999 : v; }
+  /* the whole list in print order; the first NSK are the ones the card has room for */
+  function cardRows(d){
+    var ex = normExtras(d), out = [];
+    var take = function(f){ ex.filter(f).forEach(function(e){ out.push(e); }); };
+    take(function(e){ return e.k === "reaction"; });
+    take(function(e){ return e.k === "action"; });
+    ex.filter(function(e){ return e.k === "spell"; })
+      .sort(function(a, b){ return (a.lvl || 0) - (b.lvl || 0); })
+      .forEach(function(e){ out.push(e); });
+    (d.skills || []).filter(function(s){ return s && (s.n || s.m); })
+      .slice().sort(function(a, b){ return modNum(b.m) - modNum(a.m) || String(a.n).localeCompare(String(b.n)); })
+      .forEach(function(s){ out.push({k:"skill", n:s.n, m:s.m, c:"", lvl:0}); });
+    return out;
+  }
+  function rowLabel(e){
+    if(e.k === "spell" && e.lvl) return ORD[e.lvl - 1] || (e.lvl + "th");
+    return "";
+  }
+  function rowHtml(e, i, edit){
+    var ce = edit ? ' contenteditable="true" spellcheck="false"' : '';
+    var mark = e.k === "reaction" || e.k === "action"
+      ? '<svg class="rico" viewBox="0 0 10 10" aria-hidden="true"><path d="' + (ACTICO[e.c] || ACTICO["1"]) + '"/></svg>'
+      : (rowLabel(e) ? '<span class="rlvl">' + rowLabel(e) + '</span>' : "");
+    return '<div class="sk' + (e.k !== "skill" ? " ex" : "") + '">' +
+      '<span class="ncell">' + mark + '<span class="fld fit n" data-f="sk' + i + 'n"' + ce + (edit ? ' data-ph="skill"' : '') + '>' + esc(e.n) + '</span></span><span></span>' +
+      '<span class="fld fit m" data-f="sk' + i + 'm"' + ce + '>' + esc(e.m) + '</span></div>';
+  }
+  /* ---------------- traits: the line under the creature's name ----------------
+     Stored as a list of names in print order — rarity, size, legacy alignment, then types, which is
+     the order a stat block uses. TRAIT_DATA (traits.js) carries the vocabulary and, per trait, the
+     companions it most often appears with, so the picker can suggest from what is already chosen. */
+  var TRAIT_KIND = {}, TRAIT_ALL = [], TRAIT_GROUPS = [];
+  (function(){
+    if(typeof TRAIT_DATA === "undefined") return;
+    TRAIT_DATA.order.split(",").forEach(function(k){
+      var list = (TRAIT_DATA[k] || "").split(",").filter(Boolean);
+      list.forEach(function(t){ TRAIT_KIND[t.toLowerCase()] = k; });
+      TRAIT_GROUPS.push({k:k, label:{r:"Rarity", s:"Size", a:"Alignment (legacy)", t:"Type"}[k] || k, list:list});
+      TRAIT_ALL = TRAIT_ALL.concat(list);
+    });
+  })();
+  var TRAIT_CANON = {}; TRAIT_ALL.forEach(function(t){ TRAIT_CANON[t.toLowerCase()] = t; });
+  function traitName(t){ return TRAIT_CANON[String(t).toLowerCase()] || titleCase(String(t)); }
+  function traitRank(t){ var k = TRAIT_KIND[String(t).toLowerCase()] || "t"; return "rsat".indexOf(k); }
+  /* rarity, size, alignment, then types; within a group, the order they were added */
+  function sortTraits(list){
+    var seen = {}, out = [];
+    list.forEach(function(t){ var n = traitName(t); if(n && !seen[n.toLowerCase()]){ seen[n.toLowerCase()] = 1; out.push(n); } });
+    return out.map(function(t, i){ return {t:t, i:i}; })
+      .sort(function(a, b){ return (traitRank(a.t) - traitRank(b.t)) || (a.i - b.i); })
+      .map(function(x){ return x.t; });
+  }
+  function normTraits(d){ return sortTraits(Array.isArray(d.traits) ? d.traits : []); }
+  function traitsHtml(list){
+    return list.map(function(t){ return '<span class="tr">' + esc(t) + '</span>'; }).join('<span class="sep">|</span>');
+  }
+  /* Suggestions: every companion of a chosen trait, scored by how strongly it goes with it, with the
+     common traits as the fallback when nothing is chosen yet. Already-chosen traits drop out. */
+  function traitSuggestions(have){
+    var near = (typeof TRAIT_DATA !== "undefined" && TRAIT_DATA.near) || {}, score = {};
+    have.forEach(function(t){
+      (near[traitName(t)] || "").split(",").filter(Boolean).forEach(function(c, i){
+        score[c] = (score[c] || 0) + (10 - i);
+      });
+    });
+    var out = Object.keys(score).sort(function(a, b){ return score[b] - score[a] || TRAIT_ALL.indexOf(a) - TRAIT_ALL.indexOf(b); });
+    if(!have.length) out = TRAIT_ALL.slice(0, 24);
+    var lower = have.map(function(t){ return t.toLowerCase(); });
+    return out.filter(function(t){ return lower.indexOf(t.toLowerCase()) < 0; }).slice(0, 14);
   }
   /* ---------------- speeds: [{t:"fly", v:"40"}], land first, then the others in SPEEDS order ---------------- */
   /* ---------------- speeds: [{t:"fly", v:"40"}], land first, then the others in SPEEDS order ---------------- */
@@ -822,6 +992,72 @@ span.tog{display:inline-flex; align-items:center}
   }
 
   /* ---------------- sense picker: a sheet of chips, like the item card's traits ---------------- */
+  /* ---------------- the trait picker ---------------- */
+  var traitPicker = $("traitPicker"), traitSearch = $("traitSearch"), cardTraits = [];
+  function readTraits(){ return cardTraits.slice(); }
+  function renderTraits(list){
+    cardTraits = sortTraits(list);
+    var line = cardbox.querySelector(".traits");
+    if(line){
+      line.className = "traits" + (cardTraits.length ? " fit" : " add");
+      line.innerHTML = cardTraits.length ? traitsHtml(cardTraits) : "+ traits";
+    }
+    var rule = cardbox.querySelector(".rule"); if(rule) rule.style.visibility = cardTraits.length ? "hidden" : "";
+    fitAll(cardbox);
+  }
+  function traitChip(t, on){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip" + (on ? " on" : ""); b.dataset.trait = t; b.textContent = t;
+    return b;
+  }
+  function renderTraitPicker(){
+    var q = traitSearch.value.trim().toLowerCase(), have = readTraits();
+    var has = function(t){ return have.some(function(s){ return s.toLowerCase() === t.toLowerCase(); }); };
+    var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
+    var sel = $("traitSel"); sel.innerHTML = "";
+    have.forEach(function(t){ sel.appendChild(traitChip(t, true)); });
+    var sug = $("traitSug"); sug.innerHTML = "";
+    traitSuggestions(have).forEach(function(t){ if(match(t)) sug.appendChild(traitChip(t, has(t))); });
+    $("traitSugLabel").textContent = have.length ? "Often seen with " + have[have.length - 1] : "Common traits";
+    var wrap = $("traitAllWrap"); wrap.innerHTML = "";
+    TRAIT_GROUPS.forEach(function(g){
+      var hits = g.list.filter(match); if(!hits.length) return;
+      var lab = document.createElement("span"); lab.className = "bar-label"; lab.textContent = g.label; wrap.appendChild(lab);
+      var box = document.createElement("div"); box.className = "chips";
+      hits.forEach(function(t){ box.appendChild(traitChip(t, has(t))); });
+      wrap.appendChild(box);
+    });
+  }
+  function toggleTrait(t){
+    var list = readTraits(), i = -1;
+    list.forEach(function(s, k){ if(s.toLowerCase() === t.toLowerCase()) i = k; });
+    /* one rarity and one size at a time — picking a second replaces the first */
+    if(i >= 0) list.splice(i, 1);
+    else{
+      var k = TRAIT_KIND[t.toLowerCase()];
+      if(k === "r" || k === "s" || k === "a") list = list.filter(function(s){ return TRAIT_KIND[s.toLowerCase()] !== k; });
+      list.push(traitName(t));
+    }
+    renderTraits(list); refresh(); saveDraft(); renderTraitPicker();
+  }
+  function openTraitPicker(){ traitSearch.value = ""; renderTraitPicker(); traitPicker.hidden = false; $("scrim").hidden = false; if(window.innerWidth > 760) traitSearch.focus(); }
+  function closeTraitPicker(){ traitPicker.hidden = true; $("scrim").hidden = true; }
+  cardbox.addEventListener("click", function(e){ if(e.target.closest("#traitLine")) openTraitPicker(); });
+  cardbox.addEventListener("keydown", function(e){ if(e.target.id === "traitLine" && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openTraitPicker(); } });
+  $("traitBtn").addEventListener("click", openTraitPicker);
+  $("traitPickerDone").addEventListener("click", closeTraitPicker);
+  traitPicker.addEventListener("click", function(e){ var t = e.target.dataset && e.target.dataset.trait; if(t && e.target.tagName === "BUTTON") toggleTrait(t); });
+  traitSearch.addEventListener("input", renderTraitPicker);
+  traitSearch.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ closeTraitPicker(); return; }
+    if(e.key !== "Enter") return;
+    e.preventDefault();
+    var q = traitSearch.value.trim(); if(!q) return;
+    var hit = TRAIT_ALL.filter(function(t){ return t.toLowerCase() === q.toLowerCase(); })[0]
+           || TRAIT_ALL.filter(function(t){ return t.toLowerCase().indexOf(q.toLowerCase()) === 0; })[0];
+    toggleTrait(hit || titleCase(q));
+    traitSearch.value = ""; renderTraitPicker();
+  });
   var sensePicker = $("sensePicker"), senseSearch = $("senseSearch");
   function senseChip(s, on){
     var b = document.createElement("button");
@@ -877,6 +1113,8 @@ span.tog{display:inline-flex; align-items:center}
     senseSearch.value = ""; renderSensePicker();
   });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !sensePicker.hidden) closeSensePicker(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !traitPicker.hidden) closeTraitPicker(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !traitPicker.hidden) closeTraitPicker(); });
   /* The checklist mirrors the card: a ticked type is a row on the card, and its number is the row's value. */
   function renderSpeedList(){
     var box = $("spdList"); if(!box) return;
@@ -937,8 +1175,8 @@ span.tog{display:inline-flex; align-items:center}
   function collect(){
     var d = {skills:[], imgScale:imgScale, source:source};
     FIELDS.forEach(function(f){ var el = field(f); d[f] = el ? textOf(el) : ""; });
-    d.speeds = readSpeeds(); d.senses = readSenses(); readIrw(d);
-    d.skills = readSkills();
+    d.speeds = readSpeeds(); d.senses = readSenses(); d.traits = readTraits(); readIrw(d);
+    d.skills = readSkills(); d.extras = readExtras();
     while(d.skills.length && !d.skills[d.skills.length - 1].n && !d.skills[d.skills.length - 1].m) d.skills.pop();
     return d;
   }
@@ -952,10 +1190,10 @@ span.tog{display:inline-flex; align-items:center}
     d = d || {};
     setIrw(d);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = d[f] == null ? "" : d[f]; });
-    renderSpeeds(normSpeeds(d)); renderSenses(normSenses(d));
-    writeSkills(sortSkills((d.skills || []).map(function(s){ return {n:(s && s.n) || "", m:(s && s.m) || ""}; })));
+    renderSpeeds(normSpeeds(d)); renderSenses(normSenses(d)); renderTraits(normTraits(d));
+    setRows(cardRows(d));
     currentId = d.id || null;
-    setImage({src:d.imageSrc || d.image || (d.imageId ? "/_blob/" + d.imageId : ""),
+    setImage({src:d.imageSrc || d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : ""),
               data:d.image || "", id:d.imageId || "", meta:d.imageMeta || "", dirty:!!d.imageDirty});
     setImgScale(d.imgScale || 100);
     setSource(d.source || "");
@@ -1050,6 +1288,7 @@ span.tog{display:inline-flex; align-items:center}
     var el = photo.querySelector("img");
     if(img.src){
       if(!el){ el = document.createElement("img"); el.alt = ""; photo.insertBefore(el, photo.firstChild); }
+      if(cors(img.src)) el.crossOrigin = "anonymous"; else el.removeAttribute("crossorigin");
       el.src = img.src;
       photo.classList.add("has-img");
     }else{
@@ -1269,18 +1508,64 @@ span.tog{display:inline-flex; align-items:center}
     });
   }
   /* A name that ends in a space (a fresh "L: ") keeps it as a no-break space, so the caret sits after it. */
-  function readSkills(){
-    var out = [];
-    for(var i = 0; i < NSK; i++) out.push({n:textOf(field("sk" + i + "n")).trim(), m:textOf(field("sk" + i + "m")).trim()});
-    return out;
-  }
-  function writeSkills(rows){
-    for(var i = 0; i < NSK; i++){
-      var sk = rows[i] || {};
-      field("sk" + i + "n").innerText = (sk.n || "").replace(/ $/, " "); field("sk" + i + "m").innerText = sk.m || "";
+  /* The nine rows on the card are a view of `shownRows`; anything past them waits in `hiddenRows`
+     and is listed in the rows panel. Editing a row's text edits the entry it came from. */
+  var shownRows = [], hiddenRows = [];
+  function setRows(list){
+    list = (list || []).filter(function(e){ return e && (e.n || e.m); });
+    shownRows = list.slice(0, NSK); hiddenRows = list.slice(NSK);
+    var box = cardbox.querySelector(".skills");
+    if(box){
+      var html = "";
+      for(var i = 0; i < NSK; i++) html += rowHtml(shownRows[i] || {k:"skill", n:"", m:"", c:"", lvl:0}, i, true);
+      box.innerHTML = html;
     }
+    renderRowList();
   }
-  function sortRows(){ writeSkills(sortSkills(readSkills())); }
+  /* the rows as they now read, the hidden ones kept on the end */
+  function readRows(){
+    var out = [];
+    for(var i = 0; i < NSK; i++){
+      var e = shownRows[i] || {k:"skill", n:"", m:"", c:"", lvl:0};
+      var n = textOf(field("sk" + i + "n")).trim(), m = textOf(field("sk" + i + "m")).trim();
+      if(!n && !m) continue;
+      out.push({k:e.k, n:n, m:m, c:e.c || "", lvl:e.lvl || 0});
+    }
+    return out.concat(hiddenRows);
+  }
+  function readSkills(){ return readRows().filter(function(e){ return e.k === "skill"; }).map(function(e){ return {n:e.n, m:e.m}; }); }
+  function readExtras(){ return readRows().filter(function(e){ return e.k !== "skill"; }); }
+  function writeSkills(rows){ setRows(cardRows({skills:rows, extras:readExtras()})); }
+  function sortRows(){ setRows(cardRows({skills:readSkills(), extras:readExtras()})); }
+  /* The rows panel: what is on the card, in order, and what did not fit. */
+  var ROW_LABEL = {reaction:"Reaction", action:"Action", spell:"Spell", skill:"Skill"};
+  function rowChip(e, on, i){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip row-chip" + (on ? " on" : " off"); b.dataset.row = i;
+    b.title = "Remove this row";
+    var kind = e.k === "spell" && e.lvl ? (ORD[e.lvl - 1] || e.lvl + "th") : ROW_LABEL[e.k] || e.k;
+    b.innerHTML = '<span class="rk">' + esc(kind) + '</span> ' + esc(e.n) + (e.m ? ' <b>' + esc(e.m) + '</b>' : '') + ' <span class="x">&times;</span>';
+    return b;
+  }
+  function renderRowList(){
+    var box = $("rowList"), extra = $("rowExtra"), note = $("rowNote");
+    if(!box) return;
+    box.innerHTML = ""; extra.innerHTML = "";
+    shownRows.forEach(function(e, i){ box.appendChild(rowChip(e, true, i)); });
+    hiddenRows.forEach(function(e, i){ extra.appendChild(rowChip(e, false, NSK + i)); });
+    $("rowExtraWrap").hidden = !hiddenRows.length;
+    note.textContent = hiddenRows.length
+      ? hiddenRows.length + (hiddenRows.length === 1 ? " row doesn't fit" : " rows don't fit") + " — remove something above to make space"
+      : shownRows.length + " of " + NSK + " rows used";
+  }
+  function dropRow(i){
+    var all = readRows(); all.splice(i, 1);
+    setRows(cardRows({skills:all.filter(function(e){ return e.k === "skill"; }),
+                      extras:all.filter(function(e){ return e.k !== "skill"; })}));
+    refresh(); saveDraft();
+  }
+  $("rowList").addEventListener("click", function(e){ var b = e.target.closest(".row-chip"); if(b) dropRow(+b.dataset.row); });
+  $("rowExtra").addEventListener("click", function(e){ var b = e.target.closest(".row-chip"); if(b) dropRow(+b.dataset.row); });
   function rowOf(name){
     for(var i = 0; i < NSK; i++) if(textOf(field("sk" + i + "n")).trim().toLowerCase() === name.trim().toLowerCase()) return i;
     return -1;
@@ -1350,7 +1635,7 @@ span.tog{display:inline-flex; align-items:center}
   function parseStatBlock(text){
     var t = String(text || "").replace(/\r/g, "").replace(/[–−]/g, "-").replace(/ /g, " ");
     var lines = t.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
-    var out = {skills:[]}, lvl = null, li = -1, m;
+    var out = {skills:[], extras:[]}, lvl = null, li = -1, m;
     for(var i = 0; i < lines.length; i++){
       m = /^(.*?)\s*\bCreature\s+(-?\d+)\b\s*$/i.exec(lines[i]);
       if(m){ li = i; lvl = +m[2]; if(m[1].trim()) out.name = m[1].trim(); break; }
@@ -1362,6 +1647,8 @@ span.tog{display:inline-flex; align-items:center}
     var pi = -1;
     for(var k = 0; k < lines.length; k++){ if(/^Perception\s+[+-]?\s*\d/i.test(lines[k])){ pi = k; break; } }
     var traitWords = (li >= 0 && pi > li ? lines.slice(li + 1, pi).join(" ") : "").toLowerCase().split(/[^a-z-]+/);
+    /* the same words, matched against the trait vocabulary, become the card's trait line */
+    out.traits = sortTraits(traitWords.map(function(w){ return TRAIT_CANON[w]; }).filter(Boolean));
     if(pi >= 0){
       m = /^Perception\s+([+-]?)\s*(\d+)\s*;?\s*(.*)$/i.exec(lines[pi]); m = [m[0], m[1] + m[2], m[3]];
       out.per = (m[1][0] === "-" ? "" : "+") + parseInt(m[1], 10);
@@ -1374,6 +1661,30 @@ span.tog{display:inline-flex; align-items:center}
           var n = q[1].trim();
           if(/\sLore$/i.test(n)) n = "L: " + n.replace(/\sLore$/i, "");
           out.skills.push({n:n, m:q[2] + q[3]});
+        });
+      }
+      /* Attacks: "Melee [1] jaws +29 (traits), Damage …" — the weapon and its bonus become an action row. */
+      if((m = /^(Melee|Ranged)\s*(?:\[(\d|free|reaction)\])?\s*(.+)$/i.exec(l))){
+        var rest = m[3].replace(/\([^)]*\)/g, " ");
+        var q2 = /^\s*(.+?)\s*([+-])\s*(\d+)/.exec(rest);
+        if(q2) out.extras.push({k:"action", c:m[2] || "1", n:titleCase(q2[1].trim()), m:q2[2] + q2[3], lvl:0});
+      }
+      /* A named ability with a cost icon: "Wriggle [reaction] Trigger …" */
+      else if((m = /^(.{2,40}?)\s*\[(\d|free|reaction)\]/.exec(l))){
+        var nm = m[1].replace(/[;:,]\s*$/, "").trim();
+        if(nm && !/^(melee|ranged|speed|skills|perception|ac|hp)$/i.test(nm))
+          out.extras.push({k:m[2] === "reaction" ? "reaction" : "action", c:m[2], n:titleCase(nm), m:"", lvl:0});
+      }
+      /* Spells: "Primal Innate Spells DC 36; 3rd wall of wind; 2nd gust of wind (at will), obscuring mist" */
+      if((m = /^(?:[A-Z][a-z]+\s+)*Spells\b\s*(.*)$/.exec(l))){
+        var tail = m[1], dc = /DC\s+(\d+)/.exec(tail);
+        tail.split(/;\s*/).forEach(function(part){
+          var lv = /^(\d+)(?:st|nd|rd|th)\b\s*(.*)$/i.exec(part.trim());
+          if(!lv) return;
+          lv[2].replace(/\((?:at will|constant|×\d+|x\d+)\)/gi, "").split(/,\s*/).forEach(function(sp){
+            var nm2 = sp.replace(/\([^)]*\)/g, "").trim();
+            if(nm2) out.extras.push({k:"spell", c:"", n:titleCase(nm2), m:dc ? "DC " + dc[1] : "", lvl:+lv[1]});
+          });
         });
       }
       if(!out.speeds && (m = /^Speed\s+(.*)$/i.exec(l))){
@@ -1423,7 +1734,7 @@ span.tog{display:inline-flex; align-items:center}
     if(!got.length && !p.skills.length){ toast("No stat block found in that text", 4000); return false; }
     setIrw(p);
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = p[f] || ""; });
-    writeSkills(sortSkills(p.skills)); renderSpeeds(p.speeds || []); renderSenses(p.senses || []);
+    setRows(cardRows(p)); renderSpeeds(p.speeds || []); renderSenses(p.senses || []); renderTraits(p.traits || []);
     if(link) setSource(link);
     refresh(); saveDraft();
     var missing = ["name","ac","hp","speeds","fort","ref","will","per","recall"].filter(function(f){ return !p[f]; });
@@ -1453,7 +1764,12 @@ span.tog{display:inline-flex; align-items:center}
   /* the entry as the text parseStatBlock reads: "Name Creature N", the traits, then the stat block */
   function dpText(v){
     var ta = document.createElement("textarea");
-    ta.innerHTML = String(v.element_display || "").replace(/<\/p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+    /* the action-cost icons are spans; keep them as [1] [2] [3] [free] [reaction] so the parser
+       can tell an action from a reaction once the tags are gone */
+    var COST = {"single action":"1", "two actions":"2", "three actions":"3", "free action":"free", "reaction":"reaction"};
+    ta.innerHTML = String(v.element_display || "")
+      .replace(/<span[^>]*aria-label="([^"]*)"[^>]*>\s*<\/span>/gi, function(m, a){ var c = COST[a.toLowerCase()]; return c ? " [" + c + "] " : " "; })
+      .replace(/<\/p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
     var traits = String(v.traits || "").split(",").map(function(t){ return t.split("|")[0].trim(); }).filter(Boolean);
     return v.name + " Creature " + v.level + "\n" + traits.join(" ") + "\n" + ta.value;
   }
@@ -1637,7 +1953,7 @@ span.tog{display:inline-flex; align-items:center}
     return box;
   }
 
-  /* ---------------- library store: db when hosted, localStorage otherwise ---------------- */
+  /* ---------------- library store: artifact db when hosted, cloud when signed in, localStorage otherwise ---------------- */
   var Lib = {mode:"local", cards:[], listeners:[], db:null, assets:null};
   Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
   Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
@@ -1654,13 +1970,16 @@ span.tog{display:inline-flex; align-items:center}
     }
     id = id || Lib.newId();
     var i = Lib.cards.findIndex(function(c){ return c.id === id; });
-    card.id = id; card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
+    card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
+    if(Lib.mode === "cloud") return Cloud.save(id, card).then(function(){ return id; });
+    card.id = id;
     if(i >= 0) Lib.cards[i] = card; else Lib.cards.push(card);
     Lib.writeLocal(); Lib.emit();
     return Promise.resolve(id);
   };
   Lib.remove = function(id){
     if(Lib.mode === "db") return Lib.db.collection("creatures").doc(id).delete();
+    if(Lib.mode === "cloud") return Cloud.remove(id);
     Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; });
     Lib.writeLocal(); Lib.emit();
     return Promise.resolve();
@@ -1668,6 +1987,16 @@ span.tog{display:inline-flex; align-items:center}
   Lib.start = function(){
     Lib.cards = Lib.readLocal(); Lib.emit();
     $("status").innerHTML = "Library: <b>this device</b>";
+    if(window.Cloud && Cloud.available){
+      Cloud.init({kind:"creatures", mount:$("account"),
+        onStatus:function(html){ $("status").innerHTML = html; },
+        onCards:function(cards){
+          if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
+          else{ Lib.mode = "local"; Lib.cards = Lib.readLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          Lib.emit();
+        }});
+      return;
+    }
     var tries = 0;
     (function wait(){
       if(window.claude && window.claude.use) return Lib.connect();
@@ -1734,12 +2063,23 @@ span.tog{display:inline-flex; align-items:center}
         }
       }else if(img.dirty && !img.src){ img.id = ""; img.dirty = false; }
       p = p.then(function(){ card.imageId = img.id || ""; card.imageMeta = img.meta || ""; });
+    }else if(Lib.mode === "cloud"){
+      /* the picture lives in Storage under the card's id, so a new card gets its id before the upload */
+      var isNew = !Lib.cards.some(function(c){ return c.id === currentId; });
+      if(isNew && Cloud.full()){ toast(Cloud.fullMessage(), 5000); btn.disabled = false; return; }
+      currentId = isNew ? Lib.newId() : currentId;
+      if(img.dirty && img.data){
+        p = Cloud.upload(currentId, dataUrlToBlob(img.data))
+          .then(function(url){ img.src = url; img.data = ""; img.dirty = false; },
+                function(e){ note = " (picture not stored: " + errText(e) + ")"; });
+      }else if(img.dirty && !img.src){ Cloud.removeArt(currentId); img.dirty = false; }
+      p = p.then(function(){ card.imageUrl = img.src || ""; card.imageMeta = img.meta || ""; });
     }else{
       card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
     }
     p.then(function(){ return Lib.save(card, currentId); })
      .then(function(id){ currentId = id; saveDraft(); closePreview(); toast("Saved to library" + note); showView("library"); })
-     .catch(function(e){ toast("Save failed: " + errText(e)); console.error("save", e); })
+     .catch(function(e){ toast("Save failed: " + errText(e), 5000); console.error("save", e); if(Lib.mode === "cloud" && isNew){ Cloud.removeArt(currentId); currentId = null; } })
      .then(function(){ btn.disabled = false; });
   });
 
@@ -1935,9 +2275,21 @@ span.tog{display:inline-flex; align-items:center}
       pdf.addImage(im.data, "PNG", X + 1 + G.img.pad + (bw - w) / 2, Y + 1 + G.img.pad + (bh - h) / 2, w, h, undefined, "FAST");
     }
     var oy = G.HALF, showIrw = true, oy2 = oy;
-    /* name and rule */
+    /* name, then either the trait line or the plain rule under it */
     centred(d.name, G.name.x, G.name.w, oy + G.name.y + 14, G.name.size, "Serif");
-    rect(G.rule.x, oy + G.rule.y, G.rule.w, G.rule.h, "F");
+    var tl2 = normTraits(d);
+    if(tl2.length){
+      var tg = G.traits, tsz = tg.size;
+      font("normal", tsz, "Caps");
+      var wOf = function(size){ font("normal", size, "Caps"); return tl2.reduce(function(a, t){ return a + tw(t.toUpperCase()); }, 0) + tw(" | ") * (tl2.length - 1); };
+      for(var ts = 1; ts >= 0.6 && wOf(tsz) > tg.w; ts -= 0.05) tsz = tg.size * ts;
+      var tx2 = tg.x + (tg.w - wOf(tsz)) / 2, tbase = oy + tg.y + tg.h * 0.5 + tsz * 0.35;
+      tl2.forEach(function(t, k){
+        if(k){ ink(); font("normal", tsz, "Caps"); text(" | ", tx2, tbase); tx2 += tw(" | "); }
+        accent(); font("normal", tsz, "Caps"); text(t.toUpperCase(), tx2, tbase); tx2 += tw(t.toUpperCase());
+      });
+      ink();
+    }else rect(G.rule.x, oy + G.rule.y, G.rule.w, G.rule.h, "F");
     /* AC / HP / Speed headers — the Speed one sits over whichever frame the speed count calls for */
     var spl = placeSpeeds(normSpeeds(d)), sg = spl.g;
     ["AC","HP","Speed"].forEach(function(t, k){
@@ -1969,14 +2321,31 @@ span.tog{display:inline-flex; align-items:center}
       }
       text(tx, x + iconW + gap, mid + size * 0.35);
     });
-    /* skills: right-aligned names, boxed mods */
+    /* rows: right-aligned names with their cost glyph or spell rank, boxed modifiers */
     var s = G.skills, bx = s.x + s.labelW + s.gap;
     pdf.setLineWidth(0.75);
     rect(bx, oy2 + s.y, s.boxW, s.rowH * s.n, "S");
     for(var i = 1; i < s.n; i++) line(bx, oy2 + s.y + i * s.rowH, bx + s.boxW, oy2 + s.y + i * s.rowH, 0.75);
-    (d.skills || []).slice(0, s.n).forEach(function(sk, k){
+    cardRows(d).slice(0, s.n).forEach(function(sk, k){
       var base = oy2 + s.y + k * s.rowH + s.baseline;
-      if(sk.n){ var sz = fit(sk.n, s.labelW, s.size); font("bold", sz); text(sk.n, s.x + s.labelW, base, {align:"right"}); }
+      var lvl = sk.k === "spell" ? rowLabel(sk) : "", glyph = (sk.k === "reaction" || sk.k === "action") ? (ACTICO[sk.c] || ACTICO["1"]) : "";
+      if(sk.n){
+        var mark = glyph ? s.size * 0.78 + s.size * 0.25 : 0;
+        if(lvl){ font("normal", s.size * 0.62, "Caps"); mark = tw(lvl) + s.size * 0.25; }
+        var sz = fit(sk.n, s.labelW - mark, s.size); font("bold", sz);
+        var nw = tw(sk.n), x0 = s.x + s.labelW - nw - mark;
+        if(glyph){
+          var gw = sz * 0.78;
+          accent();
+          pathSegs(glyph).forEach(function(p){
+            pdf.lines(p.segs, X + x0 + p.start[0] * gw / 10, Y + base - gw * 0.82 + p.start[1] * gw / 10, [gw / 10, gw / 10], "F", true);
+          });
+          ink();
+        }else if(lvl){
+          accent(); font("normal", s.size * 0.62, "Caps"); text(lvl, x0, base - s.size * 0.08); ink();
+        }
+        font("bold", sz); text(sk.n, s.x + s.labelW, base, {align:"right"});
+      }
       centred(sk.m, bx, s.boxW, base, s.size);
     });
     /* immunities / resistances / weaknesses: each starts its own line; the box grows with the text up to
@@ -2157,7 +2526,7 @@ span.tog{display:inline-flex; align-items:center}
       .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e), 6000); });
   });
   $("printModalClose").addEventListener("click", closePrintModal);
-  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); closePreview(); });
+  scrim.addEventListener("click", function(){ closePrintModal(); closeImport(); closeSensePicker(); closeTraitPicker(); closePreview(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
   (function waitDl(n){
     if(window.claude && window.claude.use){ claude.use("downloads").then(function(d){ dlNs = d; }).catch(function(){}); }

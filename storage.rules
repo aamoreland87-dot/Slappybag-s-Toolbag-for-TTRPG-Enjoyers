@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Slappybag's Toolbag — Storage rules. One picture per card at users/{uid}/{kind}/{cardId}.
+// Only the owner reads or writes; the page shows art through download URLs (which carry their own token).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{uid}/{kind}/{cardId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && (kind == 'creatures' || kind == 'items')
+        && (request.resource == null                                  // delete
+            || (request.resource.size < 3 * 1024 * 1024
+                && request.resource.contentType.matches('image/.*')));
+    }
+  }
+}

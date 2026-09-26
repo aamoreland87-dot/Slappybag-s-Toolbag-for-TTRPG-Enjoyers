@@ -130,3 +130,19 @@
 .spv{display:inline-block; min-width:1em; text-align:center}
 
 .spv[contenteditable]:empty::before{content:"0"; color:#b5b5b5; font-weight:400}
+
+/* traits: the stat-block line under the name — rarity, size, then types, like the item card's line */
+.traits{display:flex; align-items:center; justify-content:center; gap:.3em; font-family:var(--font-caps,sans-serif);
+  font-size:6.6pt; line-height:1; letter-spacing:.06em; text-transform:uppercase; color:var(--card-accent); white-space:nowrap; overflow:hidden}
+.traits .sep{color:#000}
+.editor .traits{cursor:pointer}
+.editor .traits:hover{background:#e9edf3}
+.traits.add{color:#b5b5b5; font-style:italic; letter-spacing:.04em; text-transform:none}
+
+/* rows: a reaction, action or spell sits in the same row a skill would, with its cost glyph or rank */
+.skills .sk.ex .n{font-weight:700}
+.rico{width:.78em; height:.78em; display:inline-block; vertical-align:-.08em; margin-right:.25em}
+.rico path{fill:var(--card-accent)}
+.rlvl{font-family:var(--font-caps,sans-serif); font-size:.62em; letter-spacing:.04em; color:var(--card-accent); margin-right:.3em; vertical-align:.12em}
+.skills .sk .ncell{display:flex; align-items:center; justify-content:flex-end; gap:0; min-width:0; overflow:hidden; height:var(--rowh)}
+.skills .sk .ncell .n{flex:0 1 auto; min-width:0}

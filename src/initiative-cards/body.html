@@ -71,6 +71,7 @@
         <button class="btn" id="clear">Clear card</button>
       </div>
       <span class="status" id="status">Library: starting…</span>
+      <span class="account-slot" id="account"></span>
     </div>
   </details>
 </div>
@@ -98,6 +99,11 @@
       <span class="hint">Tick every movement type the creature has and type its speed. Each type gets its own icon on the card: foot, wing, shovel, ladder, fin.</span>
     </div>
     <div class="tool-row">
+      <span class="bar-label">Traits</span>
+      <button class="btn" id="traitBtn">Choose traits</button>
+      <span class="hint">Or click the line under the creature&rsquo;s name. Imports fill it in; suggestions follow what you have already picked.</span>
+    </div>
+    <div class="tool-row">
       <span class="bar-label">Senses</span>
       <button class="btn" id="senseBtn">Choose senses</button>
       <span class="hint">Or click the sense line under Perception on the card. They print like traits: darkvision | scent 60 ft | mist vision.</span>
@@ -117,7 +123,17 @@
     <div class="tool-row">
       <span class="bar-label">Skills</span>
       <div class="chips" id="skillChips"></div>
-      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows stay alphabetical, lores last.</span>
+      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows order themselves: reactions, actions, spells by rank, then skills by modifier.</span>
+    </div>
+    <div class="tool-row rows-row">
+      <span class="bar-label">Card rows</span>
+      <div class="chips" id="rowList"></div>
+      <span class="hint" id="rowNote"></span>
+    </div>
+    <div class="tool-row rows-row" id="rowExtraWrap" hidden>
+      <span class="bar-label">Not on the card</span>
+      <div class="chips" id="rowExtra"></div>
+      <span class="hint">The card holds nine rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
     </div>
   </div>
 </section>
@@ -195,4 +211,20 @@
     <span class="bar-label">All senses</span>
     <div class="chips" id="senseAll"></div>
   </div>
+</section>
+
+<section class="picker" id="traitPicker" hidden role="dialog" aria-label="Traits">
+  <div class="picker-head">
+    <input type="search" id="traitSearch" placeholder="Search traits, or type your own and press Enter" autocomplete="off">
+    <button class="btn solid" id="traitPickerDone">Done</button>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">On the card</span>
+    <div class="chips" id="traitSel"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label" id="traitSugLabel">Common traits</span>
+    <div class="chips" id="traitSug"></div>
+  </div>
+  <div class="picker-group" id="traitAllWrap"></div>
 </section>
