@@ -565,7 +565,7 @@ span.tog{display:inline-flex; align-items:center}
     <div class="tool-row rows-row" id="rowExtraWrap" hidden>
       <span class="bar-label">Not on the card</span>
       <div class="chips" id="rowExtra"></div>
-      <span class="hint">The card holds nine rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
+      <span class="hint">The card holds ten rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
     </div>
   </div>
 </section>
@@ -681,7 +681,7 @@ var TRAIT_DATA = {
   var $ = function(id){ return document.getElementById(id); };
   var pane = $("pane"), cardbox = $("cardbox"), phFile = $("phFile");
   var ZOOMS = [.75, 1, 1.25, 1.5, 2, 2.5];
-  var NSK = 9;
+  var NSK = 10;
   var SKILLS = ["Acrobatics","Arcana","Athletics","Crafting","Deception","Diplomacy","Intimidation","Medicine",
     "Nature","Occultism","Performance","Religion","Society","Stealth","Survival","Thievery"];
   var FIELDS = ["name","ac","hp","fort","ref","will","per","recall"];
@@ -754,8 +754,8 @@ var TRAIT_DATA = {
   /* ---------------- geometry, in points, measured from the reference card ----------------
      The card is 2.6 x 7.8 in. The stat half is laid out from the fold; the same numbers
      place the boxes on screen (CSS) and in the PDF. The top is packed a little tighter
-     than the reference and the skill list is nine rows, which makes room for the
-     immunities / resistances / weaknesses strip along the bottom. */
+     than the reference, and the Perception box keeps its senses to two lines so the row list
+     holds ten: reactions, actions, spells and skills. */
   var G = {
     W:187.2, H:561.6, HALF:280.8,
     name:{x:4, y:4, w:177.2, h:18, size:15},
@@ -779,9 +779,9 @@ var TRAIT_DATA = {
         4:[{x:15.5, y:0, w:13.5, h:20, size:7.5}, {x:15.5, y:20, w:13.5, h:20, size:7.5}, {x:2, y:0, w:13.5, h:20, size:7.5}, {x:2, y:20, w:13.5, h:20, size:7.5}]}}
     ]},
     irw:{x:4.3, y:92, w:71, h:24, max:74, size:7, lh:7.6, pad:1.5},   /* grows from h to max as it fills; the saves and recall box move down */
-    skills:{x:78, y:142, labelW:79.5, gap:3, boxW:22.5, rowH:14.8, n:NSK, size:11, baseline:11},
+    skills:{x:78, y:130, labelW:79.5, gap:3, boxW:22.5, rowH:14.8, n:NSK, size:11, baseline:11},
     saves:{x:4.3, y:122, w:71, labelW:36, rowH:20, size:12, lblSize:10.8, baseline:14},
-    per:{x:78, y:92, w:105, capH:17, rowH:28, labelW:56, labelSize:8.8, senseSize:7, senseLh:7.8},
+    per:{x:78, y:92, w:105, capH:17, rowH:16, labelW:56, labelSize:8.8, senseSize:7, senseLh:7.8},
     rec:{x:4.3, y:188, w:71, capH:18, rowH:22, capSize:10.8},
     img:{pad:4}
   };
@@ -851,7 +851,7 @@ var TRAIT_DATA = {
           irwHtml(d) + '</div></div>' : '') +
       '</div></article>';
   }
-  /* ---------------- the nine rows: reactions, actions, spells, then skills ----------------
+  /* ---------------- the ten rows: reactions, actions, spells, then skills ----------------
      The card's row block is one ordered list, not a skill list: reactions first, then actions,
      then spells lowest rank first, then skills by modifier, highest first. Whatever doesn't fit
      is still kept on the card's record and listed in the editor under the rows panel.
@@ -1622,7 +1622,7 @@ var TRAIT_DATA = {
   window.addEventListener("dragover", function(e){ if(hasFile(e)) e.preventDefault(); });
   window.addEventListener("drop", function(e){ if(hasFile(e)) e.preventDefault(); });
 
-  /* The nine rows on the card are a view of `shownRows`; anything past them waits in `hiddenRows`
+  /* The ten rows on the card are a view of `shownRows`; anything past them waits in `hiddenRows`
      and is listed in the rows panel. Editing a row's text edits the entry it came from. */
   var shownRows = [], hiddenRows = [];
   function setRows(list){
@@ -1703,7 +1703,10 @@ var TRAIT_DATA = {
     $("arSkill").hidden = !skill;
     $("arName").hidden = skill && !lore;
     $("arName").placeholder = lore ? "Lore subject" : k === "melee" || k === "ranged" ? "Weapon" : "Name";
-    $("arMod").placeholder = k === "spell" ? "DC 20" : k === "reaction" || k === "action" ? "(optional)" : "+12";
+    var strike = k === "melee" || k === "ranged";
+    $("arMod").placeholder = k === "spell" ? "DC 20" : strike ? "to hit +12" : k === "reaction" || k === "action" ? "(optional)" : "+12";
+    $("arMod").setAttribute("aria-label", k === "spell" ? "Spell DC" : strike ? "Attack modifier (to hit)" : "Bonus");
+    $("arMod").title = strike ? "The Strike's attack modifier: the bonus to hit" : "";
   }
   $("arKind").addEventListener("change", arKindChanged);
   $("arSkill").addEventListener("change", arKindChanged);
@@ -1716,6 +1719,8 @@ var TRAIT_DATA = {
       else n = sk;
     }
     if(!n){ $("arName").focus(); return; }
+    /* a Strike needs its attack modifier: that is what goes in its box */
+    if((k === "melee" || k === "ranged") && !m){ $("arMod").focus(); toast("Add the Strike's modifier to hit"); return; }
     if(/^\d/.test(m) && k !== "spell") m = "+" + m;
     var all = readRows(), e;
     if(k === "skill"){
