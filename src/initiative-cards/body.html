@@ -84,19 +84,30 @@
   </div>
 
   <div class="tools screen-only">
-    <div class="tool-row">
-      <span class="bar-label">Picture</span>
-      <button class="btn" id="phPick">Choose</button>
-      <button class="btn" id="phClear">Remove</button>
-      <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> remove background</label>
-      <label>size <input type="range" id="imgScale" min="40" max="100" value="100" step="5" aria-label="Picture size"> <span id="imgScaleLbl">100%</span></label>
-      <input type="file" accept="image/*,.webp" id="phFile" hidden>
-      <span class="hint" id="phMeta">Drop an image on the picture half, or paste one. It prints upside down so it reads right way up once the card is folded.</span>
-    </div>
-    <div class="tool-row speeds">
-      <span class="bar-label">Speeds</span>
-      <ul class="splist" id="spdList"></ul>
-      <span class="hint">Tick every movement type the creature has and type its speed. Each type gets its own icon on the card: foot, wing, shovel, ladder, fin.</span>
+    <div class="tool-split">
+      <div class="tool-col">
+        <div class="tool-row">
+          <span class="bar-label">Picture</span>
+          <button class="btn" id="phPick">Choose</button>
+          <button class="btn" id="phClear">Remove</button>
+          <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> remove background</label>
+          <label>size <input type="range" id="imgScale" min="40" max="100" value="100" step="5" aria-label="Picture size"> <span id="imgScaleLbl">100%</span></label>
+          <input type="file" accept="image/*,.webp" id="phFile" hidden>
+          <span class="hint" id="phMeta">Drop an image on the picture half, or paste one. It prints upside down so it reads right way up once the card is folded.</span>
+        </div>
+        <div class="tool-row speeds">
+          <span class="bar-label">Speeds</span>
+          <ul class="splist" id="spdList"></ul>
+          <span class="hint">Tick every movement type the creature has and type its speed. Each type gets its own icon on the card: foot, wing, shovel, ladder, fin.</span>
+        </div>
+      </div>
+      <div class="tool-row irw-row tool-col">
+        <span class="bar-label">Imm / Res / Weak</span>
+        <label class="field"><span>Immunities</span><textarea id="immuneIn" rows="1" placeholder="e.g. fire, paralyzed, sleep" autocomplete="off" spellcheck="false"></textarea></label>
+        <label class="field"><span>Resistances</span><textarea id="resistIn" rows="1" placeholder="e.g. bludg. 5, cold 10" autocomplete="off" spellcheck="false"></textarea></label>
+        <label class="field"><span>Weaknesses</span><textarea id="weakIn" rows="1" placeholder="e.g. cold iron 5" autocomplete="off" spellcheck="false"></textarea></label>
+        <span class="hint">Only the ones you fill in print; the box itself always prints.</span>
+      </div>
     </div>
     <div class="tool-row">
       <span class="bar-label">Traits</span>
@@ -108,22 +119,31 @@
       <button class="btn" id="senseBtn">Choose senses</button>
       <span class="hint">Or click the sense line under Perception on the card. They print like traits: darkvision | scent 60 ft | mist vision.</span>
     </div>
-    <div class="tool-row irw-row">
-      <span class="bar-label">Imm / Res / Weak</span>
-      <label class="field"><span>Immunities</span><textarea id="immuneIn" rows="1" placeholder="e.g. fire, paralyzed, sleep" autocomplete="off" spellcheck="false"></textarea></label>
-      <label class="field"><span>Resistances</span><textarea id="resistIn" rows="1" placeholder="e.g. bludg. 5, cold 10" autocomplete="off" spellcheck="false"></textarea></label>
-      <label class="field"><span>Weaknesses</span><textarea id="weakIn" rows="1" placeholder="e.g. cold iron 5" autocomplete="off" spellcheck="false"></textarea></label>
-      <span class="hint">Only the ones you fill in print on the card; the box itself always prints.</span>
-    </div>
     <div class="suggest" id="irwSuggest" hidden role="listbox"></div>
     <div class="tool-row" id="sourceRow" hidden>
       <span class="bar-label">Source</span>
       <a id="sourceLink" class="srclink" href="#" target="_blank" rel="noopener noreferrer"></a>
     </div>
-    <div class="tool-row">
-      <span class="bar-label">Skills</span>
-      <div class="chips" id="skillChips"></div>
-      <span class="hint">Click a skill to put it on the card, click again to take it off. Rows order themselves: reactions, actions, spells by rank, then skills by modifier.</span>
+    <div class="tool-row rows-row add-row">
+      <span class="bar-label">Add a row</span>
+      <select id="arKind" aria-label="Kind of row">
+        <option value="reaction">Reaction</option>
+        <option value="action">Action</option>
+        <option value="melee">Melee Strike</option>
+        <option value="ranged">Ranged Strike</option>
+        <option value="spell">Spell</option>
+        <option value="skill" selected>Skill</option>
+      </select>
+      <select id="arCost" aria-label="Actions" hidden>
+        <option value="1">&#9670; 1 action</option><option value="2">&#9670;&#9670; 2 actions</option><option value="3">&#9670;&#9670;&#9670; 3 actions</option>
+        <option value="free">&#9671; Free action</option>
+      </select>
+      <select id="arRank" aria-label="Spell rank" hidden></select>
+      <select id="arSkill" aria-label="Skill"></select>
+      <input type="text" id="arName" placeholder="Name" aria-label="Name" size="14">
+      <input type="text" id="arMod" placeholder="+12" aria-label="Bonus or DC" size="6">
+      <button class="btn" id="arAdd" type="button">Add</button>
+      <span class="hint">Rows order themselves: reactions, actions, spells by rank, then skills by modifier.</span>
     </div>
     <div class="tool-row rows-row">
       <span class="bar-label">Card rows</span>
@@ -134,25 +154,6 @@
       <span class="bar-label">Not on the card</span>
       <div class="chips" id="rowExtra"></div>
       <span class="hint">The card holds nine rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
-    </div>
-    <div class="tool-row rows-row add-row">
-      <span class="bar-label">Add a row</span>
-      <select id="arKind" aria-label="Kind of row">
-        <option value="reaction">Reaction</option>
-        <option value="action">Action</option>
-        <option value="melee" selected>Melee Strike</option>
-        <option value="ranged">Ranged Strike</option>
-        <option value="spell">Spell</option>
-        <option value="skill">Skill</option>
-      </select>
-      <select id="arCost" aria-label="Actions">
-        <option value="1">&#9670; 1</option><option value="2">&#9670;&#9670; 2</option><option value="3">&#9670;&#9670;&#9670; 3</option>
-        <option value="free">&#9671; Free</option>
-      </select>
-      <select id="arRank" aria-label="Spell rank" hidden></select>
-      <input type="text" id="arName" placeholder="Name" aria-label="Name" size="14">
-      <input type="text" id="arMod" placeholder="+12" aria-label="Bonus or DC" size="6">
-      <button class="btn" id="arAdd" type="button">Add</button>
     </div>
   </div>
 </section>
