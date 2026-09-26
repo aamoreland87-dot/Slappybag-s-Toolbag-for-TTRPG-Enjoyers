@@ -135,6 +135,25 @@
       <div class="chips" id="rowExtra"></div>
       <span class="hint">The card holds nine rows. These are kept with the creature but do not print &mdash; click any row to remove it.</span>
     </div>
+    <div class="tool-row rows-row add-row">
+      <span class="bar-label">Add a row</span>
+      <select id="arKind" aria-label="Kind of row">
+        <option value="reaction">Reaction</option>
+        <option value="action">Action</option>
+        <option value="melee" selected>Melee Strike</option>
+        <option value="ranged">Ranged Strike</option>
+        <option value="spell">Spell</option>
+        <option value="skill">Skill</option>
+      </select>
+      <select id="arCost" aria-label="Actions">
+        <option value="1">&#9670; 1</option><option value="2">&#9670;&#9670; 2</option><option value="3">&#9670;&#9670;&#9670; 3</option>
+        <option value="free">&#9671; Free</option>
+      </select>
+      <select id="arRank" aria-label="Spell rank" hidden></select>
+      <input type="text" id="arName" placeholder="Name" aria-label="Name" size="14">
+      <input type="text" id="arMod" placeholder="+12" aria-label="Bonus or DC" size="6">
+      <button class="btn" id="arAdd" type="button">Add</button>
+    </div>
   </div>
 </section>
 

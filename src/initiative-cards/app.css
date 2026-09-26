@@ -228,3 +228,5 @@ span.tog{display:inline-flex; align-items:center}
 .row-chip .x{color:var(--ink-3)}
 .row-chip:hover{border-color:var(--accent); color:var(--accent)}
 .row-chip:hover .x{color:var(--accent)}
+.add-row select,.add-row input[type="text"]{font:inherit; font-size:.85rem; padding:.22rem .35rem; border:1px solid var(--rule); border-radius:2px; background:var(--paper,#fff); color:var(--ink)}
+.add-row input[type="text"]{min-width:0}
