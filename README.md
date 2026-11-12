@@ -6,12 +6,12 @@ typefaces, also fetched by the PDF exporter) and jsPDF from a CDN for PDF export
 
 | Page | What it does |
 |---|---|
-| `index.html` | Landing page linking to the tools |
+| `index.html` | Landing page (Slappybag's Toolbag): the three-step workflow and links to the tools |
 | `item-cards.html` | Item card builder — 4×5in cards, library, PDF sheet export |
 | `feat-cards.html` | Feat card builder — 4×5in cards with prerequisites, action cost, Grants rows (skills, spells, proficiencies…), actions, Special; import by name from Demiplane or pasted from AoN/Demiplane |
 | `initiative-cards.html` | Creature / NPC initiative card builder |
 | `hazard-cards.html` | Trap / environmental hazard / haunt card builder |
-| `toolbag-core.js` | Shared helpers every tool page loads first: text fitting, debounced saves, the IndexedDB store, PDF picture encoding, the pinned jsPDF version. The artifact builds inline it. |
+| `toolbag-core.js` | Shared helpers every tool page loads first: text fitting, debounced saves, the IndexedDB store, PDF picture encoding, the pinned jsPDF version, and the shared UI — tooltips (`TIPS`), the ? Help panel (`HELP`), the first-visit hint. Tooltip and help wording lives here, once, for all four tools. The artifact builds inline it. |
 | `fonts.css`, `fonts/` | Typefaces standing in for Paizo's: Eczar (titles), Teko (subheads), Tauri (small headers), EB Garamond (body). Subsetted `.woff` for the pages, `.ttf` twins for the PDF exporter (also subset: same characters, layout tables and hinting dropped). All SIL OFL; licenses in `fonts/licenses/`. |
 | `src/initiative-cards/` | Source of `initiative-cards.html` — don't edit the built page. Edit the parts and run `bash src/initiative-cards/build.sh` (site page) or `bash src/initiative-cards/build.sh artifact` (the claude.ai artifact copy, with the fonts embedded). |
 | `src/item-cards/build-artifact.sh` | Builds the claude.ai artifact copy of `item-cards.html` (typefaces embedded, no Toolbag nav) into `src/item-cards/artifact.html`. The item page has no parts — edit it directly, then rebuild. |

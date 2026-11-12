@@ -428,7 +428,7 @@ span.tog{display:inline-flex; align-items:center}
     <div class="seg" role="group" aria-label="View">
       <button class="tog" data-view="editor" aria-pressed="true">Editor</button>
       <button class="tog" data-view="library" aria-pressed="false">Library</button>
-      <button class="tog" data-view="sheet" aria-pressed="false">Sheet</button>
+      <button class="tog" data-view="sheet" aria-pressed="false">Print sheet</button>
     </div>
     <div class="grow"></div>
 
@@ -444,14 +444,14 @@ span.tog{display:inline-flex; align-items:center}
         <button class="tog" data-sort="created" aria-pressed="true">Created</button>
         <button class="tog" data-sort="edited" aria-pressed="false">Edited</button>
       </div>
-      <button class="btn" id="selAll">All</button>
-      <button class="btn" id="selNone">None</button>
-      <button class="btn solid" id="toSheet">Sheet (0)</button>
+      <button class="btn" id="selAll">Select all</button>
+      <button class="btn" id="selNone">Select none</button>
+      <button class="btn solid" id="toSheet">Print sheet (0)</button>
     </div>
     <div class="bar-group" data-for="sheet" hidden>
       <button class="btn" id="addBlank">+ Blank card</button>
       <button class="btn" id="sheetClear">Clear</button>
-      <button class="btn solid" id="print">Print</button>
+      <button class="btn solid" id="print">Print / PDF</button>
     </div>
   </div>
 
@@ -498,7 +498,7 @@ span.tog{display:inline-flex; align-items:center}
           <span class="bar-label">Picture</span>
           <button class="btn" id="phPick">Choose</button>
           <button class="btn" id="phClear">Remove</button>
-          <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> remove background</label>
+          <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> Remove background</label>
           <label>size <input type="range" id="imgScale" min="40" max="100" value="100" step="5" aria-label="Picture size"> <span id="imgScaleLbl">100%</span></label>
           <input type="file" accept="image/*,.webp" id="phFile" hidden>
           <span class="hint" id="phMeta">Drop an image on the picture half, or paste one. It prints upside down so it reads right way up once the card is folded.</span>
@@ -510,7 +510,7 @@ span.tog{display:inline-flex; align-items:center}
         </div>
       </div>
       <div class="tool-row irw-row tool-col">
-        <span class="bar-label">Imm / Res / Weak</span>
+        <span class="bar-label">Immunities &middot; Resistances &middot; Weaknesses</span>
         <label class="field"><span>Immunities</span><textarea id="immuneIn" rows="1" placeholder="e.g. fire, paralyzed, sleep" autocomplete="off" spellcheck="false"></textarea></label>
         <label class="field"><span>Resistances</span><textarea id="resistIn" rows="1" placeholder="e.g. bludg. 5, cold 10" autocomplete="off" spellcheck="false"></textarea></label>
         <label class="field"><span>Weaknesses</span><textarea id="weakIn" rows="1" placeholder="e.g. cold iron 5" autocomplete="off" spellcheck="false"></textarea></label>
@@ -621,7 +621,7 @@ span.tog{display:inline-flex; align-items:center}
   <p class="hint" id="importHintArtifact" hidden><b>Link only:</b> Send to Claude pings Claude — it reads the page, grabs the official art when Demiplane has it, and the finished card lands in your library a minute or two later. <b>Right now:</b> open the creature page, select all (Ctrl+A / ⌘A), copy, paste below, and the card fills itself. Recall Knowledge comes from the trait, level, and rarity.</p>
   <textarea id="importText" rows="9" placeholder="Paste the creature's page or stat block here" spellcheck="false"></textarea>
   <div class="modal-row">
-    <button class="btn solid" id="importGo">Fill the card</button>
+    <button class="btn solid" id="importGo">Fill card from text</button>
     <span class="hint" id="importNote"></span>
   </div>
 </section>
@@ -1981,7 +1981,7 @@ var TRAIT_DATA = {
     else{ badge.textContent = "Not a Demiplane or Archives of Nethys creature link"; badge.className = "badge warn"; }
     var direct = canFetch() && !txt && ((k && k.kind === "demiplane") || (k && !k.kind && name));
     var canQueue = k && k.kind && !txt;
-    $("importGo").textContent = direct ? "Fetch" : canQueue ? (Lib.mode === "db" ? "Send to Claude" : "Fill the card") : "Fill the card";
+    $("importGo").textContent = direct ? "Fetch" : canQueue ? (Lib.mode === "db" ? "Send to Claude" : "Fill card from text") : "Fill card from text";
   }
   function runImport(){
     var raw = $("importLink").value, k = linkKind(raw), link = k ? k.url : "", txt = $("importText").value;
@@ -2149,13 +2149,13 @@ var TRAIT_DATA = {
   };
   Lib.start = function(){
     Lib.loadLocal();
-    $("status").innerHTML = "Library: <b>this device</b>";
+    $("status").innerHTML = "Saved on <b>this device</b>";
     if(window.Cloud && Cloud.available){
       Cloud.init({kind:"creatures", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
-          else{ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          else{ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; }
           Lib.emit();
         }});
       return;
@@ -2275,7 +2275,7 @@ var TRAIT_DATA = {
       g.appendChild(w);
     });
     fitAll(g);
-    $("toSheet").textContent = "Sheet (" + selected.length + ")";
+    $("toSheet").textContent = "Print sheet (" + selected.length + ")";
   }
   $("gallery").addEventListener("click", function(e){
     var w = e.target.closest(".gcard"); if(!w) return;
@@ -2284,7 +2284,7 @@ var TRAIT_DATA = {
       var i = selected.indexOf(id);
       if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
       w.classList.toggle("sel", e.target.checked); saveSel();
-      $("toSheet").textContent = "Sheet (" + selected.length + ")";
+      $("toSheet").textContent = "Print sheet (" + selected.length + ")";
       return;
     }
     if(e.target.classList.contains("gdel")){

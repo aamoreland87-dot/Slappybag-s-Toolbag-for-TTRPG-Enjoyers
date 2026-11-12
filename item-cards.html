@@ -487,12 +487,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     <div class="seg" role="group" aria-label="View">
       <button class="tog" data-view="editor" aria-pressed="true">Editor</button>
       <button class="tog" data-view="library" aria-pressed="false">Library</button>
-      <button class="tog" data-view="sheet" aria-pressed="false">Sheet</button>
+      <button class="tog" data-view="sheet" aria-pressed="false">Print sheet</button>
     </div>
     <div class="grow"></div>
 
     <div class="bar-group" data-for="editor">
-      <button class="tog" id="blanks" aria-pressed="true" title="Show every field, and print it empty to fill in by hand">Blank fields</button>
+      <button class="tog" id="blanks" aria-pressed="true" title="Show every field, and print it empty to fill in by hand">Show empty fields</button>
       <button class="btn" id="newCard">New</button>
       <button class="btn solid" id="saveCard">Save</button>
     </div>
@@ -503,14 +503,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         <button class="tog" data-sort="created" aria-pressed="true">Created</button>
         <button class="tog" data-sort="edited" aria-pressed="false">Edited</button>
       </div>
-      <button class="btn" id="selAll">All</button>
-      <button class="btn" id="selNone">None</button>
-      <button class="btn solid" id="toSheet">Sheet (0)</button>
+      <button class="btn" id="selAll">Select all</button>
+      <button class="btn" id="selNone">Select none</button>
+      <button class="btn solid" id="toSheet">Print sheet (0)</button>
     </div>
     <div class="bar-group" data-for="sheet" hidden>
       <button class="btn" id="addBlank">+ Blank card</button>
       <button class="btn" id="sheetClear">Clear</button>
-      <button class="btn solid" id="print">Print</button>
+      <button class="btn solid" id="print">Print / PDF</button>
     </div>
   </div>
 
@@ -576,7 +576,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
             <span class="ph-hint">Drop image<small>or tap</small></span>
             <button class="ph-clear screen-only" id="phClear" aria-label="Remove image" title="Remove image">&times;</button>
             <span class="ph-meta screen-only" id="phMeta"></span>
-            <label class="ph-bg screen-only" id="phBg" title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> remove bg</label>
+            <label class="ph-bg screen-only" id="phBg" title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> Remove background</label>
             <span class="ph-grip screen-only" id="phGrip" tabindex="0" role="slider" aria-label="Image size" title="Drag to resize"></span>
             <input type="file" accept="image/*,.webp" id="phFile" hidden>
           </div>
@@ -1454,13 +1454,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   };
   Lib.start = function(){
     Lib.loadLocal();
-    $("status").innerHTML = "Library: <b>this device</b>";
+    $("status").innerHTML = "Saved on <b>this device</b>";
     if(window.Cloud && Cloud.available){
       Cloud.init({kind:"items", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
-          else{ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          else{ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; }
           Lib.emit();
         }});
       return;
@@ -1584,7 +1584,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     });
     /* Stored scales predate edits to the layout; fit again so the thumbnails match the print. */
     whenFontsReady(function(){ g.querySelectorAll(".card").forEach(function(c){ fitName(c); fitCard(c); }); });
-    $("toSheet").textContent = "Sheet (" + selected.length + ")";
+    $("toSheet").textContent = "Print sheet (" + selected.length + ")";
   }
   $("gallery").addEventListener("click", function(e){
     var w = e.target.closest(".gcard"); if(!w) return;
@@ -1593,7 +1593,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       var i = selected.indexOf(id);
       if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
       w.classList.toggle("sel", e.target.checked); saveSel();
-      $("toSheet").textContent = "Sheet (" + selected.length + ")";
+      $("toSheet").textContent = "Print sheet (" + selected.length + ")";
       return;
     }
     if(e.target.classList.contains("gdel")){

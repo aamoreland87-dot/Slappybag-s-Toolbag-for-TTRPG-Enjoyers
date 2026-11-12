@@ -818,7 +818,7 @@
     return id;
   };
   Lib.remove = function(id){ Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; }); Lib.writeLocal(); Lib.emit(); };
-  Lib.start = function(){ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; };
+  Lib.start = function(){ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; };
 
   /* Save opens a preview first — the same rendering the Library uses, not the editor's
      contenteditable one — so what gets saved is what you'll actually see there. */
@@ -875,7 +875,7 @@
       g.appendChild(w);
     });
     fitRendered(g);
-    $("toSheet").textContent = "Sheet (" + selected.length + ")";
+    $("toSheet").textContent = "Print sheet (" + selected.length + ")";
   }
   $("gallery").addEventListener("click", function(e){
     var w = e.target.closest(".gcard"); if(!w) return;
@@ -884,7 +884,7 @@
       var i = selected.indexOf(id);
       if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
       w.classList.toggle("sel", e.target.checked); saveSel();
-      $("toSheet").textContent = "Sheet (" + selected.length + ")";
+      $("toSheet").textContent = "Print sheet (" + selected.length + ")";
       return;
     }
     if(e.target.classList.contains("gdel")){

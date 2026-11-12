@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pathfinder Tools</title>
+<title>Slappybag's Toolbag</title>
+<meta name="description" content="Free printable card builders for tabletop RPGs: items, feats, initiative and hazards for Pathfinder 2e.">
 <link rel="stylesheet" href="fonts.css">
 <style>
   :root{
@@ -42,35 +43,67 @@
   .card p{margin:0;color:var(--ink-2)}
   .card .go{display:inline-block;margin-top:14px;font-family:var(--caps);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
   footer{text-align:center;color:var(--ink-3);font-family:var(--caps);font-size:.8rem;letter-spacing:.04em;padding:20px 16px}
+  .steps{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 30px;padding:0;list-style:none;counter-reset:s}
+  .steps li{flex:1 1 200px;display:flex;gap:10px;align-items:baseline;background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:12px 16px;color:var(--ink-2)}
+  .steps li::before{counter-increment:s;content:counter(s);font:700 1.3rem/1 var(--serif);color:var(--accent)}
+  .steps b{color:var(--ink)}
+  .card .tag{display:inline-block;margin-left:8px;padding:1px 7px;border:1px solid var(--rule);border-radius:999px;font:400 .72rem/1.5 var(--caps);letter-spacing:.06em;color:var(--ink-3);vertical-align:3px}
+  .theme{display:inline-flex;gap:2px;margin-top:10px;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+  .theme button{font:inherit;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;background:transparent;color:var(--ink-3);border:0;padding:4px 10px;cursor:pointer}
+  .theme button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 </style>
 </head>
 <body>
 <main>
-  <h1>Pathfinder Tools</h1>
-  <p class="sub">Printable card builders for Pathfinder 2nd Edition.</p>
+  <h1>Slappybag's Toolbag</h1>
+  <p class="sub">Free printable cards for tabletop RPGs. Every tool works the same way:</p>
+  <ol class="steps">
+    <li><span><b>Build</b> a card, or import one.</span></li>
+    <li><span><b>Save</b> it to your library.</span></li>
+    <li><span>Pick cards and <b>print</b> a sheet or save a PDF.</span></li>
+  </ol>
   <div class="grid">
     <a class="card" href="item-cards.html">
-      <h2>Item Cards</h2>
+      <h2>Item Cards<span class="tag">PF2e</span></h2>
       <p>Build 4×5in item cards with traits, activation, and artwork. Save a library, pick a set, and export a print-ready PDF sheet.</p>
       <span class="go">Open →</span>
     </a>
     <a class="card" href="feat-cards.html">
-      <h2>Feat Cards</h2>
+      <h2>Feat Cards<span class="tag">PF2e</span></h2>
       <p>Feats on 4×5in cards: prerequisites, action costs, and everything a feat grants — skills, spells, proficiencies. Import from Demiplane or Archives of Nethys.</p>
       <span class="go">Open →</span>
     </a>
     <a class="card" href="initiative-cards.html">
-      <h2>Initiative Cards</h2>
+      <h2>Initiative Cards<span class="tag">PF2e</span></h2>
       <p>Creature and NPC cards for the initiative tracker — stats, actions, and pictures, ready to print and sort at the table.</p>
       <span class="go">Open →</span>
     </a>
     <a class="card" href="hazard-cards.html">
-      <h2>Hazard Cards</h2>
+      <h2>Hazard Cards<span class="tag">PF2e</span></h2>
       <p>Traps, environmental hazards, and haunts — Stealth and Disable DCs, the routine, and the reset condition, ready to print.</p>
       <span class="go">Open →</span>
     </a>
   </div>
 </main>
-<footer>Your card library is saved in this browser on this device. Export a PDF to keep a copy of your cards.</footer>
+<footer>
+  Your card library is saved in this browser on this device. Save a PDF to keep a copy of your cards.
+  <div><div class="theme" role="group" aria-label="Theme">
+    <button type="button" data-theme="" aria-pressed="true">Auto</button><button type="button" data-theme="light" aria-pressed="false">Light</button><button type="button" data-theme="dark" aria-pressed="false">Dark</button>
+  </div></div>
+</footer>
+<script>
+/* Light / dark / follow the device, remembered for this page. */
+(function(){
+  var KEY = "tb-home-theme", btns = document.querySelectorAll(".theme button");
+  function set(v){
+    if(v) document.documentElement.setAttribute("data-theme", v); else document.documentElement.removeAttribute("data-theme");
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.theme === v ? "true" : "false"); });
+    try{ localStorage.setItem(KEY, v); }catch(e){}
+  }
+  btns.forEach(function(b){ b.addEventListener("click", function(){ set(b.dataset.theme); }); });
+  var v = ""; try{ v = localStorage.getItem(KEY) || ""; }catch(e){}
+  set(v);
+})();
+</script>
 </body>
 </html>

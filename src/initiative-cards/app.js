@@ -1304,7 +1304,7 @@
     else{ badge.textContent = "Not a Demiplane or Archives of Nethys creature link"; badge.className = "badge warn"; }
     var direct = canFetch() && !txt && ((k && k.kind === "demiplane") || (k && !k.kind && name));
     var canQueue = k && k.kind && !txt;
-    $("importGo").textContent = direct ? "Fetch" : canQueue ? (Lib.mode === "db" ? "Send to Claude" : "Fill the card") : "Fill the card";
+    $("importGo").textContent = direct ? "Fetch" : canQueue ? (Lib.mode === "db" ? "Send to Claude" : "Fill card from text") : "Fill card from text";
   }
   function runImport(){
     var raw = $("importLink").value, k = linkKind(raw), link = k ? k.url : "", txt = $("importText").value;
@@ -1472,13 +1472,13 @@
   };
   Lib.start = function(){
     Lib.loadLocal();
-    $("status").innerHTML = "Library: <b>this device</b>";
+    $("status").innerHTML = "Saved on <b>this device</b>";
     if(window.Cloud && Cloud.available){
       Cloud.init({kind:"creatures", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
-          else{ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          else{ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; }
           Lib.emit();
         }});
       return;
@@ -1598,7 +1598,7 @@
       g.appendChild(w);
     });
     fitAll(g);
-    $("toSheet").textContent = "Sheet (" + selected.length + ")";
+    $("toSheet").textContent = "Print sheet (" + selected.length + ")";
   }
   $("gallery").addEventListener("click", function(e){
     var w = e.target.closest(".gcard"); if(!w) return;
@@ -1607,7 +1607,7 @@
       var i = selected.indexOf(id);
       if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
       w.classList.toggle("sel", e.target.checked); saveSel();
-      $("toSheet").textContent = "Sheet (" + selected.length + ")";
+      $("toSheet").textContent = "Print sheet (" + selected.length + ")";
       return;
     }
     if(e.target.classList.contains("gdel")){

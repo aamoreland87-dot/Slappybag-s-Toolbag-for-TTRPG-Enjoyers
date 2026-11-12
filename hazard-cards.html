@@ -371,7 +371,7 @@ span.tog{display:inline-flex; align-items:center}
     <div class="seg" role="group" aria-label="View">
       <button class="tog" data-view="editor" aria-pressed="true">Editor</button>
       <button class="tog" data-view="library" aria-pressed="false">Library</button>
-      <button class="tog" data-view="sheet" aria-pressed="false">Sheet</button>
+      <button class="tog" data-view="sheet" aria-pressed="false">Print sheet</button>
     </div>
     <div class="grow"></div>
 
@@ -387,9 +387,9 @@ span.tog{display:inline-flex; align-items:center}
         <button class="tog" data-sort="created" aria-pressed="true">Created</button>
         <button class="tog" data-sort="edited" aria-pressed="false">Edited</button>
       </div>
-      <button class="btn" id="selAll">All</button>
-      <button class="btn" id="selNone">None</button>
-      <button class="btn solid" id="toSheet">Sheet (0)</button>
+      <button class="btn" id="selAll">Select all</button>
+      <button class="btn" id="selNone">Select none</button>
+      <button class="btn solid" id="toSheet">Print sheet (0)</button>
     </div>
     <div class="bar-group" data-for="sheet" hidden>
       <button class="btn" id="addBlank">+ Blank card</button>
@@ -438,7 +438,7 @@ span.tog{display:inline-flex; align-items:center}
       <span class="bar-label">Picture</span>
       <button class="btn" id="phPick">Choose</button>
       <button class="btn" id="phClear">Remove</button>
-      <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> remove background</label>
+      <label title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> Remove background</label>
       <label>size <input type="range" id="imgScale" min="40" max="100" value="100" step="5" aria-label="Picture size"> <span id="imgScaleLbl">100%</span></label>
       <input type="file" accept="image/*,.webp" id="phFile" hidden>
       <span class="hint" id="phMeta">Drop an image on the picture half, or paste one.</span>
@@ -449,7 +449,7 @@ span.tog{display:inline-flex; align-items:center}
       <span class="hint">Or click the line under the kicker on the card. Each action's traits are under Actions below, or click “+ traits” on the action itself.</span>
     </div>
     <div class="tool-row irw-row">
-      <span class="bar-label">Imm / Res / Weak</span>
+      <span class="bar-label">Immunities &middot; Resistances &middot; Weaknesses</span>
       <label class="field"><span>Immunities</span><textarea id="immuneIn" rows="1" placeholder="e.g. critical hits, object immunities, precision damage" autocomplete="off" spellcheck="false"></textarea></label>
       <label class="field"><span>Resistances</span><textarea id="resistIn" rows="1" placeholder="e.g. bludg. 5, cold 10" autocomplete="off" spellcheck="false"></textarea></label>
       <label class="field"><span>Weaknesses</span><textarea id="weakIn" rows="1" placeholder="e.g. fire 10" autocomplete="off" spellcheck="false"></textarea></label>
@@ -515,7 +515,7 @@ span.tog{display:inline-flex; align-items:center}
   <p class="hint"><b>Archives of Nethys or a Paizo book:</b> open the hazard's page, select all (Ctrl+A / &#8984;A), copy, and paste the text below — Stealth, Disable, AC, saves, HP, the routine and Reset line all fill in from a standard hazard stat block.</p>
   <textarea id="importText" rows="10" placeholder="Paste the hazard's stat block here" spellcheck="false"></textarea>
   <div class="modal-row">
-    <button class="btn solid" id="importGo">Fill the card</button>
+    <button class="btn solid" id="importGo">Fill card from text</button>
     <span class="hint" id="importNote"></span>
   </div>
 </section>
@@ -1379,7 +1379,7 @@ var HAZ_TRAITS = {
     return id;
   };
   Lib.remove = function(id){ Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; }); Lib.writeLocal(); Lib.emit(); };
-  Lib.start = function(){ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; };
+  Lib.start = function(){ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; };
 
   /* Save opens a preview first — the same rendering the Library uses, not the editor's
      contenteditable one — so what gets saved is what you'll actually see there. */
@@ -1436,7 +1436,7 @@ var HAZ_TRAITS = {
       g.appendChild(w);
     });
     fitRendered(g);
-    $("toSheet").textContent = "Sheet (" + selected.length + ")";
+    $("toSheet").textContent = "Print sheet (" + selected.length + ")";
   }
   $("gallery").addEventListener("click", function(e){
     var w = e.target.closest(".gcard"); if(!w) return;
@@ -1445,7 +1445,7 @@ var HAZ_TRAITS = {
       var i = selected.indexOf(id);
       if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
       w.classList.toggle("sel", e.target.checked); saveSel();
-      $("toSheet").textContent = "Sheet (" + selected.length + ")";
+      $("toSheet").textContent = "Print sheet (" + selected.length + ")";
       return;
     }
     if(e.target.classList.contains("gdel")){

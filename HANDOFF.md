@@ -115,6 +115,18 @@ scales free forever, no live sync, more OAuth friction.
 - PDF `.ttf` fonts subset with `pyftsubset --unicodes='*' --layout-features='' --no-hinting`: same
   characters and widths, ~720 KB → ~190 KB; PDFs render pixel-identical.
 
+## 2026-11 review, batch 3 (UI standardization)
+
+- Same toolbar wording on all four tools: Editor · Library · Print sheet; Select all / Select none;
+  "Print / PDF" (hazard: "Print", it uses the browser dialog); "Show empty fields"; "Remove background";
+  "Saved on this device"; "Fill card from text"; the Imm / Res / Weak panel heading spelled out.
+- Tooltips: any `data-tip` or `title` shows on hover, keyboard focus and long-press. Copy for the shared
+  controls is the `TIPS` map in `toolbag-core.js` (keyed by selector; per-tool wording via `TB.tool`).
+- A **?** button (injected into the toolbar) opens a Help side panel; a dismissible "New here?" strip shows
+  once per tool (`tb-intro-<tool>` in localStorage).
+- Landing page renamed Slappybag's Toolbag, with the three steps, PF2e tags, and a theme switch.
+- Not done: item cards still have no Import (there's no item importer yet).
+
 ## Open items / gotchas
 
 - `item-cards.html` should eventually get the same `src/` + build treatment as the
