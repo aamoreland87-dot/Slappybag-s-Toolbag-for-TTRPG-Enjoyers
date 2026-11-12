@@ -538,6 +538,7 @@ span.tog{display:inline-flex; align-items:center}
   </div>
   <div class="picker-group" id="traitAllWrap"></div>
 </section>
+<script src="toolbag-core.js"></script>
 <script>
 /* PF2e hazard traits, and the traits on hazards' actions, with how often they appear together —
    distilled from the 565 hazards on Archives of Nethys (legacy and remastered, 2026-09). "near" holds each
@@ -790,7 +791,7 @@ var HAZ_TRAITS = {
   function setIrw(d){ IRW.forEach(function(q){ var el = $(q[0] + "In"); el.value = d[q[0]] || ""; growField(el); }); renderIrw(d); }
   function renderIrw(d){ cardbox.querySelector(".irw-in").innerHTML = irwHtml(d); }
   function growField(el){ el.style.height = "auto"; el.style.height = (el.scrollHeight + 2) + "px"; }
-  IRW.forEach(function(q){ $(q[0] + "In").addEventListener("input", function(){ growField(this); renderIrw(readIrw({})); fitCardBox(cardbox); saveDraft(); }); });
+  IRW.forEach(function(q){ $(q[0] + "In").addEventListener("input", function(){ growField(this); renderIrw(readIrw({})); fitCardBox(cardbox); saveDraftSoon(); }); });
   window.addEventListener("resize", function(){ IRW.forEach(function(q){ growField($(q[0] + "In")); }); });
 
   /* ---------------- fit: short numeric fields shrink to stay on one line; the whole stat half
@@ -798,8 +799,10 @@ var HAZ_TRAITS = {
   function fitElems(root){
     root.querySelectorAll(".fit").forEach(function(el){
       el.style.fontSize = "";
-      var base = parseFloat(getComputedStyle(el).fontSize), sc = 1;
-      while(el.scrollWidth > el.clientWidth + 0.5 && sc > 0.5){ sc -= 0.05; el.style.fontSize = (base * sc) + "px"; }
+      var fits = function(){ return el.scrollWidth <= el.clientWidth + 0.5; };
+      if(fits()) return;
+      var base = parseFloat(getComputedStyle(el).fontSize);   /* steps 1.00, 0.95 … 0.50 */
+      TB.firstFit(10, function(k){ el.style.fontSize = (base * (1 - 0.05 * k)) + "px"; }, fits);
     });
   }
   function fitCardBox(box){
@@ -807,9 +810,10 @@ var HAZ_TRAITS = {
     var wrap = box.querySelector(".hzfit"), half = box.querySelector(".half.stats");
     if(!wrap || !half) return;
     wrap.style.zoom = 1;
-    var sc = 1, needed = wrap.scrollHeight, budget = half.clientHeight;
-    /* text reflow shifts line counts in jumps, not smoothly, so step small to avoid overshooting */
-    while(needed > budget + 0.5 && sc > 0.55){ sc -= 0.01; wrap.style.zoom = sc.toFixed(2); needed = wrap.scrollHeight; }
+    var budget = half.clientHeight, fits = function(){ return wrap.scrollHeight <= budget + 0.5; };
+    if(fits()) return;
+    /* zoom steps 1.00, 0.99 … 0.55 (small, since reflow shifts line counts in jumps), by binary search */
+    TB.firstFit(45, function(k){ wrap.style.zoom = (1 - 0.01 * k).toFixed(2); }, fits);
   }
   function fitRendered(root){ root.querySelectorAll(".cardbox").forEach(fitCardBox); }
 
@@ -839,8 +843,13 @@ var HAZ_TRAITS = {
     var d = collect();
     d.id = currentId; d.zoom = zoom;
     d.image = img.data; d.imageId = img.id; d.imageSrc = img.src; d.imageMeta = img.meta; d.imageDirty = img.dirty;
+    var pic = TB.splitPics(d);   /* pictures go to TB.store, and only when they change */
     try{ localStorage.setItem(DRAFT, JSON.stringify(d)); }catch(e){}
+    TB.putPic(DRAFT, pic);
   }
+  /* typing: re-fit once per frame, write the draft once typing pauses (and when leaving) */
+  var saveDraftSoon = TB.debounce(saveDraft, 400), refreshSoon = TB.perFrame(refresh);
+  TB.onLeave(saveDraftSoon.flush);
   function load(d){
     d = d || {};
     setIrw(d);
@@ -1047,7 +1056,7 @@ var HAZ_TRAITS = {
     if(!e.target || !e.target.isContentEditable) return;
     var f = (e.target.dataset && e.target.dataset.f) || "";
     if(/^a\d+[nte]$/.test(f)) maybeAddSpare();
-    refresh(); saveDraft();
+    refreshSoon(); saveDraftSoon();
   });
   cardbox.addEventListener("keydown", function(e){
     var t = e.target; if(!t || !t.isContentEditable) return;
@@ -1088,7 +1097,7 @@ var HAZ_TRAITS = {
   $("phPick").addEventListener("click", function(){ phFile.click(); });
   phFile.addEventListener("change", function(){ loadImage(this.files[0]); this.value = ""; });
   $("phClear").addEventListener("click", function(){ setImage({src:"", data:"", id:"", meta:"", dirty:true}); refresh(); saveDraft(); });
-  $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraft(); });
+  $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraftSoon(); });
   function hasFile(e){ var t = e.dataTransfer; return t && t.types && Array.prototype.indexOf.call(t.types, "Files") >= 0; }
   ["dragenter","dragover"].forEach(function(t){
     cardEl.addEventListener(t, function(e){ if(!hasFile(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; photo.classList.add("drop"); });
@@ -1343,8 +1352,22 @@ var HAZ_TRAITS = {
   var Lib = {cards:[], listeners:[]};
   Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
   Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
-  Lib.readLocal = function(){ try{ return JSON.parse(localStorage.getItem(LIB_LOCAL)) || []; }catch(e){ return []; } };
-  Lib.writeLocal = function(){ try{ localStorage.setItem(LIB_LOCAL, JSON.stringify(Lib.cards)); }catch(e){ toast("Storage full — picture too large to keep"); } };
+  /* The local library lives in IndexedDB (TB.store), loaded once at start; a card saved before
+     that finishes is kept and merged in. */
+  Lib.ready = false;
+  Lib.loadLocal = function(){
+    Lib.mode = "local"; Lib.cards = []; Lib.ready = false;
+    return TB.store.get(LIB_LOCAL).then(null, function(){ return null; }).then(function(v){
+      if(Lib.mode !== "local" || Lib.ready) return;
+      var early = Lib.cards, ids = {};
+      early.forEach(function(c){ ids[c.id] = 1; });
+      Lib.cards = (Array.isArray(v) ? v : []).filter(function(c){ return !ids[c.id]; }).concat(early);
+      Lib.ready = true;
+      if(early.length) Lib.writeLocal();
+      Lib.emit();
+    });
+  };
+  Lib.writeLocal = function(){ if(Lib.ready) TB.store.set(LIB_LOCAL, Lib.cards).catch(function(){ toast("Storage full — picture too large to keep"); }); };
   Lib.newId = function(){ return "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
   Lib.save = function(card, id){
     var now = new Date().toISOString();
@@ -1356,7 +1379,7 @@ var HAZ_TRAITS = {
     return id;
   };
   Lib.remove = function(id){ Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; }); Lib.writeLocal(); Lib.emit(); };
-  Lib.start = function(){ Lib.cards = Lib.readLocal(); Lib.emit(); $("status").innerHTML = "Library: <b>this device</b>"; };
+  Lib.start = function(){ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; };
 
   /* Save opens a preview first — the same rendering the Library uses, not the editor's
      contenteditable one — so what gets saved is what you'll actually see there. */
@@ -1489,7 +1512,7 @@ var HAZ_TRAITS = {
       var w = el.naturalWidth || el.width || 1, h = el.naturalHeight || el.height || 1;
       var cv = document.createElement("canvas"); cv.width = w; cv.height = h;
       cv.getContext("2d").drawImage(el, 0, 0);
-      return cv.toDataURL("image/png");
+      return TB.canvasData(cv);
     }catch(e){ return null; }
   }
   function buildHtml(){
@@ -1563,8 +1586,13 @@ var HAZ_TRAITS = {
   document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.sort === sortMode ? "true" : "false"); });
   var draft = null;
   try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
-  if(draft && (draft.name || draft.ac || draft.hp || draft.image || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
+  if(draft && (draft.name || draft.ac || draft.hp || draft.image || draft.picStored || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
   else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
+  TB.restorePic(DRAFT, draft, function(p){
+    if(img.data) return;
+    setImage({src:p.imageSrc || img.src || p.image || "", data:p.image || "", id:img.id, meta:img.meta, dirty:img.dirty});
+    refresh();
+  });
   Lib.start();
   var lastView = "editor";
   try{ lastView = localStorage.getItem("pf2e-hazard-view") || "editor"; }catch(e){}

@@ -45,6 +45,9 @@ title="$(grep -o '<title>[^<]*</title>' "$page" | head -1)"
   pdf_fonts
   # line 1 is the site's <!doctype…><head>…<body>; the last line closes body and html
   tr -d '\r' < "$page" | sed -e '1d' -e '$s#</body></html>##' | while IFS= read -r line; do
+    if [[ "$line" == '<script src="toolbag-core.js"></script>' ]]; then
+      printf '<script>\n'; cat "$root/toolbag-core.js"; printf '</script>\n'; continue
+    fi
     printf '%s\n' "$line"
     if [[ "$line" == '<style id="cardCss">' ]]; then embedded_fonts_css; fi
   done | sed -e '/<nav class="toolbag"/,/<\/nav>/c\    <h1>Feat Cards <span class="sub">\&middot; PF2e</span></h1>'

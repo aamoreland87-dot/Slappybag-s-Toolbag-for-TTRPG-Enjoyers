@@ -101,6 +101,20 @@ hundreds of daily users → Blaze, a few dollars a month; beyond that, cache art
 Alternative kept in the back pocket: art in each user's own Google Drive (Drive API) —
 scales free forever, no live sync, more OAuth friction.
 
+## 2026-11 review, batch 2 (speed + storage)
+
+- `toolbag-core.js` is the start of the shared code (see the review doc's Batch 3). All four pages load
+  it; all four artifact builds inline it.
+- Typing re-fits once per animation frame and writes the draft 400 ms after typing pauses (flushed on
+  `pagehide` / tab hidden). Text fitting is a binary search over the same size steps as before
+  (`TB.firstFit`), checked to give identical sizes.
+- Local libraries and draft pictures live in IndexedDB; see README "Where data lives".
+- jsPDF 4.2.1 from cdnjs with an `integrity` hash (`TB.JSPDF`; hash checked against the v4.2.1 tag's
+  `dist/jspdf.umd.min.js`). Opaque pictures go into PDFs as JPEG, transparent ones as PNG.
+- The site now shows **Save as PDF** (`TB.downloads`); before, the button only appeared in the artifact.
+- PDF `.ttf` fonts subset with `pyftsubset --unicodes='*' --layout-features='' --no-hinting`: same
+  characters and widths, ~720 KB → ~190 KB; PDFs render pixel-identical.
+
 ## Open items / gotchas
 
 - `item-cards.html` should eventually get the same `src/` + build treatment as the

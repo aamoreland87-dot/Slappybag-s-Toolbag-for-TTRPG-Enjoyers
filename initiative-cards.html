@@ -661,7 +661,7 @@ span.tog{display:inline-flex; align-items:center}
   </div>
   <div class="picker-group" id="traitAllWrap"></div>
 </section>
-<script src="firebase-config.js"></script><script src="cloud.js"></script>
+<script src="toolbag-core.js"></script><script src="firebase-config.js"></script><script src="cloud.js"></script>
 <script>
 /* PF2e creature traits and how often they appear together, distilled from the Demiplane creature list
    (2,598 distinct trait sets, 2026-09). `near` holds each trait's strongest companions by lift, so the
@@ -1263,16 +1263,15 @@ var TRAIT_DATA = {
 
   /* Short strings only: shrink any .fit field until it fits its box (down to half size). */
   function fitAll(root){
-    root.querySelectorAll(".fit").forEach(function(el){
+    /* font steps 1.00, 0.95 … 0.50, by binary search */
+    var shrink = function(el, fits){
       el.style.fontSize = "";
-      var base = parseFloat(getComputedStyle(el).fontSize), sc = 1;
-      while(el.scrollWidth > el.clientWidth + 0.5 && sc > 0.5){ sc -= 0.05; el.style.fontSize = (base * sc) + "px"; }
-    });
-    root.querySelectorAll(".blk.per .senses").forEach(function(el){
-      el.style.fontSize = "";
-      var base = parseFloat(getComputedStyle(el).fontSize), sc = 1;
-      while(el.scrollHeight > el.clientHeight + 0.5 && sc > 0.5){ sc -= 0.05; el.style.fontSize = (base * sc) + "px"; }
-    });
+      if(fits()) return;
+      var base = parseFloat(getComputedStyle(el).fontSize);
+      TB.firstFit(10, function(k){ el.style.fontSize = (base * (1 - 0.05 * k)) + "px"; }, fits);
+    };
+    root.querySelectorAll(".fit").forEach(function(el){ shrink(el, function(){ return el.scrollWidth <= el.clientWidth + 0.5; }); });
+    root.querySelectorAll(".blk.per .senses").forEach(function(el){ shrink(el, function(){ return el.scrollHeight <= el.clientHeight + 0.5; }); });
     /* the Imm / Res / Weak box grows with its text (up to G.irw.max), pushing the saves and Recall
        box down; only past that does the text shrink */
     root.querySelectorAll(".card").forEach(function(card){
@@ -1282,7 +1281,9 @@ var TRAIT_DATA = {
       var H = Math.max(G.irw.h, Math.min(G.irw.max, Math.ceil(need + 1)));
       box.style.height = pt(H);
       var base = parseFloat(getComputedStyle(el).fontSize), lh = parseFloat(getComputedStyle(el).lineHeight), sc = 1;
-      while(el.scrollHeight > box.clientHeight + 0.5 && sc > 0.6){ sc -= 0.05; el.style.fontSize = (base * sc) + "px"; el.style.lineHeight = (lh * sc) + "px"; }
+      if(el.scrollHeight > box.clientHeight + 0.5)
+        TB.firstFit(8, function(k){ sc = 1 - 0.05 * k; el.style.fontSize = (base * sc) + "px"; el.style.lineHeight = (lh * sc) + "px"; },
+                    function(){ return el.scrollHeight <= box.clientHeight + 0.5; });
       var dl = H - G.irw.h, tbl = card.querySelector(".tbl"), rec = card.querySelector(".blk.rec");
       if(tbl) tbl.style.top = pt(G.saves.y + dl);
       if(rec) rec.style.top = pt(G.rec.y + dl);
@@ -1317,8 +1318,13 @@ var TRAIT_DATA = {
     var d = collect();
     d.id = currentId; d.zoom = zoom;
     d.image = img.data; d.imageId = img.id; d.imageSrc = img.src; d.imageMeta = img.meta; d.imageDirty = img.dirty;
+    var pic = TB.splitPics(d);   /* pictures go to TB.store, and only when they change */
     try{ localStorage.setItem(DRAFT, JSON.stringify(d)); }catch(e){}
+    TB.putPic(DRAFT, pic);
   }
+  /* typing: re-fit once per frame, write the draft once typing pauses (and when leaving) */
+  var saveDraftSoon = TB.debounce(saveDraft, 400), refreshSoon = TB.perFrame(refresh);
+  TB.onLeave(saveDraftSoon.flush);
   function load(d){
     d = d || {};
     setIrw(d);
@@ -1345,7 +1351,7 @@ var TRAIT_DATA = {
   function setIrw(d){ IRW.forEach(function(q){ var el = $(q[0] + "In"); el.value = d[q[0]] || ""; growField(el); }); renderIrw(d); }
   function renderIrw(d){ cardbox.querySelector(".irw-in").innerHTML = irwHtml(d); }
   function growField(el){ el.style.height = "auto"; el.style.height = (el.scrollHeight + 2) + "px"; }
-  IRW.forEach(function(q){ $(q[0] + "In").addEventListener("input", function(){ growField(this); renderIrw(readIrw({})); fitAll(cardbox); saveDraft(); }); });
+  IRW.forEach(function(q){ $(q[0] + "In").addEventListener("input", function(){ growField(this); renderIrw(readIrw({})); fitAll(cardbox); saveDraftSoon(); }); });
   window.addEventListener("resize", function(){ IRW.forEach(function(q){ growField($(q[0] + "In")); }); });
 
   /* ---------------- type-ahead for Imm / Res / Weak: the current comma-separated item is matched
@@ -1585,7 +1591,7 @@ var TRAIT_DATA = {
   cardEl = cardbox.querySelector(".card"); photo = $("photo");
   var MULTI = {};
 
-  document.addEventListener("input", function(e){ if(e.target && e.target.isContentEditable){ refresh(); saveDraft(); } });
+  document.addEventListener("input", function(e){ if(e.target && e.target.isContentEditable){ refreshSoon(); saveDraftSoon(); } });
   cardbox.addEventListener("keydown", function(e){
     var t = e.target; if(!t || !t.isContentEditable) return;
     if(e.key === "Enter"){
@@ -1612,7 +1618,7 @@ var TRAIT_DATA = {
   $("phPick").addEventListener("click", function(){ phFile.click(); });
   phFile.addEventListener("change", function(){ loadImage(this.files[0]); this.value = ""; });
   $("phClear").addEventListener("click", function(){ setImage({src:"", data:"", id:"", meta:"", dirty:true}); refresh(); saveDraft(); });
-  $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraft(); });
+  $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraftSoon(); });
   function hasFile(e){ var t = e.dataTransfer; return t && t.types && Array.prototype.indexOf.call(t.types, "Files") >= 0; }
   ["dragenter","dragover"].forEach(function(t){
     cardEl.addEventListener(t, function(e){ if(!hasFile(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; photo.classList.add("drop"); });
@@ -2100,8 +2106,22 @@ var TRAIT_DATA = {
   var Lib = {mode:"local", cards:[], listeners:[], db:null, assets:null};
   Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
   Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
-  Lib.readLocal = function(){ try{ return JSON.parse(localStorage.getItem(LIB_LOCAL)) || []; }catch(e){ return []; } };
-  Lib.writeLocal = function(){ try{ localStorage.setItem(LIB_LOCAL, JSON.stringify(Lib.cards)); }catch(e){ toast("Storage full — picture too large to keep"); } };
+  /* The local library lives in IndexedDB (TB.store), loaded once at start; a card saved before
+     that finishes is kept and merged in. */
+  Lib.ready = false;
+  Lib.loadLocal = function(){
+    Lib.mode = "local"; Lib.cards = []; Lib.ready = false;
+    return TB.store.get(LIB_LOCAL).then(null, function(){ return null; }).then(function(v){
+      if(Lib.mode !== "local" || Lib.ready) return;
+      var early = Lib.cards, ids = {};
+      early.forEach(function(c){ ids[c.id] = 1; });
+      Lib.cards = (Array.isArray(v) ? v : []).filter(function(c){ return !ids[c.id]; }).concat(early);
+      Lib.ready = true;
+      if(early.length) Lib.writeLocal();
+      Lib.emit();
+    });
+  };
+  Lib.writeLocal = function(){ if(Lib.ready) TB.store.set(LIB_LOCAL, Lib.cards).catch(function(){ toast("Storage full — picture too large to keep"); }); };
   Lib.newId = function(){ return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
   Lib.save = function(card, id){
     var now = new Date().toISOString();
@@ -2128,14 +2148,14 @@ var TRAIT_DATA = {
     return Promise.resolve();
   };
   Lib.start = function(){
-    Lib.cards = Lib.readLocal(); Lib.emit();
+    Lib.loadLocal();
     $("status").innerHTML = "Library: <b>this device</b>";
     if(window.Cloud && Cloud.available){
       Cloud.init({kind:"creatures", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
-          else{ Lib.mode = "local"; Lib.cards = Lib.readLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          else{ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
           Lib.emit();
         }});
       return;
@@ -2321,14 +2341,15 @@ var TRAIT_DATA = {
 
   /* ---- the sheet as a PDF, drawn directly from the same geometry as the screen card ---- */
   var libsReady = null;
-  function loadScript(src){
+  function loadScript(src, sri){
     return new Promise(function(res, rej){
       var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error("could not load " + src)); };
+      if(sri){ s.integrity = sri; s.crossOrigin = "anonymous"; }
       document.head.appendChild(s);
     });
   }
   function loadLibs(){
-    if(!libsReady) libsReady = loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    if(!libsReady) libsReady = loadScript(TB.JSPDF.url, TB.JSPDF.sri);
     return libsReady;
   }
   var fontsLoaded = false, fontData = null;
@@ -2356,7 +2377,7 @@ var TRAIT_DATA = {
   }
   /* the card's accent — the deep blue twin of the item card's red; bars, title, speed icons, strip labels */
   var ACC = [22, 50, 94];
-  /* An image element as a PNG data: URL for jsPDF, turned upside down when the card is. */
+  /* An image element as a data: URL for jsPDF (JPEG if opaque, else PNG), turned upside down when the card is. */
   function imgData(el, flipIt){
     try{
       var w = el.naturalWidth || el.width || 1, h = el.naturalHeight || el.height || 1;
@@ -2364,7 +2385,7 @@ var TRAIT_DATA = {
       var ctx = cv.getContext("2d");
       if(flipIt){ ctx.translate(w, h); ctx.rotate(Math.PI); }
       ctx.drawImage(el, 0, 0);
-      return {data:cv.toDataURL("image/png"), w:w, h:h};
+      return {data:TB.canvasData(cv), w:w, h:h};
     }catch(e){ return null; }
   }
   /* The icon paths (M/L/C/Z, absolute) as jsPDF relative segments. */
@@ -2415,7 +2436,7 @@ var TRAIT_DATA = {
       var bw = G.W - 2 * G.img.pad - 2, bh = G.HALF - 2 * G.img.pad - 1;
       var r = Math.min(bw / im.w, bh / im.h) * ((d.imgScale || 100) / 100);
       var w = im.w * r, h = im.h * r;
-      pdf.addImage(im.data, "PNG", X + 1 + G.img.pad + (bw - w) / 2, Y + 1 + G.img.pad + (bh - h) / 2, w, h, undefined, "FAST");
+      pdf.addImage(im.data, TB.imgFormat(im.data), X + 1 + G.img.pad + (bw - w) / 2, Y + 1 + G.img.pad + (bh - h) / 2, w, h, undefined, "FAST");
     }
     var oy = G.HALF, showIrw = true, oy2 = oy;
     /* name, then either the trait line or the plain rule under it */
@@ -2649,7 +2670,8 @@ var TRAIT_DATA = {
       '<section class="view" id="sheetView"><div class="sheet-wrap" id="pages">' + copy.innerHTML + '</div></section></body></html>';
   }
 
-  var dlNs = null, lastPdf = null, lastHtml = "";
+  /* the artifact's downloads when hosted on claude.ai (set below), a plain download link on the site */
+  var dlNs = window.claude ? null : TB.downloads, lastPdf = null, lastHtml = "";
   var printModal = $("printModal"), scrim = $("scrim");
   function closePrintModal(){ printModal.hidden = true; scrim.hidden = true; }
   $("print").addEventListener("click", function(){
@@ -2723,8 +2745,13 @@ var TRAIT_DATA = {
   document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.sort === sortMode ? "true" : "false"); });
   var draft = null;
   try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
-  if(draft && (draft.name || draft.ac || draft.hp || draft.image || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
+  if(draft && (draft.name || draft.ac || draft.hp || draft.image || draft.picStored || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
   else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
+  TB.restorePic(DRAFT, draft, function(p){
+    if(img.data) return;
+    setImage({src:p.imageSrc || img.src || p.image || "", data:p.image || "", id:img.id, meta:img.meta, dirty:img.dirty});
+    refresh();
+  });
   Lib.start();
   var lastView = "editor";
   try{ lastView = localStorage.getItem("pf2e-init-view") || "editor"; }catch(e){}

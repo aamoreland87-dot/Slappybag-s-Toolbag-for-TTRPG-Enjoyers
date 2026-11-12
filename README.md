@@ -11,7 +11,8 @@ typefaces, also fetched by the PDF exporter) and jsPDF from a CDN for PDF export
 | `feat-cards.html` | Feat card builder — 4×5in cards with prerequisites, action cost, Grants rows (skills, spells, proficiencies…), actions, Special; import by name from Demiplane or pasted from AoN/Demiplane |
 | `initiative-cards.html` | Creature / NPC initiative card builder |
 | `hazard-cards.html` | Trap / environmental hazard / haunt card builder |
-| `fonts.css`, `fonts/` | Typefaces standing in for Paizo's: Eczar (titles), Teko (subheads), Tauri (small headers), EB Garamond (body). Subsetted `.woff` for the pages, `.ttf` twins for the PDF exporter. All SIL OFL; licenses in `fonts/licenses/`. |
+| `toolbag-core.js` | Shared helpers every tool page loads first: text fitting, debounced saves, the IndexedDB store, PDF picture encoding, the pinned jsPDF version. The artifact builds inline it. |
+| `fonts.css`, `fonts/` | Typefaces standing in for Paizo's: Eczar (titles), Teko (subheads), Tauri (small headers), EB Garamond (body). Subsetted `.woff` for the pages, `.ttf` twins for the PDF exporter (also subset: same characters, layout tables and hinting dropped). All SIL OFL; licenses in `fonts/licenses/`. |
 | `src/initiative-cards/` | Source of `initiative-cards.html` — don't edit the built page. Edit the parts and run `bash src/initiative-cards/build.sh` (site page) or `bash src/initiative-cards/build.sh artifact` (the claude.ai artifact copy, with the fonts embedded). |
 | `src/item-cards/build-artifact.sh` | Builds the claude.ai artifact copy of `item-cards.html` (typefaces embedded, no Toolbag nav) into `src/item-cards/artifact.html`. The item page has no parts — edit it directly, then rebuild. |
 | `src/feat-cards/build-artifact.sh` | Same for `feat-cards.html` → `src/feat-cards/artifact.html`. |
@@ -32,9 +33,14 @@ nothing to build.
 
 ## Where data lives
 
-Each tool keeps its card library in the browser's `localStorage`, so it is
-per device and per browser. Clearing site data clears the library. Export a
-PDF to keep a durable copy of your cards.
+Each tool keeps its card library in the browser's IndexedDB (`TB.store` in
+`toolbag-core.js`, database `toolbag`, one key per tool), so it is per device
+and per browser. Clearing site data clears the library. Export a PDF to keep a
+durable copy of your cards. The editor draft's text stays in `localStorage`;
+its picture goes to IndexedDB under `<draft key>.pic`, written only when it
+changes. Libraries saved by older versions in `localStorage` move across on
+first load. Where IndexedDB is unavailable, everything falls back to
+`localStorage` as before.
 
 The tools were originally built as Claude artifacts and still detect the
 artifact runtime (`window.claude`) — when present they use its shared database

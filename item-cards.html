@@ -663,6 +663,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   </div>
 </section>
 
+<script src="toolbag-core.js"></script>
 <script src="firebase-config.js"></script>
 <script src="cloud.js"></script>
 <script>
@@ -954,8 +955,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var d = collect();
     d.id = currentId; d.zoom = zoom; d.blanks = blanksOn();
     d.image = img.data; d.imageId = img.id; d.imageSrc = img.src; d.imageMeta = img.meta; d.imageDirty = img.dirty;
+    var pic = TB.splitPics(d);   /* pictures go to TB.store, and only when they change */
     try{ localStorage.setItem(DRAFT, JSON.stringify(d)); }catch(e){}
+    TB.putPic(DRAFT, pic);
   }
+  /* typing: re-fit once per frame, write the draft once typing pauses (and when leaving) */
+  var saveDraftSoon = TB.debounce(saveDraft, 400), refreshSoon = TB.perFrame(refresh);
+  TB.onLeave(saveDraftSoon.flush);
 
   /* Put card data into the editor. */
   function load(d){
@@ -1233,13 +1239,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   /* Title at 16pt on up to two lines; shrink only when a third line would be needed. */
   function fitName(card){
-    var best = 0.6;
-    for(var s = 1; s >= 0.6 - 1e-9; s -= 0.05){
-      card.style.setProperty("--name-scale", s.toFixed(2));
-      if(nameLines(card) <= 2){ best = s; break; }
-    }
-    card.style.setProperty("--name-scale", best.toFixed(2));
-    return best;
+    /* steps 1.00, 0.95 … 0.60 */
+    var i = TB.firstFit(8, function(k){ card.style.setProperty("--name-scale", (1 - 0.05 * k).toFixed(2)); },
+                        function(){ return nameLines(card) <= 2; });
+    return 1 - 0.05 * i;
   }
   /* Does any section's text (or its floated image) spill out of the section's box? */
   function overflows(card){
@@ -1249,13 +1252,11 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   /* Largest body-text size (10pt down to ~4.5pt) at which every section fits its box. */
   function fitCard(card){
-    var best = 0.46;
-    for(var s = 1; s >= 0.46 - 1e-9; s -= 0.04){
-      card.style.setProperty("--body-scale", s.toFixed(2));
-      if(!overflows(card)){ best = s; break; }
-    }
-    card.style.setProperty("--body-scale", best.toFixed(2));
-    return best;
+    /* steps 1.00, 0.96 … 0.48, then the floor 0.46 */
+    var step = function(k){ return k < 14 ? 1 - 0.04 * k : 0.46; };
+    var i = TB.firstFit(14, function(k){ card.style.setProperty("--body-scale", step(k).toFixed(2)); },
+                        function(){ return !overflows(card); });
+    return step(i);
   }
   /* Run now, and again once the embedded web fonts are usable (text measured with a fallback font wraps differently). */
   function whenFontsReady(fn){
@@ -1295,7 +1296,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
 
   /* ---------------- editor events ---------------- */
-  document.addEventListener("input", function(e){ if(e.target && e.target.isContentEditable){ refresh(); saveDraft(); } });
+  document.addEventListener("input", function(e){ if(e.target && e.target.isContentEditable){ refreshSoon(); saveDraftSoon(); } });
   document.addEventListener("change", function(e){
     var t = e.target;
     if(t && t.dataset && t.dataset.t && t.closest(".sec.active")){ setSlotType(t.closest(".sec.active"), t.checked ? t.dataset.t : ""); refresh(); saveDraft(); return; }
@@ -1410,8 +1411,22 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   var Lib = {mode:"local", cards:[], listeners:[], db:null, assets:null};
   Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
   Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
-  Lib.readLocal = function(){ try{ return JSON.parse(localStorage.getItem(LIB_LOCAL)) || []; }catch(e){ return []; } };
-  Lib.writeLocal = function(){ try{ localStorage.setItem(LIB_LOCAL, JSON.stringify(Lib.cards)); }catch(e){ toast("Storage full — image too large to keep"); } };
+  /* The local library lives in IndexedDB (TB.store), loaded once at start; a card saved before
+     that finishes is kept and merged in. */
+  Lib.ready = false;
+  Lib.loadLocal = function(){
+    Lib.mode = "local"; Lib.cards = []; Lib.ready = false;
+    return TB.store.get(LIB_LOCAL).then(null, function(){ return null; }).then(function(v){
+      if(Lib.mode !== "local" || Lib.ready) return;
+      var early = Lib.cards, ids = {};
+      early.forEach(function(c){ ids[c.id] = 1; });
+      Lib.cards = (Array.isArray(v) ? v : []).filter(function(c){ return !ids[c.id]; }).concat(early);
+      Lib.ready = true;
+      if(early.length) Lib.writeLocal();
+      Lib.emit();
+    });
+  };
+  Lib.writeLocal = function(){ if(Lib.ready) TB.store.set(LIB_LOCAL, Lib.cards).catch(function(){ toast("Storage full — image too large to keep"); }); };
   Lib.newId = function(){ return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
   Lib.save = function(card, id){
     var now = new Date().toISOString();
@@ -1438,14 +1453,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     return Promise.resolve();
   };
   Lib.start = function(){
-    Lib.cards = Lib.readLocal(); Lib.emit();
+    Lib.loadLocal();
     $("status").innerHTML = "Library: <b>this device</b>";
     if(window.Cloud && Cloud.available){
       Cloud.init({kind:"items", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
-          else{ Lib.mode = "local"; Lib.cards = Lib.readLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
+          else{ Lib.loadLocal(); $("status").innerHTML = "Library: <b>this device</b>"; }
           Lib.emit();
         }});
       return;
@@ -1639,14 +1654,15 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
      All layout is done in CSS pixels (a card is 384x480) and converted to points on output,
      so the metrics track the on-screen card. */
   var libsReady = null;
-  function loadScript(src){
+  function loadScript(src, sri){
     return new Promise(function(res, rej){
       var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error("could not load " + src)); };
+      if(sri){ s.integrity = sri; s.crossOrigin = "anonymous"; }
       document.head.appendChild(s);
     });
   }
   function loadLibs(){
-    if(!libsReady) libsReady = loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    if(!libsReady) libsReady = loadScript(TB.JSPDF.url, TB.JSPDF.sri);
     return libsReady;
   }
   var PT = 0.75;                                  /* px -> pt */
@@ -1678,13 +1694,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     add("caps", "Caps", "normal"); add("caps", "Caps", "bold");   /* Tauri has one weight */
     fontsLoaded = true;
   }
-  /* An image element as a PNG data: URL for jsPDF. */
+  /* An image element as a data: URL for jsPDF (JPEG if opaque, PNG if it has transparency). */
   function imgData(el){
     try{
       var cv = document.createElement("canvas");
       cv.width = el.naturalWidth || el.width || 1; cv.height = el.naturalHeight || el.height || 1;
       cv.getContext("2d").drawImage(el, 0, 0);
-      return cv.toDataURL("image/png");
+      return TB.canvasData(cv);
     }catch(e){ return ""; }
   }
   /* Our stored rich text (<b>/<i>/<u> + escaped text) as runs. */
@@ -1829,10 +1845,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         var iw = d.imgW || 120, ih = iw * (d.imgAr || 1);
         if(stacked){
           y += 1.5;
-          if(vis()) pdf.addImage(img.data, "PNG", pt(x0 + (cw - iw) / 2), pt(y), pt(iw), pt(ih));
+          if(vis()) pdf.addImage(img.data, TB.imgFormat(img.data), pt(x0 + (cw - iw) / 2), pt(y), pt(iw), pt(ih));
           y += ih + 4.5;
         }else{
-          if(vis()) pdf.addImage(img.data, "PNG", pt(x0), pt(y + 1), pt(iw), pt(ih));
+          if(vis()) pdf.addImage(img.data, TB.imgFormat(img.data), pt(x0), pt(y + 1), pt(iw), pt(ih));
           floatBox = {w:iw, bottom:y + 1 + ih + 2.5};
         }
       }else if(opts.blanks){
@@ -2002,7 +2018,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var base = new URL(".", location.href).href;
     return fontsCssText.replace(/url\((["']?)(?![a-z]+:)/g, function(m, q){ return "url(" + q + base; });
   }
-  var dlNs = null, lastPdf = null, lastHtml = "";
+  /* the artifact's downloads when hosted on claude.ai (set below), a plain download link on the site */
+  var dlNs = window.claude ? null : TB.downloads, lastPdf = null, lastHtml = "";
   var printModal = $("printModal");
   function closePrintModal(){ printModal.hidden = true; scrim.hidden = true; }
   /* Print: build the PDF and the web page, then offer both — save the PDF, or open the HTML. */
@@ -2092,8 +2109,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       }
     }catch(e){}
   }
-  if(draft && (draft.name || draft.description || draft.image || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
+  if(draft && (draft.name || draft.description || draft.image || draft.picStored || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
   else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
+  TB.restorePic(DRAFT, draft, function(p){
+    if(img.data) return;
+    setImage({src:p.imageSrc || img.src || p.image || "", data:p.image || "", id:img.id, meta:img.meta, dirty:img.dirty});
+    refresh();
+  });
   /* The embedded fonts arrive a beat after first paint; a fit measured with fallback metrics wraps differently. */
   whenFontsReady(refresh);
   if(document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", function(){

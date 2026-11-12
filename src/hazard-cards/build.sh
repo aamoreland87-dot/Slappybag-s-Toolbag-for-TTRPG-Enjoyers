@@ -38,7 +38,7 @@ if [ "$target" = "artifact" ]; then
     echo '<style>'; cat "$here/app.css"; echo '</style>'
     # drop the site nav, restore the plain title
     sed -e '/<!-- site-only -->/,/<!-- \/site-only -->/d' -e 's|<!-- artifact-only \(.*\) -->|\1|' "$here/body.html"
-    echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
+    echo '<script>'; cat "$root/toolbag-core.js" "$here/traits.js" "$here/app.js"; echo '</script>'
   } > "$out"
 else
   out="$root/hazard-cards.html"
@@ -47,6 +47,7 @@ else
     echo '<style id="cardCss">'; cat "$here/card.css"; echo '</style>'
     echo '<style>'; cat "$here/app.css"; echo '</style>'
     sed -e '/<!-- artifact-only /d' -e '/<!-- \/\?site-only -->/d' "$here/body.html"
+    echo '<script src="toolbag-core.js"></script>'
     echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
     echo '</body></html>'
   } > "$out"
