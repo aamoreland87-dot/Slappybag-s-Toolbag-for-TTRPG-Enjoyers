@@ -616,7 +616,7 @@
   /* ---------------- editor state ---------------- */
   var zoom = 1, currentId = null;
   var img = {src:"", data:"", id:"", meta:"", dirty:false};   /* what's shown, a pending upload, the stored asset */
-  var imgScale = 100, source = "";
+  var imgScale = 100, source = "", block = "";   /* block: the full stat block as imported, for Next Session */
   var cardEl = null, photo = null;
 
   function texts(){ return cardbox.querySelectorAll("[data-f]"); }
@@ -630,7 +630,7 @@
   function field(name){ return cardbox.querySelector('[data-f="' + name + '"]'); }
 
   function collect(){
-    var d = {skills:[], imgScale:imgScale, source:source};
+    var d = {skills:[], imgScale:imgScale, source:source, block:block};
     FIELDS.forEach(function(f){ var el = field(f); d[f] = el ? textOf(el) : ""; });
     d.speeds = readSpeeds(); d.senses = readSenses(); d.traits = readTraits(); readIrw(d);
     d.skills = readSkills(); d.extras = readExtras();
@@ -658,7 +658,7 @@
     setImage({src:d.imageSrc || d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : ""),
               data:d.image || "", id:d.imageId || "", meta:d.imageMeta || "", dirty:!!d.imageDirty});
     setImgScale(d.imgScale || 100);
-    setSource(d.source || "");
+    setSource(d.source || ""); block = d.block || "";
     if(d.zoom) setZoom(d.zoom);
     refresh();
   }
@@ -1201,6 +1201,7 @@
   }
   /* Put a parsed block on the card. The picture and the card's identity stay; every text field is replaced. */
   function importText(text, link){
+    var whole = String(text || "").trim();
     var p = parseStatBlock(text);
     var got = ["name","per","ac","fort","ref","will","hp","speeds","recall"].filter(function(f){ return p[f]; });
     if(!got.length && !p.skills.length){ toast("No stat block found in that text", 4000); return false; }
@@ -1208,6 +1209,7 @@
     FIELDS.forEach(function(f){ var el = field(f); if(el) el.innerText = p[f] || ""; });
     setRows(cardRows(p)); renderSpeeds(p.speeds || []); renderSenses(p.senses || []); renderTraits(p.traits || []);
     if(link) setSource(link);
+    block = whole;
     refresh(); saveDraft();
     var missing = ["name","ac","hp","speeds","fort","ref","will","per","recall"].filter(function(f){ return !p[f]; });
     toast(missing.length ? "Filled the card — still needs " + missing.join(", ") : "Filled the card from the stat block", 4000);
@@ -2037,6 +2039,14 @@
     else if(n < 20) setTimeout(function(){ waitDl(n + 1); }, 500);
   })(0);
   window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
+  /* Next Session asks for printed cards through this (toolbag-core.js TB.exportApi). */
+  TB.exportApi({kind:"creature", ready:function(){ return TB.libReady(Lib); }, pages:function(){ return $("pages"); },
+    show:function(ids){
+      var keep = selected, keepBlank = blankCount;
+      selected = ids; blankCount = 0; renderSheet();
+      return function(){ selected = keep; blankCount = keepBlank; renderSheet(); };
+    },
+    build:buildPdf});
   window.addEventListener("beforeprint", renderSheet);
 
   /* ---------------- views ---------------- */

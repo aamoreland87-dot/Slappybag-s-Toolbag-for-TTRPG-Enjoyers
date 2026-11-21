@@ -6,8 +6,8 @@
 <title>Next Session — Slappybag's Toolbag</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4ecdc;--card:#fffaf0;--ink:#2b2118;--muted:#7a6a58;--line:#d9c9a8;--accent:#7a1f1f;--gold:#b8862b;--ok:#4f7a3a;--steel:#8a8f98}
-@media (prefers-color-scheme:dark){:root{--bg:#1c1814;--card:#28211b;--ink:#efe4d0;--muted:#a8977f;--line:#45392c;--accent:#d06a5a;--gold:#d9a84a;--ok:#8fbf6f;--steel:#c4c9d2}}
+:root{--bg:#f4ecdc;--card:#fffaf0;--ink:#2b2118;--muted:#7a6a58;--line:#d9c9a8;--accent:#7a1f1f;--gold:#b8862b;--ok:#4f7a3a;--steel:#8a8f98;--hl:#f3e0a8}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1814;--card:#28211b;--ink:#efe4d0;--muted:#a8977f;--line:#45392c;--accent:#d06a5a;--gold:#d9a84a;--ok:#8fbf6f;--steel:#c4c9d2;--hl:#5a4620}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif}
 button{font:inherit;cursor:pointer;color:inherit}
@@ -18,7 +18,6 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
 
 /* ---------- left rail ---------- */
 .rail{width:200px;flex-shrink:0;border-right:1px solid var(--line);background:var(--card);padding:12px 8px;position:sticky;top:62px;height:calc(100vh - 62px);overflow:auto}
-.rail h2{font-size:.95rem;color:var(--accent);margin:0 4px 10px}
 .row{display:flex;align-items:center;gap:8px;padding:9px 6px;border-radius:8px;cursor:pointer;border:1px solid transparent}
 .row:hover{background:var(--bg)}
 .row.active{background:var(--bg);border-color:var(--gold)}
@@ -27,15 +26,15 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
 .row.done .nm{text-decoration:line-through;color:var(--muted)}
 .row .nm{flex:1;font-weight:600}
 .cnt{font-size:.8rem;color:var(--muted);white-space:nowrap}
-.step{display:flex;align-items:center;gap:2px}
-.step button{width:22px;height:22px;border-radius:5px;border:1px solid var(--line);background:var(--card);line-height:1;padding:0}
+.railsep{border-top:1px solid var(--line);margin:8px 4px}
 
 /* ---------- full-width banner + drop-down ---------- */
 .ns{position:sticky;top:0;z-index:15;height:62px}
 .nsbar{position:relative;z-index:2;width:100%;height:62px;display:flex;align-items:center;gap:12px;background:var(--card);border:none;border-bottom:2px solid var(--gold);padding:0 16px;text-align:left;
  box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .18s ease,background .18s,box-shadow .18s}
 .nsbar:hover{background:color-mix(in srgb,var(--card) 82%,#000);transform:translateY(3px);box-shadow:0 6px 14px rgba(0,0,0,.18)}
-.logo{flex:1;font-family:Cinzel,serif;font-weight:700;font-size:1.45rem;color:var(--accent);margin:0;display:flex;align-items:center;white-space:nowrap;letter-spacing:.5px}
+.logo{font-family:Cinzel,serif;font-weight:700;font-size:1.45rem;color:var(--accent);margin:0;display:flex;align-items:center;white-space:nowrap;letter-spacing:.5px}
+.sessname{flex:1;min-width:0;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .swords{width:1.15em;height:1.15em;margin:0 -.02em;overflow:visible;transform:translateY(.02em)}
 .swords .s{stroke:color-mix(in srgb,var(--steel) 60%,#000);stroke-width:.6}
 .pill{font-size:.85rem;font-weight:700;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:2px 10px;white-space:nowrap}
@@ -66,44 +65,121 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
 .ti .n.z{background:var(--line);color:var(--muted)}
 .ti.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--card))}
 .ti.done .l::before{content:"✓ ";color:var(--ok)}
-.notes{display:block;width:100%;min-height:42vh;margin-top:6px;font:inherit;font-size:1rem;line-height:1.45;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
-.pactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.notes{display:block;width:100%;min-height:22vh;margin-top:6px;font:inherit;font-size:1rem;line-height:1.45;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
+.pactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:14px}
+.box h3{font-size:1rem;color:var(--accent);margin-bottom:8px}
+.sessrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sessrow select{font:inherit;padding:7px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-width:220px;flex:1}
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 14px;margin:6px 0 10px}
+.parts label{display:flex;gap:8px;align-items:center;font-size:.95rem}
+.parts .c{color:var(--muted);font-size:.8rem;margin-left:auto}
+.prog{font-size:.9rem;color:var(--muted);min-height:1.2em}
+/* the print docket (pull-down) */
+.dkt{margin-top:0}
+.dkt .dh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dkt .dh h3{flex:1;margin:0}
+.dgrp{border-top:1px solid var(--line);padding:8px 0}
+.dgrp:first-of-type{border-top:none}
+.dgh{display:flex;align-items:center;gap:8px;font-weight:700}
+.dgh .c{color:var(--muted);font-weight:400;font-size:.85rem}
+.dgh .sp{flex:1}
+.dgh a,.dgh button.lnk{font-size:.8rem;font-weight:600;color:var(--accent);background:none;border:none;padding:0;text-decoration:underline}
+.dgrp.off .dits{opacity:.4}
+.dits{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0 26px}
+.dit{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:2px 4px 2px 2px;font-size:.85rem;max-width:100%}
+.dit .th{width:24px;height:24px;border-radius:50%;background:var(--card) center/cover no-repeat;display:grid;place-items:center;font-size:.8rem;flex-shrink:0}
+.dit .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;cursor:pointer}
+.dit .nm small{color:var(--muted)}
+.dit button{width:22px;height:22px;border-radius:50%;border:none;background:transparent;color:var(--muted);padding:0;line-height:1}
+.dit button:hover{background:var(--line);color:var(--ink)}
+.dit.miss{opacity:.55;font-style:italic}
+.dnote{margin:6px 0 0 26px;font-size:.85rem;color:var(--muted)}
+.dempty{color:var(--muted);font-size:.9rem;padding:6px 0}
+.pv{margin-top:10px;display:none}
+.pv.on{display:block}
+.pv iframe{width:100%;height:78vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+.pv .pvbar{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.pv .pvbar .sp{flex:1}
+.pv .nopv{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:16px;text-align:center}
+.icons.small .ti{width:70px;padding:6px 2px 5px}.icons.small .ti .e{font-size:1.4rem}
+/* docket toggle on each library tile */
+.card .dk{position:absolute;top:6px;left:6px;z-index:2;min-width:30px;height:30px;border-radius:15px;border:2px solid var(--card);background:var(--accent);color:#fff;font-weight:700;font-size:1rem;display:grid;place-items:center;padding:0 8px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.card .dk.on{background:var(--ok)}
+.card .dk:hover{filter:brightness(1.12)}
+.card .tg{position:absolute;bottom:6px;right:6px;font-size:.68rem;font-weight:700;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:0 6px;color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:-2px 0 12px}
+.filters select{font:inherit;font-size:.9rem;padding:6px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink)}
+.chipz{display:flex;gap:6px;flex-wrap:wrap}
+.chipz button{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:4px 10px;font-size:.85rem;font-weight:600}
+.chipz button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.filters label{display:flex;gap:6px;align-items:center;font-size:.9rem}
 
 /* ---------- tab library ---------- */
 .libhead{display:flex;align-items:center;gap:10px;margin:16px 0 10px;flex-wrap:wrap}
 .libhead h2{font-size:1.2rem;color:var(--accent);flex:1}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.sub-h{font-family:Cinzel,serif;font-size:.85rem;color:var(--muted);margin:18px 0 8px;grid-column:1/-1}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative;text-align:left;padding:0}
 .card:hover{border-color:var(--gold)}
 .card.in{outline:3px solid var(--ok);outline-offset:-1px}
-.pic{aspect-ratio:4/3;background:var(--bg) center/cover no-repeat;display:grid;place-items:center;font-size:2.2rem}
+.pic{aspect-ratio:4/3;background:var(--bg) center/contain no-repeat;display:grid;place-items:center;font-size:2.2rem}
 .card .b{padding:8px 9px}
 .card .t{font-weight:700;font-size:.95rem}
 .card .s{font-size:.78rem;color:var(--gold);font-weight:600}
 .card .i{font-size:.8rem;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.badge{position:absolute;top:6px;right:6px;background:var(--ok);color:#fff;font-size:.7rem;font-weight:700;border-radius:10px;padding:1px 7px}
+.badge{position:absolute;top:6px;right:6px;z-index:2;background:var(--ok);color:#fff;font-size:.7rem;font-weight:700;border-radius:10px;padding:1px 7px}
+.badge.l{left:6px;right:auto;background:var(--steel)}
 .addcard{border:2px dashed var(--line);border-radius:10px;background:transparent;color:var(--muted);min-height:150px;font-weight:700;display:grid;place-items:center;text-align:center;text-decoration:none;padding:8px}
+.addcard small{display:block;font-weight:400;font-size:.75rem}
 .btn{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:7px;padding:8px 12px;font-weight:600;text-decoration:none;display:inline-block}
 .btn.g{background:transparent;color:var(--accent)}
+.btn.s{padding:5px 9px;font-size:.85rem}
 .btn:disabled{opacity:.5}
+.search{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);min-width:180px}
+
+/* ---------- booklet ---------- */
+.bk{max-width:860px}
+.bk .fld textarea{min-height:120px}
+.scene{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px}
+.scene .sh{display:flex;gap:6px;align-items:center}
+.scene .sh input{flex:1;font:inherit;font-weight:700;font-size:1.05rem;border:1px solid transparent;background:transparent;color:var(--ink);padding:6px;border-radius:6px}
+.scene .sh input:focus{border-color:var(--line);background:var(--bg)}
+.scene .sh .n{font-family:Cinzel,serif;color:var(--accent);font-weight:700}
+.scene textarea{display:block;width:100%;min-height:130px;font:inherit;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:9px;resize:vertical;margin-top:6px}
+.ib{width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--card);padding:0}
+.prev{margin-top:8px;font-size:.95rem;line-height:1.45}
+.prev p{margin:.25em 0}
+.prev .beat{border-left:4px solid var(--gold);padding:3px 8px;background:color-mix(in srgb,var(--gold) 12%,transparent);font-weight:700;border-radius:0 6px 6px 0}
+.prev .beat::before{content:"BEAT  ";font-size:.7rem;letter-spacing:1px;color:var(--gold)}
+.prev .ck{background:var(--hl);border-radius:4px;padding:0 4px;font-weight:700}
+.prev .mn{font-weight:700;color:var(--accent)}
+.prev h4{font-family:Cinzel,serif;color:var(--accent);margin:.6em 0 .2em}
+.prev ul{margin:.2em 0 .2em 1.2em;padding:0}
+.tip{font-size:.85rem;color:var(--muted);margin:4px 0 0}
 
 /* ---------- sheet + detail page ---------- */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s;z-index:20}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:min(420px,100vw);background:var(--card);border:1px solid var(--line);border-radius:14px 14px 0 0;padding:14px;z-index:21;transition:transform .22s}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:min(420px,100vw);background:var(--card);border:1px solid var(--line);border-radius:14px 14px 0 0;padding:14px;z-index:21;transition:transform .22s;max-height:90vh;overflow:auto}
 .sheet.on{transform:translate(-50%,0)}
-.sheet .btn{width:100%;margin-top:8px;padding:11px}
+.sheet:not(.on){visibility:hidden;transition:transform .22s,visibility 0s .22s}
+.sheet .btn{width:100%;margin-top:8px;padding:11px;text-align:center}
 .page{position:fixed;inset:0;background:var(--bg);z-index:30;overflow:auto;display:none}
 .page.on{display:block}
-.pw{max-width:720px;margin:0 auto;padding:16px}
-.hero{aspect-ratio:16/9;max-height:320px;width:100%;border-radius:12px;background:var(--card) center/cover no-repeat;border:1px solid var(--line);display:grid;place-items:center;font-size:4rem;position:relative}
+.pw{max-width:760px;margin:0 auto;padding:16px}
+.hero{aspect-ratio:16/9;max-height:320px;width:100%;border-radius:12px;background:var(--card) center/contain no-repeat;border:1px solid var(--line);display:grid;place-items:center;font-size:4rem;position:relative}
 .hero label{position:absolute;bottom:8px;right:8px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:4px 9px;font-size:.8rem;cursor:pointer}
 .fld{display:block;margin-top:12px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
 .fld input,.fld textarea,.fld select{display:block;width:100%;margin-top:4px;font:inherit;font-size:1rem;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:9px}
 .fld textarea{min-height:70px;resize:vertical}
 .fld textarea.big{min-height:240px}
-.top{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.fld textarea.mono{font-family:ui-monospace,Consolas,monospace;font-size:.85rem;min-height:300px}
+.opt{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.95rem}
+.top{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
 .top .sp{flex:1}
+.stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.stats span{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:.85rem}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:20px;font-size:.9rem;opacity:0;transition:opacity .25s;pointer-events:none;z-index:40;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 
@@ -112,9 +188,9 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
  .row{flex-wrap:wrap;gap:4px;padding:7px 4px}
  .row .nm{font-size:.8rem;flex-basis:100%;order:2}
  .row .cnt{margin-left:auto;font-weight:700}
- .grid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))!important}
  main{padding:4px 10px 40px}
  .logo{font-size:1.15rem}
+ .sessname{display:none}
  .pill .ck{display:none}
  .grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 }
@@ -128,17 +204,38 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
    <g class="sr"><g transform="translate(20 20) rotate(-45)"><polygon class="s" points="0,-17 2.4,-13 2.4,6 -2.4,6 -2.4,-13"/><rect class="h" x="-7" y="6" width="14" height="3" rx="1"/><rect class="h" x="-1.5" y="9" width="3" height="6"/><circle class="h" cx="0" cy="16.2" r="2.2"/></g></g>
    <g class="spark"><polygon points="20,8 21.6,12.4 26,11 22.8,14.4 27,17 21.8,16.4 20,21 18.2,16.4 13,17 17.2,14.4 14,11 18.4,12.4" fill="#ffd34d" stroke="#ff8a1f" stroke-width=".6"/></g>
   </svg>t Session</h1>
+  <span class="sessname" id="sessname"></span>
   <span class="pill" id="nspill">0/0</span>
   <span class="chev">▾</span>
  </button>
  <div class="nspanel" id="nspanel"><div class="pin">
-  <div class="icons" id="nsicons"></div>
-  <label class="fld" for="nsnotes">Notes for next session</label>
-  <textarea class="notes" id="nsnotes" placeholder="Recap, goals, secrets & clues, reminders…"></textarea>
-  <div class="pactions">
-   <button class="btn" id="pdf">🖨️ Print — export PDF</button>
-   <button class="btn g" id="clear">Clear for new session</button>
+  <div class="box dkt">
+   <div class="dh"><h3>🖨️ Print docket</h3><span class="muted" id="dksum"></span></div>
+   <div id="docket"></div>
+   <div class="pactions">
+    <button class="btn" id="pvbtn">👁 Print preview</button>
+    <button class="btn g" id="pdf">⬇ Save PDF</button>
+    <span class="prog" id="prog"></span>
+   </div>
+   <div class="pv" id="pv"></div>
   </div>
+  <div class="box">
+   <h3>Session</h3>
+   <div class="sessrow">
+    <select id="sesspick" aria-label="Saved sessions"></select>
+    <button class="btn s" id="sessnew" title="Start the next session: the attending PCs carry over, everything else starts empty">＋ Next session</button>
+    <button class="btn g s" id="sessdup" title="Copy this session, picks and plan included">Duplicate</button>
+    <button class="btn g s" id="sessdel">Delete</button>
+   </div>
+   <div class="sessrow" style="margin-top:8px">
+    <button class="btn g s" id="backup" title="Download every session, quick card, detail page and stat block as a file">⬇ Back up sessions</button>
+    <label class="btn g s" title="Load sessions from a backup file">⬆ Restore<input type="file" accept=".json,application/json" id="restore" hidden></label>
+    <span class="muted">Sessions are saved on this device as you go. Library cards stay in their own tools.</span>
+   </div>
+  </div>
+  <div class="icons small" id="nsicons" style="margin-top:12px"></div>
+  <label class="fld" for="nsnotes">Notes for next session</label>
+  <textarea class="notes" id="nsnotes" placeholder="Reminders, secrets & clues, loose ends…"></textarea>
  </div></div>
 </div>
 <div class="app">
@@ -151,194 +248,1012 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
  <div style="display:flex;gap:10px;align-items:center"><div class="pic" id="spic" style="width:54px;aspect-ratio:1;border-radius:8px;font-size:1.4rem"></div><div><div id="stitle" style="font-weight:700"></div><div class="muted" id="ssub"></div></div></div>
  <button class="btn" id="sinc"></button><div id="sassign"></div>
  <button class="btn g" id="sopen">Open details page</button>
+ <a class="btn g" id="stool" target="_blank" rel="noopener">Edit in its card tool ↗</a>
  <button class="btn g" id="scancel" style="border-color:transparent">Cancel</button>
 </div>
 <div class="page" id="page"><div class="pw">
- <div class="top"><button class="btn g" id="pback">← Back</button><span class="sp"></span><button class="btn" id="pinc"></button></div>
- <div class="hero" id="phero"><label>📷 Picture<input type="file" accept="image/*" id="pfile" hidden></label></div>
+ <div class="top"><button class="btn g" id="pback">← Back</button><span class="sp"></span><a class="btn g" id="ptool" target="_blank" rel="noopener">Edit card ↗</a><button class="btn" id="pinc"></button></div>
+ <div class="hero" id="phero"><label id="pfilel">📷 Picture<input type="file" accept="image/*" id="pfile" hidden></label></div>
  <div id="passign"></div>
- <label class="fld">Name<input id="pname"></label>
- <label class="fld">Subtitle (role, level, type…)<input id="psub"></label>
- <label class="fld">Card info (short, shows on card)<textarea id="pinfo"></textarea></label>
- <label class="fld">Full context<textarea class="big" id="pdet" placeholder="Background, motives, stats, tactics, links, session notes…"></textarea></label>
+ <div id="pown">
+  <label class="fld">Name<input id="pname"></label>
+  <label class="fld">Subtitle (role, level, type…)<input id="psub"></label>
+  <label class="fld">Card info (short, shows on card)<textarea id="pinfo"></textarea></label>
+ </div>
+ <div id="plib"><h2 id="plname" style="margin-top:14px"></h2><div class="muted" id="plsub"></div><div class="stats" id="plstats"></div></div>
+ <label class="fld">Details page<textarea class="big" id="pdet" placeholder="Background, motives, tactics, what they know, how they react, links, session notes…"></textarea></label>
+ <label class="opt"><input type="checkbox" id="pdetp"> Print the details page in this session's PDF</label>
+ <div id="pblockw">
+  <label class="fld">Full stat block<textarea class="mono" id="pblock" placeholder="Paste the full stat block from Demiplane or Archives of Nethys."></textarea></label>
+  <div class="pactions"><button class="btn g s" id="pfetch">Fetch from Demiplane</button><span class="muted" id="pfetchn"></span></div>
+  <label class="opt"><input type="checkbox" id="pblockp"> Print the full stat block in this session's PDF</label>
+ </div>
  <button class="btn g" id="pdel" style="margin-top:16px;border-color:transparent">Delete card</button>
 </div></div>
 <div class="toast" id="toast"></div>
 
+<script src="toolbag-core.js"></script>
 <script>
-const SITE=".";
-const CATS=[["pcs","PCs","🛡️",4],["npcs","NPCs","🧙",2],["creatures","Creatures","🐉",3],["hazards","Hazards","🪤",1],
- ["items","Items & Loot","💰",2],["spells","Spells","✨",0],["feats","Feats","📘",0],["locations","Locations","🗺️",1]];
-const KEY="pf2-prep-cards-v2";
-let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!S)S={need:{},cards:[]};
-S.checked=S.checked||{};S.need=S.need||{};
-CATS.forEach(c=>{if(S.need[c[0]]==null)S.need[c[0]]=c[3]});
-S.tab=S.tab||"pcs";
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-const $=id=>document.getElementById(id);
-const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const cat=k=>CATS.find(c=>c[0]==k);
-const inCount=k=>S.cards.filter(c=>c.cat==k&&c.in).length;
-const pcName=id=>{const p=S.cards.find(x=>x.id==id);return p?(p.name||"Unnamed PC"):""};
-let sel=null;
-function toast(t,ms){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),ms||2200)}
-function incText(c){return c.cat=="pcs"?(c.in?"✓ Attending — tap to uncheck":"Mark as attending"):(c.in?"Remove from next session":"Include in next session")}
+(function(){
+"use strict";
+/* ============================================================================================
+   Next Session. Sessions live in IndexedDB (TB.store "ns-v3"); the card libraries are the tools'
+   own (read straight from their TB.store keys), so a card made in Item Cards shows up here.
+   S = {cur, sessions:[session], own:[quick card], extra:{ref:{det, block}}}
+   session = {id, title, date, recap, intro, scenes:[{id,title,text}], notes, checked:{tab:true},
+              picks:{tab:[{ref, pc, det, block}]}}
+   A ref is "<lib>:<id>": item / feat / spell / creature / hazard for library cards, own for quick cards.
+   ============================================================================================ */
+var $ = function(id){ return document.getElementById(id); };
+var esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
 
-function cardHTML(c){
- const lbl=c.cat=="pcs"?(c.in?'✓ Attending':''):(c.in?'✓ Next':'');
- const pc=c.cat=="items"&&c.pc?pcName(c.pc):"";
- return `<button class="card ${c.in?'in':''}" data-id="${c.id}">${lbl?`<span class="badge">${lbl}</span>`:''}
-  <div class="pic" style="${c.img?`background-image:url(${c.img})`:''}">${c.img?'':cat(c.cat)[2]}</div>
-  <div class="b"><div class="t">${esc(c.name)||'Untitled'}</div>${c.sub?`<div class="s">${esc(c.sub)}</div>`:''}<div class="i">${esc(c.info)}</div>${pc?`<div class="s" style="margin-top:4px">→ ${esc(pc)}</div>`:''}</div></button>`;
-}
-function render(){
- // rail
- let rail="",done=0;
- CATS.forEach(([k,n,ic])=>{
-  const ok=!!S.checked[k];if(ok)done++;
-  rail+=`<div class="row ${ok?'done':''} ${S.tab==k?'active':''}" data-tab="${k}">
-   <span class="chk" data-k="${k}" title="Mark this tab done">${ok?'✓':''}</span><span class="nm">${ic} ${n}</span>
-   <span class="cnt" title="selected for next session">${inCount(k)}</span></div>`;
- });
- $("rail").innerHTML=rail;
- // next session pill + summary
- const pill=$("nspill");pill.innerHTML=`${done}/${CATS.length}<span class="ck"> tabs checked</span>`;pill.classList.toggle("all",done==CATS.length);
- $("nsicons").innerHTML=CATS.map(([k,n,ic])=>{const c=inCount(k);
-  return `<button class="ti ${S.checked[k]?'done':''}" data-tab="${k}" title="${n}: ${c} selected"><span class="n ${c?'':'z'}">${c}</span><div class="e">${ic}</div><div class="l">${n}</div></button>`}).join("");
- if(document.activeElement!==$("nsnotes"))$("nsnotes").value=S.notes||"";
- // library of current tab
- const [k,n,ic]=cat(S.tab);
- const add=k=="items"
-  ?`<a class="addcard" href="${SITE}/item-cards.html" target="_blank" rel="noopener">＋ New item card<br><span style="font-weight:400;font-size:.75rem">opens the Item Card generator</span></a><button class="addcard" id="addc" style="min-height:60px;font-size:.8rem">＋ Quick card here</button>`
-  :`<button class="addcard" id="addc">＋ Add ${k=="pcs"?"PC":n.replace(/s( &.*)?$/,'')} card</button>`;
- $("lib").innerHTML=`<div class="libhead"><span style="font-size:1.4rem">${ic}</span><h2>${n}</h2><span class="cnt">${inCount(k)} ${k=="pcs"?"attending":"selected for next session"}</span></div>
-  <div class="grid">${add}${S.cards.filter(c=>c.cat==k).map(cardHTML).join("")}</div>`;
- $("addc").onclick=()=>{const c={id:Date.now().toString(36),cat:k,name:"",sub:"",info:"",det:"",img:"",in:false};S.cards.push(c);save();openPage(c)};
-}
-
-/* next session panel */
-function setNS(open){
- $("ns").classList.toggle("open",open);$("nsbar").setAttribute("aria-expanded",open);
- if(open){const s=$("swords");s.classList.remove("duel");void s.getBoundingClientRect();s.classList.add("duel")}
-}
-$("nsbar").onclick=()=>setNS(!$("ns").classList.contains("open"));
-$("nsnotes").oninput=e=>{S.notes=e.target.value;save()};
-document.addEventListener("keydown",e=>{if(e.key=="Escape")setNS(false)});
-$("swords").addEventListener("animationend",e=>{if(e.target.classList.contains("spark"))$("swords").classList.remove("duel")});
-
-/* sheet / page */
-function assignUI(id,c){const el=$(id);if(c.cat!="items"){el.innerHTML="";return}
- const pcs=S.cards.filter(x=>x.cat=="pcs");
- el.innerHTML=`<label class="fld">Assign to PC<select><option value="">— Unassigned —</option>${pcs.map(p=>`<option value="${p.id}" ${c.pc==p.id?"selected":""}>${esc(p.name||"Unnamed PC")}${p.in?"":" (not attending)"}</option>`).join("")}</select></label>`;
- el.querySelector("select").onchange=e=>{c.pc=e.target.value;save();render()}}
-function openSheet(c){sel=c;$("stitle").textContent=c.name||"Untitled";$("ssub").textContent=c.sub||cat(c.cat)[1];
- $("spic").style.backgroundImage=c.img?`url(${c.img})`:"";$("spic").textContent=c.img?"":cat(c.cat)[2];
- $("sinc").textContent=incText(c);assignUI("sassign",c);$("sheet").classList.add("on");$("scrim").classList.add("on")}
-function closeSheet(){$("sheet").classList.remove("on");$("scrim").classList.remove("on")}
-function setHero(){const h=$("phero");h.style.backgroundImage=sel.img?`url(${sel.img})`:"";if(h.firstChild.nodeType==3)h.removeChild(h.firstChild);if(!sel.img)h.insertBefore(document.createTextNode(cat(sel.cat)[2]),h.firstChild)}
-function openPage(c){sel=c;closeSheet();
- $("pname").value=c.name;$("psub").value=c.sub;$("pinfo").value=c.info;$("pdet").value=c.det;
- setHero();$("pinc").textContent=incText(c);assignUI("passign",c);$("page").classList.add("on");$("page").scrollTop=0}
-
-document.addEventListener("click",e=>{
-  const ck=e.target.closest(".chk[data-k]");
- if(ck){S.checked[ck.dataset.k]=!S.checked[ck.dataset.k];save();render();return}
- const tab=e.target.closest("[data-tab]");
- if(tab){S.tab=tab.dataset.tab;save();setNS(false);render();window.scrollTo(0,0);return}
- const cd=e.target.closest(".card");if(cd)openSheet(S.cards.find(c=>c.id==cd.dataset.id));
-});
-$("scrim").onclick=closeSheet;$("scancel").onclick=closeSheet;
-$("sinc").onclick=()=>{sel.in=!sel.in;save();closeSheet();render()};
-$("sopen").onclick=()=>openPage(sel);
-$("pback").onclick=()=>{$("page").classList.remove("on");render()};
-$("pinc").onclick=()=>{sel.in=!sel.in;save();$("pinc").textContent=incText(sel)};
-[["pname","name"],["psub","sub"],["pinfo","info"],["pdet","det"]].forEach(([id,f])=>$(id).oninput=e=>{sel[f]=e.target.value;save()});
-function armed(btn,label,fn){if(btn.dataset.arm){delete btn.dataset.arm;btn.textContent=label;fn()}
- else{btn.dataset.arm=1;btn.textContent="Tap again to confirm";setTimeout(()=>{if(btn.dataset.arm){delete btn.dataset.arm;btn.textContent=label}},3000)}}
-$("pdel").onclick=e=>armed(e.target,"Delete card",()=>{S.cards=S.cards.filter(c=>c!==sel);save();$("page").classList.remove("on");render()});
-$("clear").onclick=e=>armed(e.target,"Clear for new session",()=>{S.cards.forEach(c=>c.in=false);S.checked={};S.notes="";save();render();toast("Cleared — card library kept")});
-$("pfile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{
- const m=700,s=Math.min(1,m/Math.max(im.width,im.height)),cv=document.createElement("canvas");cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);
- cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);sel.img=cv.toDataURL("image/jpeg",.82);sel.iw=cv.width;sel.ih=cv.height;save();setHero()};im.src=r.result};r.readAsDataURL(f);e.target.value=""};
-
-/* ---------- PDF export ---------- */
-function loadJsPDF(){if(window.jspdf)return Promise.resolve();return new Promise((res,rej)=>{const s=document.createElement("script");
- s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";s.onload=res;s.onerror=()=>rej(new Error("PDF library didn't load"));document.head.appendChild(s)})}
-function dims(c){return new Promise(r=>{if(!c.img)return r(null);if(c.iw)return r([c.iw,c.ih]);const im=new Image();im.onload=()=>r([im.width,im.height]);im.onerror=()=>r(null);im.src=c.img})}
-const clean=s=>String(s||"").replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[^\x00-\xFF–—•…]/g,"").trim();
-async function buildPDF(){
- await loadJsPDF();
- const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"in",format:"letter"});
- const RED=[122,31,31],GOLD=[150,105,30],GREY=[110,100,88];
- const picked=[];CATS.forEach(([k])=>S.cards.filter(c=>c.cat==k&&c.in).forEach(c=>picked.push(c)));
- for(const c of picked)c._d=await dims(c);
- // summary page
- doc.setFont("helvetica","bold");doc.setFontSize(24);doc.setTextColor(...RED);doc.text("Next Session",0.75,1);
- doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(...GREY);doc.text(new Date().toLocaleDateString(),0.75,1.3);
- let y=1.8;
- if(clean(S.notes)){doc.setFont("helvetica","bold");doc.setFontSize(13);doc.setTextColor(...RED);doc.text("Notes",0.75,y);y+=0.25;
-  doc.setFont("times","normal");doc.setFontSize(11);doc.setTextColor(0);
-  doc.splitTextToSize(clean(S.notes),7).forEach(l=>{if(y>10.3){doc.addPage();y=0.9}doc.text(l,0.75,y);y+=0.19});y+=0.3}
- CATS.forEach(([k,n])=>{const inc=S.cards.filter(c=>c.cat==k&&c.in);
-  if(y>10){doc.addPage();y=0.9}
-  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.setTextColor(...RED);
-  doc.text(`${n}  (${inc.length})${S.checked[k]?"  - done":""}`,0.75,y);y+=0.25;
-  doc.setFont("times","normal");doc.setFontSize(11);doc.setTextColor(0);
-  const names=inc.length?inc.map(c=>"• "+clean(c.name||"Untitled")+(k=="items"&&c.pc?"  -> "+clean(pcName(c.pc)):"")):[k=="pcs"?"(no one attending)":"(none)"];
-  names.forEach(t=>{if(y>10.3){doc.addPage();y=0.9}doc.text(t,0.95,y);y+=0.2});y+=0.15});
- // card sheets: 4x5 in, 2x2 per letter page
- const pos=[[0.25,0.5],[4.25,0.5],[0.25,5.5],[4.25,5.5]];
- picked.forEach((c,i)=>{if(i%4==0)doc.addPage();const [x,y0]=pos[i%4];drawCard(doc,c,x,y0,RED,GOLD,GREY)});
- // detail pages
- picked.filter(c=>clean(c.det)||clean(c.info)).forEach(c=>{
-  doc.addPage();let y=0.9;const W=7;
-  doc.setFont("helvetica","bold");doc.setFontSize(22);doc.setTextColor(...RED);doc.text(clean(c.name)||"Untitled",0.75,y);y+=0.3;
-  doc.setFont("helvetica","normal");doc.setFontSize(11);doc.setTextColor(...GOLD);
-  doc.text([cat(c.cat)[1],clean(c.sub),c.cat=="items"&&c.pc?"Assigned to "+clean(pcName(c.pc)):""].filter(Boolean).join("  |  "),0.75,y);y+=0.3;
-  if(c.img&&c._d){const [iw,ih]=c._d,h=Math.min(3,W*ih/iw),w=h*iw/ih;doc.addImage(c.img,"JPEG",0.75,y,w,h);y+=h+0.3}
-  doc.setTextColor(0);doc.setFont("times","italic");doc.setFontSize(12);
-  if(clean(c.info)){doc.splitTextToSize(clean(c.info),W).forEach(l=>{if(y>10.3){doc.addPage();y=0.9}doc.text(l,0.75,y);y+=0.2});y+=0.15}
-  doc.setFont("times","normal");doc.setFontSize(12);
-  doc.splitTextToSize(clean(c.det),W).forEach(l=>{if(y>10.3){doc.addPage();y=0.9}doc.text(l,0.75,y);y+=0.2});
- });
- return {doc,count:picked.length};
-}
-function drawCard(doc,c,x,y,RED,GOLD,GREY){
- const W=4,H=5,p=0.2;
- doc.setDrawColor(...RED);doc.setLineWidth(0.03);doc.rect(x,y,W,H);
- doc.setFillColor(...RED);doc.rect(x,y,W,0.28,"F");
- doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(255);doc.text(cat(c.cat)[1].toUpperCase(),x+p,y+0.19);
- const ih=2.1,iy=y+0.38;
- if(c.img&&c._d){const [w0,h0]=c._d,s=Math.min((W-2*p)/w0,ih/h0),w=w0*s,h=h0*s;doc.addImage(c.img,"JPEG",x+(W-w)/2,iy+(ih-h)/2,w,h)}
- else{doc.setDrawColor(...GREY);doc.setLineWidth(0.01);doc.rect(x+p,iy,W-2*p,ih);doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(...GREY);doc.text("no picture",x+W/2,iy+ih/2,{align:"center"})}
- let ty=iy+ih+0.35;
- doc.setFont("helvetica","bold");doc.setFontSize(15);doc.setTextColor(0);
- doc.splitTextToSize(clean(c.name)||"Untitled",W-2*p).slice(0,2).forEach(l=>{doc.text(l,x+p,ty);ty+=0.24});
- if(clean(c.sub)){doc.setFont("helvetica","normal");doc.setFontSize(9.5);doc.setTextColor(...GOLD);doc.text(clean(c.sub),x+p,ty);ty+=0.22}
- doc.setDrawColor(...RED);doc.setLineWidth(0.01);doc.line(x+p,ty-0.08,x+W-p,ty-0.08);ty+=0.1;
- doc.setFont("times","normal");doc.setFontSize(10.5);doc.setTextColor(0);
- const foot=c.cat=="items"&&c.pc?"Assigned to: "+clean(pcName(c.pc)):"";
- const maxY=y+H-(foot?0.42:0.2);
- for(const l of doc.splitTextToSize(clean(c.info),W-2*p)){if(ty>maxY){break}doc.text(l,x+p,ty);ty+=0.18}
- if(foot){doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...RED);doc.text(foot,x+p,y+H-0.17)}
-}
-$("pdf").onclick=async e=>{
- const b=e.target;if(!S.cards.some(c=>c.in)){toast("Pick or mark cards for the next session first");return}
- b.disabled=true;b.textContent="Building PDF…";
- try{
-  const {doc,count}=await buildPDF();
-  const name=`next-session-${new Date().toISOString().slice(0,10)}.pdf`;
-  doc.save(name);
-  toast(`Saved ${count} card${count==1?"":"s"} to ${name}`);
- }catch(err){
-  const code=err&&err.code;
-  if(code=="declined")toast("Download cancelled");
-  else if(code=="rate_limited")toast("A download prompt is already open");
-  else toast("Couldn't make the PDF: "+(err&&err.message||code||"unknown error"),4000);
- }finally{b.disabled=false;b.textContent="🖨️ Print — export PDF"}
+/* The tools: their library key, page, the kind TBExport reports, and what a tab pulls from. */
+var TOOLS = {
+  item:     {key:"pf2e-item-lib",   page:"item-cards.html",       name:"Item Cards"},
+  feat:     {key:"pf2e-feat-lib",   page:"feat-cards.html",       name:"Feat Cards"},
+  spell:    {key:"pf2e-spell-lib",  page:"spell-cards.html",      name:"Spell Cards"},
+  creature: {key:"pf2e-init-lib",   page:"initiative-cards.html", name:"Initiative Cards"},
+  hazard:   {key:"pf2e-hazard-lib", page:"hazard-cards.html",     name:"Hazard Cards"}
 };
-render();
+/* [tab, label, icon, library it pulls from (or null), word for one] */
+var TABS = [
+  ["booklet","Booklet","📖",null,""],
+  ["library","All libraries","🔎",null,"card"],
+  ["pcs","PCs","🛡️",null,"PC"],
+  ["npcs","NPCs","🧙","creature","NPC"],
+  ["creatures","Creatures","🐉","creature","creature"],
+  ["hazards","Hazards","🪤","hazard","hazard"],
+  ["items","Items & Loot","💰","item","item"],
+  ["spells","Spells","✨","spell","spell"],
+  ["feats","Feats","📘","feat","feat"],
+  ["locations","Locations","🗺️",null,"location"]
+];
+var CARD_TABS = TABS.filter(function(t){ return t[0] !== "booklet" && t[0] !== "library"; });
+/* where a card goes when it's added from All libraries */
+var HOME = {item:"items", feat:"feats", spell:"spells", hazard:"hazards", creature:"creatures"};
+function homeTab(c){
+  if(c.lib === "own") return c.raw.cat;
+  if(c.lib === "creature" && pickOf("npcs", c.ref)) return "npcs";
+  return HOME[c.lib];
+}
+function inDocket(c){ return CARD_TABS.some(function(t){ return pickOf(t[0], c.ref); }); }
+var tab = function(k){ return TABS.filter(function(t){ return t[0] === k; })[0]; };
+
+var KEY = "ns-v3", OLD = "pf2-prep-cards-v2";
+var S = null, LIB = {item:[], feat:[], spell:[], creature:[], hazard:[]};
+var ui = {tab:"booklet", q:"", f:{}};
+function filt(){ return ui.f[ui.tab] = ui.f[ui.tab] || {trait:"", lvl:"", sort:"name", only:false, types:[]}; }
+try{ ui.tab = localStorage.getItem("ns-tab") || "booklet"; }catch(e){}
+if(!tab(ui.tab)) ui.tab = "booklet";
+
+function newSession(n){
+  return {id:uid(), title:"Session " + n, date:"", recap:"", intro:"", scenes:[{id:uid(), title:"Opening", text:""}],
+          notes:"", checked:{}, picks:{}};
+}
+function cur(){ return S.sessions.filter(function(s){ return s.id === S.cur; })[0] || S.sessions[0]; }
+function picks(k){ var s = cur(); return s.picks[k] = s.picks[k] || []; }
+function pickOf(k, ref){ return picks(k).filter(function(p){ return p.ref === ref; })[0]; }
+
+var saveSoon = TB.debounce(function(){ TB.store.set(KEY, S).catch(function(){ toast("Couldn't save — storage is full (large pictures on quick cards?)", 4000); }); }, 300);
+TB.onLeave(saveSoon.flush);
+var save = function(){ ver++; saveSoon(); var st = $("pvstale"); if(st && $("pv").classList.contains("on")) st.textContent = "· the docket changed — press Print preview again to update"; };
+
+/* The old one-session page kept its cards in localStorage; they become quick cards and Session 1. */
+function migrate(){
+  var old = null; try{ old = JSON.parse(localStorage.getItem(OLD)); }catch(e){}
+  var s = newSession(1);
+  var st = {cur:s.id, sessions:[s], own:[], extra:{}};
+  if(old && Array.isArray(old.cards)){
+    old.cards.forEach(function(c){
+      var oc = {id:c.id || uid(), cat:c.cat || "locations", name:c.name || "", sub:c.sub || "", info:c.info || "", img:c.img || "", iw:c.iw, ih:c.ih};
+      st.own.push(oc);
+      if(c.det) st.extra["own:" + oc.id] = {det:c.det};
+      if(c.in){ (s.picks[oc.cat] = s.picks[oc.cat] || []).push({ref:"own:" + oc.id, pc:c.pc ? "own:" + c.pc : "", det:!!c.det}); }
+    });
+    s.notes = old.notes || ""; s.checked = old.checked || {};
+  }
+  return st;
+}
+
+/* ---------------- library cards, as this page shows them ---------------- */
+function libCard(lib, c){
+  var t = [], sub = "", info = "";
+  var tr = (c.traits || []).join(", ");
+  if(lib === "item"){ sub = [c.cat, (c.value || "").trim() ? "Item " + c.value.trim() : ""].filter(Boolean).join(" · "); info = tr; }
+  else if(lib === "feat"){ sub = [c.cat, (c.level || "").trim() ? "Feat " + c.level.trim() : ""].filter(Boolean).join(" · "); info = tr; }
+  else if(lib === "spell"){ var w = /^(Cantrip|Focus|Ritual)$/.test(c.cat || "") ? c.cat : "Spell"; sub = (c.level || "").trim() ? w + " " + c.level.trim() : w; info = [c.trad, tr].filter(Boolean).join(" · "); }
+  else if(lib === "creature"){
+    var lv = /\bCreature\s+(-?\d+)/i.exec(c.block || "");
+    sub = [lv ? "Creature " + lv[1] : "", c.ac ? "AC " + c.ac : "", c.hp ? "HP " + c.hp : ""].filter(Boolean).join(" · ");
+    info = tr;
+  }
+  else if(lib === "hazard"){ sub = c.kicker || ""; info = [c.stealthDc ? "Stealth " + c.stealthDc : "", c.disableDc ? "Disable " + c.disableDc : ""].filter(Boolean).join(" · "); }
+  var lvm = lib === "item" ? /-?\d+/.exec(c.value || "") : lib === "feat" || lib === "spell" ? /-?\d+/.exec(c.level || "") :
+    lib === "creature" ? /\bCreature\s+(-?\d+)/i.exec(c.block || "") : /\bHazard\s+(-?\d+)/i.exec(c.kicker || c.block || "");
+  return {ref:lib + ":" + c.id, lib:lib, id:c.id, name:c.name || "Untitled", sub:sub, info:info,
+          lvl:lvm ? +(lvm[1] || lvm[0]) : null, traits:(c.traits || []).map(function(t){ return typeof t === "string" ? t : (t && (t.name || t.n)) || ""; }).filter(Boolean),
+          img:c.image || c.imageUrl || "", source:c.source || "", block:c.block || "", raw:c};
+}
+function ownCard(c){ var m = /-?\d+/.exec(c.sub || ""); return {ref:"own:" + c.id, lib:"own", id:c.id, name:c.name || "Untitled", sub:c.sub || "", info:c.info || "", img:c.img || "", raw:c, lvl:m ? +m[0] : null, traits:[]}; }
+function byRef(ref){
+  var i = ref.indexOf(":"), lib = ref.slice(0, i), id = ref.slice(i + 1);
+  if(lib === "own"){ var o = S.own.filter(function(c){ return c.id === id; })[0]; return o ? ownCard(o) : null; }
+  var c = (LIB[lib] || []).filter(function(c){ return c.id === id; })[0];
+  return c ? libCard(lib, c) : null;
+}
+function cardsFor(k){
+  if(k === "library"){
+    var all = [];
+    Object.keys(TOOLS).forEach(function(l){ all = all.concat((LIB[l] || []).map(function(c){ return libCard(l, c); })); });
+    return all.concat(S.own.map(ownCard));
+  }
+  var t = tab(k), out = [];
+  if(t[3]) out = (LIB[t[3]] || []).map(function(c){ return libCard(t[3], c); });
+  return out.concat(S.own.filter(function(c){ return c.cat === k; }).map(ownCard));
+}
+function loadLibs(){
+  return Promise.all(Object.keys(TOOLS).map(function(k){
+    return TB.store.get(TOOLS[k].key).then(function(v){ LIB[k] = Array.isArray(v) ? v : []; }, function(){ LIB[k] = []; });
+  }));
+}
+function extra(ref){ return S.extra[ref] = S.extra[ref] || {}; }
+function pcName(ref){ var c = ref && byRef(ref); return c ? c.name : ""; }
+function inCount(k){ return picks(k).filter(function(p){ return byRef(p.ref); }).length; }
+
+/* ---------------- toast ---------------- */
+function toast(t, ms){ var e = $("toast"); e.textContent = t; e.classList.add("show"); clearTimeout(e._t); e._t = setTimeout(function(){ e.classList.remove("show"); }, ms || 2200); }
+
+/* ---------------- highlighting (screen and PDF share the rules) ----------------
+   A beat is a line that starts with "!". A check is "DC 20 Athletics", "Athletics DC 20",
+   "DC 18 basic Will save", "Recall Knowledge DC 22" and the like. Names of cards picked for the
+   session are picked out too. */
+var SKILLW = "Acrobatics|Arcana|Athletics|Crafting|Deception|Diplomacy|Intimidation|Medicine|Nature|Occultism|Performance|Religion|Society|Stealth|Survival|Thievery|Perception|Fortitude|Reflex|Will|Recall Knowledge|Lore|[A-Z][a-z]+ Lore|Flat";
+var CHECK = new RegExp("\\b(?:DC\\s*\\d+\\s+(?:basic\\s+)?(?:" + SKILLW + ")(?:\\s+(?:save|check))?|(?:" + SKILLW + ")(?:\\s+(?:save|check))?(?:\\s*\\(DC\\s*\\d+\\)|,?\\s*DC\\s*\\d+))", "g");
+function mentionRe(){
+  var names = [];
+  CARD_TABS.forEach(function(t){ picks(t[0]).forEach(function(p){ var c = byRef(p.ref); if(c && c.name.length > 2) names.push(c.name); }); });
+  names.sort(function(a, b){ return b.length - a.length; });
+  return names.length ? new RegExp("\\b(" + names.map(function(n){ return n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")\\b", "g") : null;
+}
+/* A line as runs: [{t, b, i, ck, mn}] — **bold**, *italic*, checks, mentions. */
+function lineRuns(line, mre){
+  var runs = [];
+  String(line).split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*)/).forEach(function(part){
+    if(!part) return;
+    var b = /^\*\*.*\*\*$/.test(part), it = !b && /^\*.*\*$/.test(part);
+    var txt = b ? part.slice(2, -2) : it ? part.slice(1, -1) : part;
+    var marks = [];
+    txt.replace(CHECK, function(m, off){ marks.push([off, off + m.length, "ck"]); return m; });
+    if(mre) txt.replace(mre, function(m, g, off){ if(!marks.some(function(k){ return off < k[1] && off + m.length > k[0]; })) marks.push([off, off + m.length, "mn"]); return m; });
+    marks.sort(function(a, b2){ return a[0] - b2[0]; });
+    var at = 0;
+    marks.forEach(function(k){
+      if(k[0] > at) runs.push({t:txt.slice(at, k[0]), b:b, i:it});
+      runs.push({t:txt.slice(k[0], k[1]), b:true, i:it, ck:k[2] === "ck", mn:k[2] === "mn"});
+      at = k[1];
+    });
+    if(at < txt.length) runs.push({t:txt.slice(at), b:b, i:it});
+  });
+  return runs;
+}
+/* Text as blocks: {kind:"h"|"li"|"beat"|"p"|"gap", runs} */
+function blocks(text, mre){
+  var out = [];
+  String(text || "").replace(/\r/g, "").split("\n").forEach(function(l){
+    var s = l.trim();
+    if(!s){ out.push({kind:"gap"}); return; }
+    var h = /^#{1,3}\s+(.*)$/.exec(s); if(h){ out.push({kind:"h", runs:lineRuns(h[1], mre)}); return; }
+    var bt = /^!\s*(.*)$/.exec(s); if(bt){ out.push({kind:"beat", runs:lineRuns(bt[1], mre)}); return; }
+    var li = /^[-*•]\s+(.*)$/.exec(s); if(li){ out.push({kind:"li", runs:lineRuns(li[1], mre)}); return; }
+    out.push({kind:"p", runs:lineRuns(s, mre)});
+  });
+  return out;
+}
+function runsHtml(runs){
+  return runs.map(function(r){
+    var t = esc(r.t);
+    if(r.ck) return '<span class="ck">' + t + '</span>';
+    if(r.mn) return '<span class="mn">' + t + '</span>';
+    if(r.b) t = "<b>" + t + "</b>"; if(r.i) t = "<i>" + t + "</i>";
+    return t;
+  }).join("");
+}
+function previewHtml(text){
+  var mre = mentionRe(), html = "", inList = false;
+  blocks(text, mre).forEach(function(b){
+    if(b.kind !== "li" && inList){ html += "</ul>"; inList = false; }
+    if(b.kind === "gap") return;
+    if(b.kind === "li"){ if(!inList){ html += "<ul>"; inList = true; } html += "<li>" + runsHtml(b.runs) + "</li>"; return; }
+    if(b.kind === "h"){ html += "<h4>" + runsHtml(b.runs) + "</h4>"; return; }
+    html += '<p' + (b.kind === "beat" ? ' class="beat"' : '') + '>' + runsHtml(b.runs) + '</p>';
+  });
+  if(inList) html += "</ul>";
+  return html;
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  var s = cur();
+  $("sessname").textContent = "· " + (s.title || "Untitled") + (s.date ? " · " + s.date : "");
+  var rail = "", done = 0;
+  TABS.forEach(function(t){
+    var k = t[0], ok = !!s.checked[k]; if(ok) done++;
+    rail += (k === "pcs" ? '<div class="railsep"></div>' : '') +
+      '<div class="row ' + (ok ? 'done ' : '') + (ui.tab === k ? 'active' : '') + '" data-tab="' + k + '">' +
+      '<span class="chk" data-k="' + k + '" title="Mark this tab done">' + (ok ? '✓' : '') + '</span><span class="nm">' + t[2] + ' ' + t[1] + '</span>' +
+      '<span class="cnt" title="' + (k === "booklet" ? "scenes in the plan" : k === "library" ? "cards in all your libraries" : "in the print docket") + '">' + (k === "booklet" ? (s.scenes || []).length : k === "library" ? cardsFor("library").length : inCount(k)) + '</span></div>';
+  });
+  $("rail").innerHTML = rail;
+  var nd = docketCount();
+  var pill = $("nspill"); pill.innerHTML = "🖨️ " + nd + '<span class="ck"> in the docket · ' + done + "/" + TABS.length + ' tabs checked</span>'; pill.classList.toggle("all", done === TABS.length);
+  $("nsicons").innerHTML = TABS.filter(function(t){ return t[0] !== "library"; }).map(function(t){
+    var c = t[0] === "booklet" ? (s.scenes || []).length : inCount(t[0]);
+    return '<button class="ti ' + (s.checked[t[0]] ? 'done' : '') + '" data-tab="' + t[0] + '" title="' + t[1] + '"><span class="n ' + (c ? '' : 'z') + '">' + c + '</span><div class="e">' + t[2] + '</div><div class="l">' + t[1] + '</div></button>';
+  }).join("");
+  if(document.activeElement !== $("nsnotes")) $("nsnotes").value = s.notes || "";
+  renderSessions(); renderDocket();
+  if(ui.tab === "booklet") renderBooklet(); else renderTab();
+}
+function renderSessions(){
+  $("sesspick").innerHTML = S.sessions.map(function(x){
+    return '<option value="' + x.id + '"' + (x.id === S.cur ? " selected" : "") + '>' + esc((x.title || "Untitled") + (x.date ? " — " + x.date : "")) + '</option>';
+  }).join("");
+}
+function cardTile(c, k){
+  var lib = k === "library", hk = lib ? homeTab(c) : k;
+  var p = pickOf(hk, c.ref), on = lib ? inDocket(c) : !!p, pc = p && p.pc ? pcName(p.pc) : "";
+  var flags = [p && p.block ? "stat block" : "", p && p.det ? "details" : ""].filter(Boolean).join(" + ");
+  var tl = tab(hk) || tab("library");
+  return '<div class="card ' + (on ? 'in' : '') + '" data-ref="' + esc(c.ref) + '" role="button" tabindex="0">' +
+    '<button class="dk' + (on ? ' on' : '') + '" data-dk="' + esc(c.ref) + '" title="' + (on ? "Take it out of the print docket" : "Add to the print docket") + '">' + (on ? "✓" : "＋") + '</button>' +
+    (on && hk === "pcs" ? '<span class="badge">Attending</span>' : '') +
+    '<div class="pic" style="' + (c.img ? 'background-image:url(' + esc(c.img) + ')' : '') + '">' + (c.img ? '' : tl[2]) + '</div>' +
+    (lib ? '<span class="tg">' + esc(tl[1]) + '</span>' : '') +
+    '<div class="b"><div class="t">' + esc(c.name) + '</div>' + (c.sub ? '<div class="s">' + esc(c.sub) + '</div>' : '') +
+    '<div class="i">' + esc(c.info) + '</div>' +
+    (pc ? '<div class="s" style="margin-top:4px">→ ' + esc(pc) + '</div>' : '') +
+    (flags ? '<div class="s" style="margin-top:4px;color:var(--muted)">prints ' + flags + '</div>' : '') +
+    '</div></div>';
+}
+var TYPE_CHIPS = [["creature","Creatures & NPCs"],["hazard","Hazards"],["item","Items"],["spell","Spells"],["feat","Feats"],["own","Quick cards"]];
+/* search, then the filters: type (All libraries), trait, level, docket only; then the sort */
+function filtered(k){
+  var F = filt(), list = cardsFor(k), q = ui.q.trim().toLowerCase();
+  if(F.types.length) list = list.filter(function(c){ return F.types.indexOf(c.lib) >= 0; });
+  if(q) list = list.filter(function(c){ return (c.name + " " + c.sub + " " + c.info + " " + c.traits.join(" ")).toLowerCase().indexOf(q) >= 0; });
+  if(F.trait) list = list.filter(function(c){ return c.traits.some(function(t){ return t.toLowerCase() === F.trait.toLowerCase(); }); });
+  if(F.lvl !== ""){ var r = F.lvl.split("-"); list = list.filter(function(c){ return c.lvl != null && c.lvl >= +r[0] && c.lvl <= +(r[1] == null ? r[0] : r[1]); }); }
+  if(F.only) list = list.filter(function(c){ return k === "library" ? inDocket(c) : pickOf(k, c.ref); });
+  var by = F.sort;
+  list.sort(function(a, b){
+    if(by === "level"){ var d = (a.lvl == null ? 99 : a.lvl) - (b.lvl == null ? 99 : b.lvl); if(d) return d; }
+    if(by === "type"){ var e = a.lib.localeCompare(b.lib); if(e) return e; }
+    return a.name.localeCompare(b.name);
+  });
+  return list;
+}
+function filterBar(k){
+  var F = filt(), base = cardsFor(k), tr = {}, lv = {};
+  base.forEach(function(c){ c.traits.forEach(function(t){ tr[t] = (tr[t] || 0) + 1; }); if(c.lvl != null) lv[c.lvl] = 1; });
+  var traits = Object.keys(tr).sort(), levels = Object.keys(lv).map(Number).sort(function(a, b){ return a - b; });
+  return '<div class="filters">' +
+    (k === "library" ? '<div class="chipz">' + TYPE_CHIPS.map(function(t){ return '<button data-ft="' + t[0] + '" class="' + (F.types.indexOf(t[0]) >= 0 ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div>' : '') +
+    (traits.length ? '<select id="ftrait" aria-label="Trait"><option value="">Any trait</option>' + traits.map(function(t){ return '<option' + (F.trait === t ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("") + '</select>' : '') +
+    (levels.length ? '<select id="flvl" aria-label="Level"><option value="">Any level</option>' + levels.map(function(l){ return '<option value="' + l + '"' + (F.lvl === String(l) ? " selected" : "") + '>Level ' + l + '</option>'; }).join("") +
+      ['-1-2','3-6','7-10','11-14','15-20'].map(function(r){ return '<option value="' + r + '"' + (F.lvl === r ? " selected" : "") + '>Levels ' + r.replace(/^(-?\d+)-/, "$1–") + '</option>'; }).join("") + '</select>' : '') +
+    '<select id="fsort" aria-label="Sort"><option value="name"' + (F.sort === "name" ? " selected" : "") + '>Sort: name</option><option value="level"' + (F.sort === "level" ? " selected" : "") + '>Sort: level</option>' + (k === "library" ? '<option value="type"' + (F.sort === "type" ? " selected" : "") + '>Sort: type</option>' : '') + '</select>' +
+    '<label><input type="checkbox" id="fonly"' + (F.only ? " checked" : "") + '> In the docket only</label>' +
+    ((F.trait || F.lvl || F.only || F.types.length || ui.q) ? '<button class="btn g s" id="fclear">Clear filters</button>' : '') +
+    '</div>';
+}
+function renderTab(){
+  var t = tab(ui.tab), k = t[0], lib = t[3], all = k === "library";
+  var list = filtered(k), total = cardsFor(k).length;
+  var inN = cardsFor(k).filter(function(c){ return all ? inDocket(c) : pickOf(k, c.ref); }).length;
+  var adds = all ? '' : (lib ? '<a class="addcard" href="' + TOOLS[lib].page + '" target="_blank" rel="noopener">＋ New ' + t[4] + ' card<small>opens ' + TOOLS[lib].name + '; it appears here once saved</small></a>' : '') +
+    '<button class="addcard" id="addc"' + (lib ? ' style="min-height:60px;font-size:.85rem"' : '') + '>＋ ' + (lib ? 'Quick card here' : 'Add ' + t[4] + ' card') + '</button>';
+  var html = '<div class="libhead"><span style="font-size:1.4rem">' + t[2] + '</span><h2>' + t[1] + '</h2>' +
+    '<input class="search" id="q" type="search" placeholder="Search names, traits…" value="' + esc(ui.q) + '">' +
+    '<span class="cnt">' + (list.length < total ? list.length + " of " + total + " shown · " : total + " cards · ") + inN + (k === "pcs" ? " attending" : " in the docket") + '</span></div>' +
+    filterBar(k);
+  html += '<div class="grid">' + adds + list.map(function(c){ return cardTile(c, k); }).join("");
+  if(!list.length) html += '<p class="muted" style="grid-column:1/-1">' + (total ? "Nothing matches the filters." : lib ? "No cards in " + TOOLS[lib].name + " yet. Make some there (they're saved on this device) and they'll show up here." : all ? "Your libraries are empty. Make cards in the card tools and they'll all show up here." : "") + '</p>';
+  html += '</div>';
+  $("lib").innerHTML = html;
+  var F = filt(), re = function(){ renderTab(); };
+  document.querySelectorAll("[data-ft]").forEach(function(b){ b.onclick = function(){ var i = F.types.indexOf(b.dataset.ft); if(i >= 0) F.types.splice(i, 1); else F.types.push(b.dataset.ft); re(); }; });
+  if($("ftrait")) $("ftrait").onchange = function(){ F.trait = this.value; re(); };
+  if($("flvl")) $("flvl").onchange = function(){ F.lvl = this.value; re(); };
+  $("fsort").onchange = function(){ F.sort = this.value; re(); };
+  $("fonly").onchange = function(){ F.only = this.checked; re(); };
+  if($("fclear")) $("fclear").onclick = function(){ ui.f[ui.tab] = null; ui.q = ""; re(); };
+  var qi = $("q");
+  qi.oninput = function(){ ui.q = qi.value; var pos = qi.selectionStart; renderTab(); var n = $("q"); n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} };
+  if(all) return;
+  $("addc").onclick = function(){
+    var c = {id:uid(), cat:k, name:"", sub:"", info:"", img:""}; S.own.push(c);
+    picks(k).push({ref:"own:" + c.id}); save(); openPage(ownCard(c), k);
+  };
+}
+
+/* ---------------- booklet ---------------- */
+function renderBooklet(){
+  var s = cur();
+  var scenes = (s.scenes || []).map(function(sc, i){
+    return '<div class="scene" data-sc="' + sc.id + '"><div class="sh"><span class="n">' + (i + 1) + '.</span>' +
+      '<input data-scf="title" value="' + esc(sc.title) + '" placeholder="Scene title" aria-label="Scene title">' +
+      '<button class="ib" data-scm="-1" title="Move up">↑</button><button class="ib" data-scm="1" title="Move down">↓</button><button class="ib" data-scx title="Delete scene">✕</button></div>' +
+      '<textarea data-scf="text" placeholder="What happens, who\'s there, what the players can find.&#10;! Start a line with ! to make it a beat.&#10;Checks like DC 20 Athletics are highlighted for you.">' + esc(sc.text) + '</textarea>' +
+      '<div class="prev" data-prev>' + previewHtml(sc.text) + '</div></div>';
+  }).join("");
+  $("lib").innerHTML = '<div class="bk"><div class="libhead"><span style="font-size:1.4rem">📖</span><h2>Session booklet</h2></div>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap"><label class="fld" style="flex:2;min-width:220px">Session title<input id="btitle" value="' + esc(s.title) + '"></label>' +
+    '<label class="fld" style="flex:1;min-width:150px">Date<input id="bdate" type="date" value="' + esc(s.date) + '"></label></div>' +
+    '<label class="fld">Last session recap<textarea id="brecap" style="min-height:180px" placeholder="Paste the recap Claude wrote from the session recording here.&#10;## Headings, - bullets and **bold** are kept.">' + esc(s.recap) + '</textarea></label>' +
+    '<p class="tip">From a recording: drop the transcript into the toolbag Project in Claude and ask for a recap — it comes back in this format, ready to paste.</p>' +
+    '<div class="prev" id="brecapp">' + previewHtml(s.recap) + '</div>' +
+    '<label class="fld">Intro to the session (read-aloud)<textarea id="bintro" placeholder="Where we left off, what the players see as the session opens…">' + esc(s.intro) + '</textarea></label>' +
+    '<div class="libhead" style="margin-top:22px"><h2 style="font-size:1.05rem">The plan</h2><button class="btn s" id="addsc">＋ Scene</button></div>' +
+    '<p class="tip">Start a line with <b>!</b> for a beat. Checks (<span class="prev"><span class="ck">DC 20 Athletics</span></span>) and the names of cards picked for this session are picked out automatically.</p>' +
+    scenes + '</div>';
+  var bind = function(id, f){ $(id).oninput = function(){ s[f] = this.value; save(); if(f === "title" || f === "date"){ $("sessname").textContent = "· " + (s.title || "Untitled") + (s.date ? " · " + s.date : ""); renderSessions(); } if(f === "recap") $("brecapp").innerHTML = previewHtml(s.recap); }; };
+  bind("btitle", "title"); bind("bdate", "date"); bind("brecap", "recap"); bind("bintro", "intro");
+  $("addsc").onclick = function(){ s.scenes.push({id:uid(), title:"", text:""}); save(); renderBooklet(); var all = document.querySelectorAll(".scene input"); all[all.length - 1].focus(); };
+  document.querySelectorAll(".scene").forEach(function(el){
+    var sc = s.scenes.filter(function(x){ return x.id === el.dataset.sc; })[0];
+    el.querySelectorAll("[data-scf]").forEach(function(f){ f.oninput = function(){ sc[f.dataset.scf] = f.value; save(); if(f.dataset.scf === "text") el.querySelector("[data-prev]").innerHTML = previewHtml(sc.text); }; });
+    el.querySelectorAll("[data-scm]").forEach(function(b){ b.onclick = function(){ var i = s.scenes.indexOf(sc), j = i + (+b.dataset.scm); if(j < 0 || j >= s.scenes.length) return; s.scenes.splice(i, 1); s.scenes.splice(j, 0, sc); save(); renderBooklet(); }; });
+    el.querySelector("[data-scx]").onclick = function(){ var b = this; armed(b, "✕", function(){ s.scenes.splice(s.scenes.indexOf(sc), 1); save(); renderBooklet(); }, "?"); };
+  });
+}
+
+/* ---------------- next session panel ---------------- */
+function setNS(open){
+  $("ns").classList.toggle("open", open); $("nsbar").setAttribute("aria-expanded", open);
+  if(open){ var sw = $("swords"); sw.classList.remove("duel"); void sw.getBoundingClientRect(); sw.classList.add("duel"); }
+}
+$("nsbar").onclick = function(){ setNS(!$("ns").classList.contains("open")); };
+$("nsnotes").oninput = function(e){ cur().notes = e.target.value; save(); };
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") setNS(false); });
+$("swords").addEventListener("animationend", function(e){ if(e.target.classList.contains("spark")) $("swords").classList.remove("duel"); });
+$("sesspick").onchange = function(){ S.cur = this.value; save(); ui.q = ""; render(); };
+$("sessnew").onclick = function(){
+  var s = cur(), n = newSession(S.sessions.length + 1);
+  var m = /^(.*?)(\d+)\s*$/.exec(s.title || ""); if(m) n.title = m[1] + (+m[2] + 1);
+  n.picks.pcs = picks("pcs").map(function(p){ return {ref:p.ref}; });
+  S.sessions.push(n); S.cur = n.id; save(); ui.tab = "booklet"; render(); toast("Started " + n.title + " — PCs carried over");
+};
+$("sessdup").onclick = function(){ var c = JSON.parse(JSON.stringify(cur())); c.id = uid(); c.title = (c.title || "Session") + " (copy)"; S.sessions.push(c); S.cur = c.id; save(); render(); toast("Duplicated"); };
+$("sessdel").onclick = function(){
+  var b = this;
+  if(S.sessions.length < 2){ toast("This is the only session — start a new one first"); return; }
+  armed(b, "Delete", function(){ var s = cur(); S.sessions = S.sessions.filter(function(x){ return x !== s; }); S.cur = S.sessions[S.sessions.length - 1].id; save(); render(); toast("Deleted " + (s.title || "session")); });
+};
+$("backup").onclick = function(){
+  var blob = new Blob([JSON.stringify({kind:"toolbag-next-session", version:3, saved:new Date().toISOString(), data:S}, null, 1)], {type:"application/json"});
+  TB.downloads.save({filename:"next-session-backup-" + new Date().toISOString().slice(0, 10) + ".json", data:blob}).then(function(){ toast("Backup saved"); });
+};
+$("restore").onchange = function(e){
+  var f = e.target.files[0]; e.target.value = ""; if(!f) return;
+  f.text().then(function(t){
+    var j = JSON.parse(t), d = j && j.data;
+    if(!d || !Array.isArray(d.sessions)) throw new Error("not a Next Session backup");
+    /* merge: sessions and quick cards by id, the backup's copy wins */
+    var ids = {}; d.sessions.forEach(function(s){ ids[s.id] = 1; });
+    S.sessions = S.sessions.filter(function(s){ return !ids[s.id]; }).concat(d.sessions);
+    var oid = {}; (d.own || []).forEach(function(c){ oid[c.id] = 1; });
+    S.own = S.own.filter(function(c){ return !oid[c.id]; }).concat(d.own || []);
+    Object.keys(d.extra || {}).forEach(function(k){ S.extra[k] = d.extra[k]; });
+    S.cur = d.cur && ids[d.cur] ? d.cur : d.sessions[d.sessions.length - 1].id;
+    save(); render(); toast("Restored " + d.sessions.length + " session" + (d.sessions.length === 1 ? "" : "s"));
+  }).catch(function(err){ toast("Couldn't restore: " + err.message, 4000); });
+};
+
+/* ---------------- sheet / detail page ---------------- */
+var sel = null, selTab = null;
+function incText(k, p){ return k === "pcs" ? (p ? "✓ Attending — tap to uncheck" : "Mark as attending") : (p ? "Remove from this session" : "Add to this session"); }
+function toggle(k, c){
+  var p = pickOf(k, c.ref);
+  if(p) cur().picks[k] = picks(k).filter(function(x){ return x !== p; });
+  else{
+    var ex = S.extra[c.ref] || {};
+    picks(k).push({ref:c.ref, block:!!(c.block || ex.block) && /creatures|npcs|hazards/.test(k), det:!!ex.det});
+  }
+  save();
+}
+function assignUI(id, c, k){
+  var el = $(id);
+  if(k !== "items"){ el.innerHTML = ""; return; }
+  var p = pickOf(k, c.ref);
+  var pcs = cardsFor("pcs");
+  el.innerHTML = '<label class="fld">Give to PC' + (p ? '' : ' (adds it to the session)') + '<select><option value="">— Unassigned —</option>' + pcs.map(function(x){
+    return '<option value="' + esc(x.ref) + '"' + (p && p.pc === x.ref ? " selected" : "") + '>' + esc(x.name) + (pickOf("pcs", x.ref) ? "" : " (not attending)") + '</option>';
+  }).join("") + '</select></label>';
+  el.querySelector("select").onchange = function(e){
+    var q = pickOf(k, c.ref); if(!q){ toggle(k, c); q = pickOf(k, c.ref); }
+    q.pc = e.target.value; save(); render(); if(sel === c) $("sinc").textContent = incText(k, pickOf(k, c.ref));
+  };
+}
+function toolLink(el, c){
+  if(c.lib === "own"){ el.style.display = "none"; return; }
+  el.style.display = ""; el.href = TOOLS[c.lib].page;
+}
+function openSheet(c, k){
+  sel = c; selTab = k;
+  $("stitle").textContent = c.name; $("ssub").textContent = c.sub || tab(k)[1];
+  $("spic").style.backgroundImage = c.img ? "url(" + c.img + ")" : ""; $("spic").textContent = c.img ? "" : tab(k)[2];
+  $("sinc").textContent = incText(k, pickOf(k, c.ref)); assignUI("sassign", c, k); toolLink($("stool"), c);
+  $("sheet").classList.add("on"); $("scrim").classList.add("on");
+}
+function closeSheet(){ $("sheet").classList.remove("on"); $("scrim").classList.remove("on"); }
+function setHero(){
+  var h = $("phero"), own = sel.lib === "own";
+  h.style.backgroundImage = sel.img ? "url(" + sel.img + ")" : "";
+  if(h.firstChild && h.firstChild.nodeType === 3) h.removeChild(h.firstChild);
+  if(!sel.img) h.insertBefore(document.createTextNode(tab(selTab)[2]), h.firstChild);
+  $("pfilel").style.display = own ? "" : "none";
+}
+function pageChecks(){
+  var p = pickOf(selTab, sel.ref);
+  $("pdetp").checked = !!(p && p.det); $("pblockp").checked = !!(p && p.block);
+  $("pinc").textContent = incText(selTab, p);
+}
+function openPage(c, k){
+  sel = c; selTab = k || selTab; closeSheet();
+  var own = c.lib === "own", ex = extra(c.ref);
+  $("pown").style.display = own ? "" : "none"; $("plib").style.display = own ? "none" : "";
+  $("pdel").style.display = own ? "" : "none";
+  toolLink($("ptool"), c);
+  if(own){ $("pname").value = c.raw.name; $("psub").value = c.raw.sub; $("pinfo").value = c.raw.info; }
+  else{
+    $("plname").textContent = c.name; $("plsub").textContent = [c.sub, TOOLS[c.lib].name].filter(Boolean).join(" · ");
+    var r = c.raw, st = [];
+    if(c.lib === "creature" || c.lib === "hazard"){
+      ["ac","hp","fort","ref","will","per","stealthDc","disableDc","hardness"].forEach(function(f){ if(r[f]) st.push({ac:"AC",hp:"HP",fort:"Fort",ref:"Ref",will:"Will",per:"Perception",stealthDc:"Stealth",disableDc:"Disable",hardness:"Hardness"}[f] + " " + r[f]); });
+    }
+    if(c.info) st.push(c.info);
+    $("plstats").innerHTML = st.map(function(x){ return "<span>" + esc(x) + "</span>"; }).join("");
+  }
+  $("pdet").value = ex.det || "";
+  var canBlock = /creatures|npcs|hazards/.test(selTab);
+  $("pblockw").style.display = canBlock ? "" : "none";
+  $("pblock").value = ex.block || c.block || "";
+  $("pfetch").style.display = c.lib === "creature" && /demiplane\.com/.test(c.source || "") ? "" : "none";
+  $("pfetchn").textContent = c.block && !ex.block ? "From the card's import. Edits here are kept for Next Session only." : "";
+  setHero(); pageChecks(); assignUI("passign", c, selTab);
+  $("page").classList.add("on"); $("page").scrollTop = 0;
+}
+document.addEventListener("click", function(e){
+  var ck = e.target.closest(".chk[data-k]");
+  if(ck){ var s = cur(); s.checked[ck.dataset.k] = !s.checked[ck.dataset.k]; save(); render(); return; }
+  var dk = e.target.closest("[data-dk]");
+  if(dk){
+    var dc = byRef(dk.dataset.dk); if(!dc) return;
+    var hk = ui.tab === "library" ? homeTab(dc) : ui.tab;
+    if(ui.tab === "library" && inDocket(dc)) CARD_TABS.forEach(function(t){ var p = pickOf(t[0], dc.ref); if(p) cur().picks[t[0]] = picks(t[0]).filter(function(x){ return x !== p; }); });
+    else toggle(hk, dc);
+    save(); render(); toast(inDocket(dc) ? "Added " + dc.name + " to the print docket" : "Took " + dc.name + " out of the docket", 1600);
+    return;
+  }
+  var rm = e.target.closest("[data-rm]");
+  if(rm){
+    if(rm.dataset.rmf){ CARD_TABS.forEach(function(t){ var p = pickOf(t[0], rm.dataset.rm); if(p) p[rm.dataset.rmf] = false; }); }
+    else cur().picks[rm.dataset.rmt] = picks(rm.dataset.rmt).filter(function(x){ return x.ref !== rm.dataset.rm; });
+    save(); render(); return;
+  }
+  var op = e.target.closest("[data-op]");
+  if(op){ var oc = byRef(op.dataset.op); if(oc){ setNS(false); openPage(oc, op.dataset.opt); } return; }
+  var t = e.target.closest("[data-tab]");
+  if(t){ ui.tab = t.dataset.tab; ui.q = ""; try{ localStorage.setItem("ns-tab", ui.tab); }catch(err){} setNS(false); render(); window.scrollTo(0, 0); return; }
+  var cd = e.target.closest(".card[data-ref]");
+  if(cd){ var c = byRef(cd.dataset.ref); if(c) openSheet(c, ui.tab === "library" ? homeTab(c) : ui.tab); }
+});
+$("scrim").onclick = closeSheet; $("scancel").onclick = closeSheet;
+$("sinc").onclick = function(){ toggle(selTab, sel); closeSheet(); render(); };
+document.addEventListener("keydown", function(e){ if((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".card[data-ref]")){ e.preventDefault(); e.target.click(); } });
+$("sopen").onclick = function(){ openPage(sel, selTab); };
+$("pback").onclick = function(){ $("page").classList.remove("on"); render(); };
+$("pinc").onclick = function(){ toggle(selTab, sel); pageChecks(); };
+[["pname","name"],["psub","sub"],["pinfo","info"]].forEach(function(a){ $(a[0]).oninput = function(e){ sel.raw[a[1]] = e.target.value; sel.name = e.target.value || "Untitled"; save(); }; });
+$("pdet").oninput = function(e){ extra(sel.ref).det = e.target.value; save(); };
+$("pblock").oninput = function(e){ extra(sel.ref).block = e.target.value; save(); };
+function setPickFlag(f, on){
+  var p = pickOf(selTab, sel.ref);
+  if(!p && on){ toggle(selTab, sel); p = pickOf(selTab, sel.ref); }
+  if(p) p[f] = on; save(); pageChecks();
+}
+$("pdetp").onchange = function(){ setPickFlag("det", this.checked); };
+$("pblockp").onchange = function(){ setPickFlag("block", this.checked); };
+function armed(btn, label, fn, armLabel){
+  if(btn.dataset.arm){ delete btn.dataset.arm; btn.textContent = label; fn(); }
+  else{ btn.dataset.arm = 1; btn.textContent = armLabel || "Tap again to confirm"; setTimeout(function(){ if(btn.dataset.arm){ delete btn.dataset.arm; btn.textContent = label; } }, 3000); }
+}
+$("pdel").onclick = function(e){ armed(e.target, "Delete card", function(){
+  S.own = S.own.filter(function(c){ return c !== sel.raw; });
+  S.sessions.forEach(function(s){ Object.keys(s.picks).forEach(function(k){ s.picks[k] = s.picks[k].filter(function(p){ return p.ref !== sel.ref && p.pc !== sel.ref; }); }); });
+  delete S.extra[sel.ref]; save(); $("page").classList.remove("on"); render();
+}); };
+$("pfile").onchange = function(e){
+  var f = e.target.files[0]; if(!f) return; e.target.value = "";
+  var r = new FileReader();
+  r.onload = function(){ var im = new Image(); im.onload = function(){
+    var m = 700, sc = Math.min(1, m / Math.max(im.width, im.height)), cv = document.createElement("canvas");
+    cv.width = Math.round(im.width * sc); cv.height = Math.round(im.height * sc);
+    cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+    sel.raw.img = sel.img = cv.toDataURL("image/jpeg", .82); sel.raw.iw = cv.width; sel.raw.ih = cv.height; save(); setHero();
+  }; im.src = r.result; };
+  r.readAsDataURL(f);
+};
+
+/* Demiplane, read directly (the same unofficial API the Initiative Cards import uses). */
+var DP_API = "https://apiv4.demiplane.com/v1/graphql";
+function dpBlockText(v){
+  var ta = document.createElement("textarea");
+  var COST = {"single action":"1", "two actions":"2", "three actions":"3", "free action":"free", "reaction":"reaction"};
+  ta.innerHTML = String(v.element_display || "")
+    .replace(/<span[^>]*aria-label="([^"]*)"[^>]*>\s*<\/span>/gi, function(m, a){ var c = COST[a.toLowerCase()]; return c ? " [" + c + "] " : " "; })
+    .replace(/<\/p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+  var traits = String(v.traits || "").split(",").map(function(t){ return t.split("|")[0].trim(); }).filter(Boolean);
+  return v.name + " Creature " + v.level + "\n" + traits.join(" ") + "\n" + ta.value.replace(/\n{3,}/g, "\n\n").trim();
+}
+$("pfetch").onclick = function(){
+  var m = /\/creatures\/([^/?#]+)/.exec(sel.source || ""), b = this;
+  if(!m){ $("pfetchn").textContent = "The card's link isn't a Demiplane creature page."; return; }
+  b.disabled = true; $("pfetchn").textContent = "Asking Demiplane…";
+  fetch(DP_API, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({
+    query:'query($slug:String!){ demiplane_element_display_version(order_by:{version_number:desc}, where:{elementDisplayByElementDisplayId:{slug:{_eq:$slug}, category:{_eq:"creature"}, nexus:{slug:{_eq:"pathfinder2e"}}}}, limit:1){ name level traits element_display } }',
+    variables:{slug:decodeURIComponent(m[1])}})})
+    .then(function(r){ if(!r.ok) throw new Error("Demiplane answered " + r.status); return r.json(); })
+    .then(function(j){
+      var v = j.data && j.data.demiplane_element_display_version && j.data.demiplane_element_display_version[0];
+      if(!v) throw new Error("Demiplane has no entry at that link");
+      var t = dpBlockText(v); extra(sel.ref).block = t; $("pblock").value = t; save();
+      $("pfetchn").textContent = "Fetched."; setPickFlag("block", true);
+    })
+    .catch(function(e){ $("pfetchn").textContent = "Couldn't fetch: " + e.message + " — paste it instead."; })
+    .then(function(){ b.disabled = false; });
+};
+
+/* ============================================================================================
+   PDF: the booklet, stat blocks and quick cards are drawn here with jsPDF in the site's
+   typefaces; the card sheets come from the tools themselves (each loaded in a hidden frame and
+   asked through TBExport); pdf-lib stitches it all into one file in print order.
+   ============================================================================================ */
+var PDFLIB = {url:"https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js", sri:"sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI"};
+var PARTS = [
+  ["booklet","Booklet: cover, recap, intro, plan"],
+  ["blocks","Full stat blocks"],
+  ["init","Initiative cards: creatures & NPCs"],
+  ["hazard","Hazard cards"],
+  ["item","Item cards"],
+  ["spell","Spell cards"],
+  ["feat","Feat cards"],
+  ["quick","Quick cards & details pages"]
+];
+var partOn = {}; try{ partOn = JSON.parse(localStorage.getItem("ns-parts")) || {}; }catch(e){}
+function pickedCards(k){ return picks(k).map(function(p){ var c = byRef(p.ref); return c ? {c:c, p:p} : null; }).filter(Boolean); }
+function libIds(tabs, lib){ var ids = []; tabs.forEach(function(k){ pickedCards(k).forEach(function(x){ if(x.c.lib === lib && ids.indexOf(x.c.id) < 0) ids.push(x.c.id); }); }); return ids; }
+function blockList(){
+  var out = [];
+  ["creatures","npcs","hazards"].forEach(function(k){ pickedCards(k).forEach(function(x){
+    var b = (S.extra[x.c.ref] || {}).block || x.c.block;
+    if(x.p.block && b && !out.some(function(o){ return o.c.ref === x.c.ref; })) out.push({c:x.c, text:b});
+  }); });
+  return out;
+}
+function quickList(){
+  var out = [];
+  CARD_TABS.forEach(function(t){ pickedCards(t[0]).forEach(function(x){
+    var det = (S.extra[x.c.ref] || {}).det;
+    if(x.c.lib === "own" || (x.p.det && det)) out.push({c:x.c, k:t[0], p:x.p, det:x.p.det || x.c.lib === "own" ? det : ""});
+  }); });
+  return out;
+}
+function partCount(k){
+  var s = cur();
+  return k === "booklet" ? 1 + (s.scenes || []).length :
+    k === "blocks" ? blockList().length :
+    k === "init" ? libIds(["creatures","npcs"], "creature").length :
+    k === "hazard" ? libIds(["hazards"], "hazard").length :
+    k === "item" ? libIds(["items"], "item").length :
+    k === "spell" ? libIds(["spells"], "spell").length :
+    k === "feat" ? libIds(["feats"], "feat").length :
+    quickList().length;
+}
+/* The docket, in print order: each part with its cards, a switch for the part, ✕ to take a card out. */
+function docketCount(){ var n = 0; CARD_TABS.forEach(function(t){ n += inCount(t[0]); }); return n; }
+function chipHtml(c, k, extra, flag){
+  return '<span class="dit"><span class="th" style="' + (c.img ? 'background-image:url(' + esc(c.img) + ')' : '') + '">' + (c.img ? '' : tab(k)[2]) + '</span>' +
+    '<span class="nm" data-op="' + esc(c.ref) + '" data-opt="' + k + '" title="Open its details page">' + esc(c.name) + (extra ? ' <small>' + esc(extra) + '</small>' : '') + '</span>' +
+    '<button data-rm="' + esc(c.ref) + '" data-rmt="' + k + '"' + (flag ? ' data-rmf="' + flag + '"' : '') + ' title="' + (flag === "block" ? "Don't print its stat block" : flag === "det" ? "Don't print its details page" : "Take it out of the docket") + '" aria-label="Remove ' + esc(c.name) + '">✕</button></span>';
+}
+function renderDocket(){
+  var s = cur(), html = "";
+  var grp = function(key, title, items, note, link){
+    var n = partCount(key), on = partOn[key] !== false;
+    html += '<div class="dgrp' + (on ? '' : ' off') + '"><div class="dgh"><input type="checkbox" data-part="' + key + '"' + (on ? ' checked' : '') + (n ? '' : ' disabled') + ' aria-label="Print ' + title + '">' +
+      '<span>' + title + '</span><span class="c">' + (key === "booklet" ? "" : n ? n + (n === 1 ? " item" : " items") : "none yet") + '</span><span class="sp"></span>' + (link || '') + '</div>' +
+      (items ? '<div class="dits">' + items + '</div>' : '') + (note ? '<div class="dnote">' + note + '</div>' : '') + '</div>';
+  };
+  var go = function(t, label){ return '<button class="lnk" data-tab="' + t + '">' + label + '</button>'; };
+  var sc = (s.scenes || []).filter(function(x){ return (x.title || "").trim() || (x.text || "").trim(); }).length;
+  grp("booklet", "Booklet", "", ["cover", (s.recap || "").trim() ? "recap ✓" : "no recap yet", (s.intro || "").trim() ? "intro ✓" : "no intro yet", sc + (sc === 1 ? " scene" : " scenes")].join(" · "), go("booklet", "Edit booklet"));
+  grp("blocks", "Full stat blocks", blockList().map(function(x){ return chipHtml(x.c, x.c.lib === "hazard" ? "hazards" : pickOf("npcs", x.c.ref) ? "npcs" : "creatures", "", "block"); }).join(""),
+    blockList().length ? "" : "Tick “Print the full stat block” on a creature, NPC or hazard's details page.");
+  var lib = function(tabs, l){ var out = ""; tabs.forEach(function(k){ pickedCards(k).forEach(function(x){ if(x.c.lib === l) out += chipHtml(x.c, k, k === "npcs" ? "NPC" : k === "items" && x.p.pc ? "→ " + pcName(x.p.pc) : ""); }); }); return out; };
+  grp("init", "Initiative cards", lib(["creatures","npcs"], "creature"), "", go("creatures", "Add"));
+  grp("hazard", "Hazard cards", lib(["hazards"], "hazard"), "", go("hazards", "Add"));
+  grp("item", "Item cards", lib(["items"], "item"), "", go("items", "Add"));
+  grp("spell", "Spell cards", lib(["spells"], "spell"), "", go("spells", "Add"));
+  grp("feat", "Feat cards", lib(["feats"], "feat"), "", go("feats", "Add"));
+  grp("quick", "Quick cards & details pages", quickList().map(function(x){ return chipHtml(x.c, x.k, x.c.lib === "own" ? tab(x.k)[1] : "details", x.c.lib === "own" ? "" : "det"); }).join(""), "", go("library", "Browse all"));
+  $("docket").innerHTML = html;
+  var nd = docketCount();
+  $("dksum").textContent = nd ? nd + (nd === 1 ? " card" : " cards") + " picked · prints in this order" : "Nothing picked yet — tap ＋ on any card";
+  $("docket").querySelectorAll("[data-part]").forEach(function(i){ i.onchange = function(){ partOn[i.dataset.part] = i.checked; ver++; try{ localStorage.setItem("ns-parts", JSON.stringify(partOn)); }catch(e){} renderDocket(); }; });
+}
+
+function loadScript(src, sri){
+  return new Promise(function(res, rej){
+    var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error("couldn't load " + src.split("/").pop())); };
+    if(sri){ s.integrity = sri; s.crossOrigin = "anonymous"; }
+    document.head.appendChild(s);
+  });
+}
+var jsReady = null, libReady = null;
+function loadJsPDF(){ return jsReady = jsReady || (window.jspdf ? Promise.resolve() : loadScript(TB.JSPDF.url, TB.JSPDF.sri)); }
+function loadPdfLib(){ return libReady = libReady || (window.PDFLib ? Promise.resolve() : loadScript(PDFLIB.url, PDFLIB.sri)); }
+var FONT_FILES = {body:"ebgaramond-400.ttf", bodyBold:"ebgaramond-600.ttf", bodyItalic:"ebgaramond-400i.ttf", title:"eczar-700.ttf", titleR:"eczar-400.ttf", sub:"teko-700.ttf", caps:"tauri-400.ttf"};
+var fontData = null;
+function loadFonts(){
+  if(fontData) return Promise.resolve(fontData);
+  var keys = Object.keys(FONT_FILES);
+  return Promise.all(keys.map(function(k){
+    return fetch("fonts/" + FONT_FILES[k]).then(function(r){ if(!r.ok) throw new Error(FONT_FILES[k]); return r.arrayBuffer(); })
+      .then(function(buf){ var b = new Uint8Array(buf), out = "", CH = 0x8000; for(var i = 0; i < b.length; i += CH) out += String.fromCharCode.apply(null, b.subarray(i, i + CH)); return btoa(out); });
+  })).then(function(list){ fontData = {}; keys.forEach(function(k, i){ fontData[k] = list[i]; }); return fontData; });
+}
+var RED = [122, 31, 31], GOLD = [150, 105, 30], GREY = [110, 100, 88], INK = [30, 24, 18], HL = [246, 228, 176];
+
+/* A small text engine over jsPDF: runs, wrapping, page breaks. Units are inches, letter portrait. */
+function Writer(doc, hasFonts){
+  var W = this; W.doc = doc; W.x0 = 0.75; W.w = 7; W.y = 0.85; W.bottom = 10.3;
+  W.font = function(kind, style){
+    if(!hasFonts){ doc.setFont(kind === "body" ? "times" : "helvetica", style === "bolditalic" ? "bolditalic" : style || "normal"); return; }
+    var map = {body:"Body", title:"Title", sub:"Sub", caps:"Caps"};
+    var st = kind === "body" ? (style || "normal") : kind === "title" ? (style === "normal" ? "normal" : "bold") : "normal";
+    if(kind === "body" && st === "bolditalic") st = "bold";
+    doc.setFont(map[kind], st);
+  };
+  W.page = function(){ doc.addPage("letter", "portrait"); W.y = 0.85; };
+  W.need = function(h){ if(W.y + h > W.bottom) W.page(); };
+  W.gap = function(h){ W.y += h; };
+  W.heading = function(text, size, color){
+    size = size || 20; W.need(size / 72 * 1.6 + 0.3);
+    W.font("title", "bold"); doc.setFontSize(size); doc.setTextColor.apply(doc, color || RED);
+    doc.splitTextToSize(clean(text), W.w).forEach(function(l){ W.y += size / 72 * 1.05; doc.text(l, W.x0, W.y); });
+    W.y += size / 72 * 0.7;
+  };
+  W.caption = function(text, color){
+    W.need(0.6); W.font("sub"); doc.setFontSize(13); doc.setTextColor.apply(doc, color || GOLD);
+    W.y += 0.34; doc.text(clean(text).toUpperCase(), W.x0, W.y, {charSpace:0.01});
+    doc.setDrawColor.apply(doc, color || GOLD); doc.setLineWidth(0.01); doc.line(W.x0, W.y + 0.06, W.x0 + W.w, W.y + 0.06);
+    W.y += 0.18;
+  };
+  /* runs: [{t, b, i, ck, mn}] — wrapped word by word in the right face */
+  W.runs = function(runs, o){
+    o = o || {}; var size = o.size || 11.5, lh = size / 72 * 1.32, x = W.x0 + (o.indent || 0), w = W.w - (o.indent || 0) - (o.right || 0);
+    var words = [];
+    runs.forEach(function(r){
+      String(r.t).split(/(\s+)/).forEach(function(p){ if(p) words.push({t:clean(p).replace(/\s+/g, " "), r:r}); });
+    });
+    var styleOf = function(r){ return r.b && r.i ? "bolditalic" : r.b ? "bold" : r.i ? "italic" : (o.italic ? "italic" : "normal"); };
+    var meas = function(wd){ W.font("body", styleOf(wd.r)); doc.setFontSize(size); return doc.getTextWidth(wd.t); };
+    var lines = [], line = [], lw = 0;
+    words.forEach(function(wd){
+      var ww = meas(wd);
+      if(wd.t === " " && !line.length) return;
+      if(lw + ww > w && line.length && wd.t !== " "){ while(line.length && line[line.length - 1].t === " "){ lw -= line.pop().w; } lines.push(line); line = []; lw = 0; }
+      if(wd.t === " " && !line.length) return;
+      line.push({t:wd.t, r:wd.r, w:ww}); lw += ww;
+    });
+    if(line.length) lines.push(line);
+    var top = W.y;
+    lines.forEach(function(L, li){
+      if(W.y + lh > W.bottom){ if(o.box) o.box(top, W.y); W.page(); top = W.y; }
+      W.y += lh; var cx = x;
+      if(li === 0 && o.bullet){ W.font("body"); doc.setFontSize(size); doc.setTextColor.apply(doc, GOLD); doc.text("•", x - 0.16, W.y); }
+      L.forEach(function(s){
+        if(s.r.ck && s.t !== " "){ doc.setFillColor.apply(doc, HL); doc.rect(cx - 0.01, W.y - size / 72 * 0.8, s.w + 0.02, size / 72 * 1.05, "F"); }
+        W.font("body", styleOf(s.r)); doc.setFontSize(size);
+        doc.setTextColor.apply(doc, s.r.mn ? RED : (o.color || INK));
+        if(s.t !== " ") doc.text(s.t, cx, W.y);
+        cx += s.w;
+      });
+    });
+    if(o.box) o.box(top, W.y);
+    W.y += o.after == null ? lh * 0.35 : o.after;
+  };
+  /* booklet text: headings, bullets, beats, paragraphs */
+  W.rich = function(text, mre, o){
+    o = o || {};
+    blocks(text, mre).forEach(function(b){
+      if(b.kind === "gap"){ W.y += 0.06; return; }
+      if(b.kind === "h"){ W.need(0.5); W.y += 0.08; W.runs(b.runs.map(function(r){ return {t:r.t, b:true, ck:r.ck, mn:r.mn}; }), {size:13, color:RED}); return; }
+      if(b.kind === "li"){ W.runs(b.runs, {indent:0.28, bullet:true, size:o.size, after:0.03}); return; }
+      if(b.kind === "beat"){
+        W.need(0.4); W.y += 0.05;
+        var label = function(top, bot){ doc.setFillColor.apply(doc, GOLD); doc.rect(W.x0, top + 0.04, 0.06, bot - top + 0.06, "F"); };
+        W.font("sub"); doc.setFontSize(9); doc.setTextColor.apply(doc, GOLD); doc.text("BEAT", W.x0 + 0.16, W.y + 0.12); W.y += 0.1;
+        W.runs(b.runs.map(function(r){ return {t:r.t, b:true, i:r.i, ck:r.ck, mn:r.mn}; }), {indent:0.16, size:(o.size || 11.5) + 0.5, box:label, after:0.1});
+        return;
+      }
+      W.runs(b.runs, {size:o.size, italic:o.italic});
+    });
+  };
+}
+var clean = function(s){ return String(s || "").replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️]/gu, "").replace(/\t/g, " "); };
+function newDoc(){
+  var doc = new window.jspdf.jsPDF({unit:"in", format:"letter", orientation:"portrait", compress:true}), ok = false;
+  if(fontData){
+    try{
+      var add = function(k, name, style){ doc.addFileToVFS(FONT_FILES[k], fontData[k]); doc.addFont(FONT_FILES[k], name, style); };
+      add("body", "Body", "normal"); add("bodyBold", "Body", "bold"); add("bodyItalic", "Body", "italic");
+      add("title", "Title", "bold"); add("titleR", "Title", "normal"); add("sub", "Sub", "normal"); add("caps", "Caps", "normal");
+      ok = true;
+    }catch(e){ console.warn("fonts", e); }
+  }
+  return new Writer(doc, ok);
+}
+function footer(W, label){
+  var doc = W.doc, n = doc.getNumberOfPages();
+  for(var i = 1; i <= n; i++){
+    doc.setPage(i); W.font("caps"); doc.setFontSize(8); doc.setTextColor.apply(doc, GREY);
+    doc.text(clean(label), 0.75, 10.65); doc.text(String(i), 7.75, 10.65, {align:"right"});
+  }
+}
+function sessLabel(){ var s = cur(); return (s.title || "Next session") + (s.date ? " · " + s.date : ""); }
+
+function buildBooklet(){
+  var s = cur(), W = newDoc(), doc = W.doc, mre = mentionRe();
+  /* cover */
+  W.font("caps"); doc.setFontSize(10); doc.setTextColor.apply(doc, GOLD); doc.text("SESSION PREP", W.x0, W.y + 0.1); W.y += 0.15;
+  W.heading(s.title || "Next Session", 30);
+  if(s.date){ W.font("body", "italic"); doc.setFontSize(12); doc.setTextColor.apply(doc, GREY); doc.text(new Date(s.date + "T12:00").toLocaleDateString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"}), W.x0, W.y); W.y += 0.3; }
+  var pcs = pickedCards("pcs");
+  W.caption("At the table");
+  W.runs([{t:pcs.length ? pcs.map(function(x){ return x.c.name + (x.c.sub ? " (" + x.c.sub + ")" : ""); }).join(", ") : "No PCs marked as attending."}]);
+  var roster = [["Creatures","creatures"],["NPCs","npcs"],["Hazards","hazards"],["Locations","locations"]];
+  roster.forEach(function(r){ var L = pickedCards(r[1]); if(L.length) W.runs([{t:r[0] + ": ", b:true}, {t:L.map(function(x){ return x.c.name; }).join(", ")}], {after:0.04}); });
+  var loot = pickedCards("items");
+  if(loot.length){
+    W.caption("Loot");
+    loot.forEach(function(x){ W.runs([{t:x.c.name, b:true}, {t:x.c.sub ? "  " + x.c.sub : "", i:true}, {t:x.p.pc ? "  →  " + pcName(x.p.pc) : "  →  unassigned"}], {indent:0.28, bullet:true, after:0.03}); });
+  }
+  var sp = pickedCards("spells").concat(pickedCards("feats"));
+  if(sp.length){ W.caption("Spells & feats in play"); W.runs([{t:sp.map(function(x){ return x.c.name; }).join(", ")}]); }
+  if((s.notes || "").trim()){ W.caption("Reminders"); W.rich(s.notes, mre); }
+  /* recap, intro, plan */
+  if((s.recap || "").trim()){ W.page(); W.heading("Last time…", 22); W.rich(s.recap, mre); }
+  if((s.intro || "").trim()){
+    W.need(1.2); W.y += 0.2; W.heading("Opening", 22);
+    var top = W.y;
+    W.rich(s.intro, mre, {size:12.5, italic:true});
+    doc.setDrawColor.apply(doc, GOLD); doc.setLineWidth(0.02); doc.line(W.x0 - 0.15, top + 0.05, W.x0 - 0.15, Math.min(W.y, W.bottom));
+  }
+  var scenes = (s.scenes || []).filter(function(sc){ return (sc.title || "").trim() || (sc.text || "").trim(); });
+  if(scenes.length){
+    W.page(); W.heading("The plan", 22);
+    scenes.forEach(function(sc, i){ W.caption((i + 1) + ".  " + (sc.title || "Scene")); W.rich(sc.text, mre); W.y += 0.1; });
+  }
+  footer(W, sessLabel());
+  return doc;
+}
+var BLOCK_LABELS = /^(Perception|Languages|Skills|Str|Dex|Con|Int|Wis|Cha|Items|AC|HP|Fort|Ref|Will|Speed|Melee|Ranged|Stealth|Disable|Routine|Reset|Trigger|Effect|Requirements|Frequency|Critical Success|Success|Failure|Critical Failure|Immunities|Resistances|Weaknesses|Hardness|Source|Description|Rituals|(?:Arcane|Divine|Occult|Primal) (?:Innate|Prepared|Spontaneous) Spells|[A-Z][a-z]+ (?:Focus )?Spells)\b/;
+function buildBlocks(list){
+  var W = newDoc(), doc = W.doc, first = true;
+  list.forEach(function(x){
+    if(!first) W.need(2.2); first = false;
+    var lines = String(x.text).replace(/\r/g, "").split("\n").map(function(l){ return l.trim(); });
+    var head = /^(.*?)\s+(Creature|Hazard)\s+(-?\d+)\s*$/i.exec(lines[0] || "");
+    W.y += 0.3;
+    W.font("title", "bold"); doc.setFontSize(18); doc.setTextColor.apply(doc, RED);
+    doc.text(clean(head ? head[1] : x.c.name), W.x0, W.y);
+    W.font("sub"); doc.setFontSize(14); doc.setTextColor.apply(doc, GOLD);
+    doc.text(clean(head ? head[2] + " " + head[3] : x.c.sub || "").toUpperCase(), W.x0 + W.w, W.y, {align:"right"});
+    W.y += 0.24;
+    var rest = head ? lines.slice(1) : lines;
+    if(rest[0] && !BLOCK_LABELS.test(rest[0]) && rest[0].split(/\s+/).length <= 12 && !/[.:;]$/.test(rest[0])){
+      W.font("sub"); doc.setFontSize(10.5); doc.setTextColor.apply(doc, RED); doc.text(clean(rest[0]).toUpperCase(), W.x0, W.y); W.y += 0.1; rest = rest.slice(1);
+    }
+    doc.setDrawColor.apply(doc, RED); doc.setLineWidth(0.015); doc.line(W.x0, W.y, W.x0 + W.w, W.y); W.y += 0.02;
+    rest.forEach(function(l){
+      if(!l){ W.y += 0.04; return; }
+      l = l.replace(/\[(1|one-action)\]/gi, "[1 action]").replace(/\[(2|two-actions)\]/gi, "[2 actions]").replace(/\[(3|three-actions)\]/gi, "[3 actions]").replace(/\[(free|free-action)\]/gi, "[free action]");
+      var m = BLOCK_LABELS.exec(l), runs;
+      if(m) runs = [{t:m[1], b:true}].concat(lineRuns(l.slice(m[1].length), null));
+      else{ var a = /^([A-Z][\w'’ -]{1,40}?)\s+(\[[^\]]+\])/.exec(l); runs = a ? [{t:a[1], b:true}].concat(lineRuns(l.slice(a[1].length), null)) : lineRuns(l, null); }
+      W.runs(runs, {size:10.5, after:0.02});
+    });
+    W.y += 0.25;
+  });
+  footer(W, sessLabel() + " · stat blocks");
+  return W.doc;
+}
+function imgDims(src){ return new Promise(function(r){ if(!src) return r(null); var im = new Image(); im.onload = function(){ r([im.width, im.height]); }; im.onerror = function(){ r(null); }; im.src = src; }); }
+function picData(src){
+  return new Promise(function(r){
+    if(!src) return r(null);
+    var im = new Image(); im.crossOrigin = "anonymous";
+    im.onload = function(){ try{ var cv = document.createElement("canvas"); cv.width = im.width; cv.height = im.height; cv.getContext("2d").drawImage(im, 0, 0); r({data:TB.canvasData(cv), w:im.width, h:im.height}); }catch(e){ r(null); } };
+    im.onerror = function(){ r(null); }; im.src = src;
+  });
+}
+function buildQuick(list){
+  var W = newDoc(), doc = W.doc;
+  var own = list.filter(function(x){ return x.c.lib === "own"; });
+  return Promise.all(list.map(function(x){ return picData(x.c.img).then(function(p){ x.pic = p; }); })).then(function(){
+    /* quick cards: 4x5 in, 2x2 per page */
+    var pos = [[0.25, 0.5], [4.25, 0.5], [0.25, 5.5], [4.25, 5.5]];
+    own.forEach(function(x, i){ if(i % 4 === 0 && i > 0) W.page(); quickCard(W, x, pos[i % 4][0], pos[i % 4][1]); });
+    /* details pages */
+    list.filter(function(x){ return (x.det || "").trim(); }).forEach(function(x, i){
+      if(own.length || i > 0) W.page();
+      W.font("caps"); doc.setFontSize(9); doc.setTextColor.apply(doc, GOLD); doc.text(tab(x.k)[1].toUpperCase(), W.x0, W.y); W.y += 0.05;
+      W.heading(x.c.name, 24);
+      if(x.c.sub){ W.font("body", "italic"); doc.setFontSize(12); doc.setTextColor.apply(doc, GREY); doc.text(clean(x.c.sub), W.x0, W.y); W.y += 0.25; }
+      if(x.p.pc){ W.runs([{t:"Goes to " + pcName(x.p.pc), b:true}]); }
+      if(x.pic){ var h = Math.min(3, W.w * x.pic.h / x.pic.w), w = h * x.pic.w / x.pic.h; doc.addImage(x.pic.data, TB.imgFormat(x.pic.data), W.x0, W.y, w, h); W.y += h + 0.25; }
+      if((x.c.info || "").trim() && x.c.lib === "own") W.runs(lineRuns(x.c.info, null), {italic:true, size:12});
+      W.rich(x.det, mentionRe(), {size:12});
+    });
+    footer(W, sessLabel() + " · cards & details");
+    return doc;
+  });
+}
+function quickCard(W, x, X, Y){
+  var doc = W.doc, w = 4, h = 5, p = 0.2;
+  doc.setDrawColor.apply(doc, RED); doc.setLineWidth(0.03); doc.rect(X, Y, w, h);
+  doc.setFillColor.apply(doc, RED); doc.rect(X, Y, w, 0.3, "F");
+  W.font("sub"); doc.setFontSize(11); doc.setTextColor(255, 255, 255); doc.text(tab(x.k)[1].toUpperCase(), X + p, Y + 0.21);
+  var ih = 2.1, iy = Y + 0.42;
+  if(x.pic){ var s = Math.min((w - 2 * p) / x.pic.w, ih / x.pic.h), iw = x.pic.w * s, ihh = x.pic.h * s; doc.addImage(x.pic.data, TB.imgFormat(x.pic.data), X + (w - iw) / 2, iy + (ih - ihh) / 2, iw, ihh); }
+  else{ doc.setDrawColor.apply(doc, GREY); doc.setLineWidth(0.01); doc.rect(X + p, iy, w - 2 * p, ih); }
+  var ty = iy + ih + 0.38;
+  W.font("title", "bold"); doc.setFontSize(16); doc.setTextColor.apply(doc, INK);
+  doc.splitTextToSize(clean(x.c.name), w - 2 * p).slice(0, 2).forEach(function(l){ doc.text(l, X + p, ty); ty += 0.26; });
+  if(x.c.sub){ W.font("sub"); doc.setFontSize(11); doc.setTextColor.apply(doc, GOLD); doc.text(clean(x.c.sub).toUpperCase(), X + p, ty); ty += 0.2; }
+  doc.setDrawColor.apply(doc, RED); doc.setLineWidth(0.01); doc.line(X + p, ty - 0.08, X + w - p, ty - 0.08); ty += 0.12;
+  W.font("body"); doc.setFontSize(11); doc.setTextColor.apply(doc, INK);
+  var foot = x.k === "items" && x.p.pc ? "Goes to " + pcName(x.p.pc) : "", maxY = Y + h - (foot ? 0.42 : 0.2);
+  doc.splitTextToSize(clean(x.c.info), w - 2 * p).some(function(l){ if(ty > maxY) return true; doc.text(l, X + p, ty); ty += 0.19; return false; });
+  if(foot){ W.font("sub"); doc.setFontSize(11); doc.setTextColor.apply(doc, RED); doc.text(clean(foot).toUpperCase(), X + p, Y + h - 0.17); }
+}
+
+/* A tool page in a hidden frame, asked for its printed sheet. */
+function fromTool(lib, ids){
+  return new Promise(function(res, rej){
+    var f = document.createElement("iframe");
+    f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+    f.style.cssText = "position:fixed;left:-12000px;top:0;width:1280px;height:960px;border:0;visibility:hidden";
+    var done = false, finish = function(err, v){ if(done) return; done = true; clearTimeout(t); setTimeout(function(){ f.remove(); }, 0); err ? rej(err) : res(v); };
+    var t = setTimeout(function(){ finish(new Error(TOOLS[lib].name + " didn't answer")); }, 90000);
+    f.onload = function(){
+      var tries = 0;
+      (function wait(){
+        var api = f.contentWindow && f.contentWindow.TBExport;
+        if(!api){ if(++tries > 100) return finish(new Error(TOOLS[lib].name + " has no export")); return setTimeout(wait, 100); }
+        /* everything is copied out before the frame goes: a promise from a removed frame never settles */
+        api.pdf(ids).then(function(v){
+          if(v && v.images) return {images:JSON.parse(JSON.stringify(v.images))};
+          return v.arrayBuffer().then(function(buf){ var out = new Uint8Array(buf.byteLength); out.set(new Uint8Array(buf)); return out.buffer; });
+        }).then(function(v){ finish(null, v); }, function(e){ finish(new Error(e && e.message || String(e))); });
+      })();
+    };
+    f.src = TOOLS[lib].page + "#export";
+    document.body.appendChild(f);
+  });
+}
+function toBytes(v){
+  if(!v) return Promise.resolve(null);
+  if(v.output) return Promise.resolve(v.output("arraybuffer"));
+  if(v.arrayBuffer) return v.arrayBuffer();
+  if(v instanceof ArrayBuffer) return Promise.resolve(v);
+  return Promise.resolve(v);   /* {images:[…]} */
+}
+/* Builds the whole PDF. Resolves {bytes, base, problems} — or {parts} when pdf-lib couldn't load. */
+var building = null, last = null, ver = 0;
+function buildAll(){
+  if(building) return building;
+  var prog = $("prog"), s = cur(), v = ver;
+  var on = function(k){ return partOn[k] !== false && partCount(k) > 0; };
+  var jobs = [];
+  if(on("booklet")) jobs.push(["Booklet", function(){ return Promise.resolve(buildBooklet()); }]);
+  if(on("blocks")) jobs.push(["Stat blocks", function(){ return Promise.resolve(buildBlocks(blockList())); }]);
+  if(on("init")) jobs.push(["Initiative cards", function(){ return fromTool("creature", libIds(["creatures","npcs"], "creature")); }]);
+  if(on("hazard")) jobs.push(["Hazard cards", function(){ return fromTool("hazard", libIds(["hazards"], "hazard")); }]);
+  if(on("item")) jobs.push(["Item cards", function(){ return fromTool("item", libIds(["items"], "item")); }]);
+  if(on("spell")) jobs.push(["Spell cards", function(){ return fromTool("spell", libIds(["spells"], "spell")); }]);
+  if(on("feat")) jobs.push(["Feat cards", function(){ return fromTool("feat", libIds(["feats"], "feat")); }]);
+  if(on("quick")) jobs.push(["Quick cards & details", function(){ return buildQuick(quickList()); }]);
+  if(!jobs.length) return Promise.reject(new Error("the docket is empty — pick some cards or write the booklet"));
+  var parts = [], problems = [];
+  var step = function(i){
+    if(i >= jobs.length) return Promise.resolve();
+    prog.textContent = "Making " + jobs[i][0].toLowerCase() + "… (" + (i + 1) + " of " + jobs.length + ")";
+    return jobs[i][1]().then(toBytes).then(function(x){ if(x) parts.push({name:jobs[i][0], v:x}); },
+      function(e){ console.error(jobs[i][0], e); problems.push(jobs[i][0] + ": " + (e && e.message || e)); }).then(function(){ return step(i + 1); });
+  };
+  var base = (s.title || "next-session").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "next-session";
+  $("pvbtn").disabled = $("pdf").disabled = true;
+  building = loadJsPDF().then(function(){ return loadFonts().catch(function(e){ console.warn("fonts", e); fontData = null; }); })
+    .then(function(){ return step(0); })
+    .then(function(){
+      if(!parts.length) throw new Error(problems.join("; ") || "nothing came out");
+      prog.textContent = "Putting it together…";
+      return loadPdfLib().then(function(){ return merge(parts); }).then(function(bytes){ return {bytes:bytes, base:base, problems:problems, ver:v}; },
+        function(e){ console.warn("merge", e); problems.push("couldn't join the parts (pdf-lib didn't load)"); return {parts:parts, base:base, problems:problems, ver:v}; });
+    })
+    .then(function(r){ last = r; prog.textContent = r.problems.length ? "Problems: " + r.problems.join("; ") : ""; return r; })
+    .then(function(r){ building = null; $("pvbtn").disabled = $("pdf").disabled = false; return r; },
+          function(e){ building = null; $("pvbtn").disabled = $("pdf").disabled = false; prog.textContent = "Couldn't make the PDF: " + (e && e.message || e); throw e; });
+  return building;
+}
+function fresh(){ return last && last.ver === ver ? Promise.resolve(last) : buildAll(); }
+function savePdf(r){
+  if(r.bytes) return TB.downloads.save({filename:r.base + ".pdf", data:new Blob([r.bytes], {type:"application/pdf"})}).then(function(){ toast("Saved " + r.base + ".pdf", 3000); });
+  return r.parts.reduce(function(p, x, i){ return p.then(function(){
+    if(x.v.images) return;
+    return TB.downloads.save({filename:r.base + "-" + (i + 1) + "-" + x.name.toLowerCase().replace(/\W+/g, "-") + ".pdf", data:new Blob([x.v], {type:"application/pdf"})});
+  }); }, Promise.resolve()).then(function(){ toast("Saved the parts as separate PDFs", 3500); });
+}
+var pvUrl = "";
+function showPreview(r){
+  var pv = $("pv"); if(pvUrl){ URL.revokeObjectURL(pvUrl); pvUrl = ""; }
+  pv.classList.add("on");
+  if(!r.bytes){ pv.innerHTML = '<div class="nopv">The parts couldn\'t be joined into one file here, so there\'s nothing to preview. Save PDF hands them over one by one.</div>'; return; }
+  pvUrl = URL.createObjectURL(new Blob([r.bytes], {type:"application/pdf"}));
+  var bar = '<div class="pvbar"><b>Preview</b><span class="muted" id="pvstale"></span><span class="sp"></span><a class="btn g s" href="' + pvUrl + '" target="_blank" rel="noopener">Open in a new tab</a><button class="btn g s" id="pvclose">Close preview</button></div>';
+  /* phones (and some browsers) can't show a PDF inside a page: offer the file instead */
+  if(navigator.pdfViewerEnabled === false) pv.innerHTML = bar + '<div class="nopv">This browser can\'t show a PDF inside the page. Use <b>Open in a new tab</b> to look through it, or <b>Save PDF</b>.</div>';
+  else pv.innerHTML = bar + '<iframe title="Print preview" src="' + pvUrl + '#view=FitH"></iframe>';
+  setTimeout(function(){ pv.scrollIntoView({behavior:"smooth", block:"start"}); }, 50);
+  $("pvclose").onclick = function(){ pv.classList.remove("on"); pv.innerHTML = ""; if(pvUrl){ URL.revokeObjectURL(pvUrl); pvUrl = ""; } };
+}
+$("pvbtn").onclick = function(){ fresh().then(showPreview, function(){}); };
+$("pdf").onclick = function(){ fresh().then(savePdf, function(){}); };
+function merge(parts){
+  var P = window.PDFLib;
+  return P.PDFDocument.create().then(function(out){
+    out.setTitle(sessLabel()); out.setCreator("Slappybag's Toolbag — Next Session");
+    return parts.reduce(function(p, x){ return p.then(function(){
+      if(!x.v.images){   /* bytes (an ArrayBuffer from a tool's frame isn't instanceof ours) */
+        return P.PDFDocument.load(x.v).then(function(src){ return out.copyPages(src, src.getPageIndices()); }).then(function(pages){ pages.forEach(function(pg){ out.addPage(pg); }); });
+      }
+      return (x.v.images || []).reduce(function(q, im){ return q.then(function(){
+        var bin = atob(im.data.split(",")[1]), arr = new Uint8Array(bin.length);
+        for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return (/^data:image\/png/.test(im.data) ? out.embedPng(arr) : out.embedJpg(arr)).then(function(img){
+          var pg = out.addPage([im.w * 72, im.h * 72]); pg.drawImage(img, {x:0, y:0, width:im.w * 72, height:im.h * 72});
+        });
+      }); }, Promise.resolve());
+    }); }, Promise.resolve()).then(function(){ return out.save(); });
+  });
+}
+
+/* ---------------- start ---------------- */
+/* Cards made in another tab show up when you come back here. */
+var reloadLibs = function(){ loadLibs().then(function(){ if(!$("page").classList.contains("on")) render(); }); };
+window.addEventListener("focus", reloadLibs);
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") reloadLibs(); });
+Promise.all([TB.store.get(KEY).catch(function(){ return null; }), loadLibs()]).then(function(r){
+  S = r[0] && Array.isArray(r[0].sessions) && r[0].sessions.length ? r[0] : migrate();
+  S.own = S.own || []; S.extra = S.extra || {};
+  if(!r[0]) TB.store.set(KEY, S).catch(function(){});
+  render();
+});
+})();
 </script>
 </body>
 </html>

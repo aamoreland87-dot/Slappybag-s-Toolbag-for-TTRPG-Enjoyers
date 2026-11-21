@@ -151,6 +151,116 @@
     lastPic[key] = pic;
     (pic ? TB.store.set(key + ".pic", pic) : TB.store.del(key + ".pic")).catch(function(){});
   };
+  /* ---------------- export hook (Next Session) ----------------
+     session-prep.html loads a tool page in a hidden iframe and asks it for printed cards:
+     TBExport.pdf(ids) resolves with the tool's own sheet for those library cards, exactly as its
+     Print / PDF button makes it — a PDF Blob, or for tools that print through the browser
+     {images:[{data, w, h}]} (one picture per letter page, w/h in inches). The tool supplies
+       ready()    resolves once its library has loaded
+       show(ids)  lays those cards out on its sheet; returns a function that puts the sheet back
+       pages()    the element holding the laid-out pages
+       build()    makes the output from what's laid out
+     Calls run one at a time; the user's own print selection is never saved over. */
+  TB.imagesReady = function(root){
+    var imgs = root ? root.querySelectorAll("img") : [];
+    return Promise.all(Array.prototype.map.call(imgs, function(im){
+      if(im.complete) return 0;
+      return new Promise(function(r){ im.addEventListener("load", r); im.addEventListener("error", r); setTimeout(r, 8000); });
+    }));
+  };
+  TB.libReady = function(Lib){
+    return new Promise(function(res){ if(Lib.ready) return res(); Lib.onChange(function(){ if(Lib.ready) res(); }); });
+  };
+  TB.exportApi = function(o){
+    var q = Promise.resolve();
+    w.TBExport = {
+      kind: o.kind,
+      ready: o.ready,
+      pdf: function(ids){
+        var job = q.then(function(){ return o.ready(); }).then(function(){
+          var undo = o.show((ids || []).slice());
+          var done = function(){ try{ if(undo) undo(); }catch(e){} };
+          return TB.imagesReady(o.pages())
+            .then(function(){ return d.fonts && d.fonts.ready; })
+            .then(function(){ return new Promise(function(r){ setTimeout(r, 50); }); })
+            .then(function(){ return o.build(); })
+            .then(function(v){ done(); return v; }, function(e){ done(); throw e; });
+        });
+        q = job.catch(function(){});
+        return job;
+      }
+    };
+  };
+  var d = w.document;
+
+  /* Letter pages laid out in HTML, as pictures for a PDF (for tools whose sheet prints through the
+     browser). Each page is drawn into an SVG <foreignObject> with the stylesheet and every typeface
+     inlined, then onto a canvas at `scale` px per CSS px (3 ≈ 288 dpi). */
+  var fontCssInline = null;
+  TB.inlineFontsCss = function(){
+    if(fontCssInline) return fontCssInline;
+    var base = new URL(".", w.location.href).href;
+    fontCssInline = fetch("fonts.css").then(function(r){ return r.ok ? r.text() : ""; }).then(function(css){
+      var urls = [], re = /url\((['"]?)(?!data:)([^)'"]+)\1\)/g, m;
+      while((m = re.exec(css))) if(urls.indexOf(m[2]) < 0) urls.push(m[2]);
+      return Promise.all(urls.map(function(u){
+        return fetch(new URL(u, base).href).then(function(r){ return r.ok ? r.blob() : null; }).then(function(b){
+          if(!b) return null;
+          return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(fr.result); }; fr.onerror = function(){ res(null); }; fr.readAsDataURL(b); });
+        }).catch(function(){ return null; });
+      })).then(function(datas){
+        urls.forEach(function(u, i){ if(datas[i]) css = css.split(u).join(datas[i].replace(/^data:[^;]*;/, "data:font/" + (/\.woff2$/.test(u) ? "woff2" : /\.woff$/.test(u) ? "woff" : "ttf") + ";")); });
+        return css;
+      });
+    }).catch(function(){ return ""; });
+    return fontCssInline;
+  };
+  TB.rasterPages = function(pageEls, o){
+    var W = o.w * 96, H = o.h * 96, scale = o.scale || 3;
+    return TB.inlineFontsCss().then(function(fontCss){
+      var css = fontCss + "\n" + (o.css || "");
+      var chain = Promise.resolve(), out = [];
+      Array.prototype.forEach.call(pageEls, function(pg){
+        chain = chain.then(function(){
+          var copy = pg.cloneNode(true);
+          copy.querySelectorAll("[contenteditable]").forEach(function(e){ e.removeAttribute("contenteditable"); });
+          var imgs = pg.querySelectorAll("img"), cimgs = copy.querySelectorAll("img");
+          cimgs.forEach(function(im, i){
+            try{
+              var s = imgs[i], cv = d.createElement("canvas");
+              cv.width = s.naturalWidth || 1; cv.height = s.naturalHeight || 1;
+              cv.getContext("2d").drawImage(s, 0, 0);
+              im.setAttribute("src", TB.canvasData(cv));
+            }catch(e){ im.removeAttribute("src"); }
+          });
+          copy.style.margin = "0"; copy.style.zoom = "1"; copy.style.boxShadow = "none";
+          var xhtml = new XMLSerializer().serializeToString(copy);
+          var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W * scale + '" height="' + H * scale + '">' +
+            '<foreignObject x="0" y="0" width="' + W + '" height="' + H + '" transform="scale(' + scale + ')">' +
+            '<div xmlns="http://www.w3.org/1999/xhtml" data-theme="light" style="width:' + W + 'px;height:' + H + 'px;background:#fff;overflow:hidden">' +
+            '<style>' + css.replace(/<\/style/gi, "<\\/style") + '\n:root{--sheet-zoom:1}</style>' + xhtml + '</div></foreignObject></svg>';
+          return new Promise(function(res, rej){
+            var im = new Image();
+            im.onload = function(){
+              /* the first decode can come back before the inlined typefaces are applied */
+              setTimeout(function(){
+                try{
+                  var cv = d.createElement("canvas"); cv.width = W * scale; cv.height = H * scale;
+                  var g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(im, 0, 0);
+                  out.push({data:cv.toDataURL("image/jpeg", 0.92), w:o.w, h:o.h});
+                  res();
+                }catch(e){ rej(e); }
+              }, 120);
+            };
+            im.onerror = function(){ rej(new Error("couldn't draw the sheet")); };
+            im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+          });
+        });
+      });
+      return chain.then(function(){ return {images:out}; });
+    });
+  };
+
   /* Brings a draft's pictures back; apply(pic) puts them on the editor. */
   TB.restorePic = function(key, d, apply){
     if(!d || !d.picStored) return;
@@ -170,7 +280,7 @@
   "use strict";
   var TB = w.TB;
   var T = d.title || "";
-  var TOOL = /Item/.test(T) ? "item" : /Feat/.test(T) ? "feat" : /Initiative/.test(T) ? "init" : /Hazard/.test(T) ? "hazard" : "";
+  var TOOL = /Item/.test(T) ? "item" : /Feat/.test(T) ? "feat" : /Spell/.test(T) ? "spell" : /Initiative/.test(T) ? "init" : /Hazard/.test(T) ? "hazard" : "";
   TB.tool = TOOL;
 
   var PDF_TIP = "Build the sheet as a PDF to save or print.";
@@ -220,6 +330,9 @@
     feat: ["Cards are 4 × 5 in, two to a letter page.",
            "Import fetches a feat by name from Demiplane, or reads a page you paste from Archives of Nethys or Demiplane.",
            "Grants rows list what the feat gives: skills, spells, proficiencies."],
+    spell: ["Cards are 4 × 5 in, two to a letter page.",
+            "Import fetches a spell by name from Demiplane, or reads a page you paste from Archives of Nethys or Demiplane.",
+            "The spell type (Spell, Cantrip, Focus, Ritual) sets the word before the rank. Heightened rows list what changes at higher ranks."],
     init: ["Cards are 2.6 × 7.8 in and fold in the middle to stand like a tent.",
            "Import takes a Demiplane link or a creature's name, or a page you paste from Archives of Nethys.",
            "Recall Knowledge is worked out from the creature's traits, level and rarity."],

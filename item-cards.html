@@ -478,6 +478,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         <ul class="menu">
           <li><a href="item-cards.html" aria-current="page">Item Cards</a></li>
           <li><a href="feat-cards.html">Feat Cards</a></li>
+          <li><a href="spell-cards.html">Spell Cards</a></li>
           <li><a href="initiative-cards.html">Initiative Cards</a></li>
           <li><a href="hazard-cards.html">Hazard Cards</a></li>
           <li class="all"><a href="index.html">All tools</a></li>
@@ -2064,6 +2065,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     else if(n < 20) setTimeout(function(){ waitDl(n + 1); }, 500);
   })(0);
   window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
+  /* Next Session asks for printed cards through this (toolbag-core.js TB.exportApi). */
+  TB.exportApi({kind:"item", ready:function(){ return TB.libReady(Lib); }, pages:function(){ return $("pages"); },
+    show:function(ids){
+      var keep = selected, keepBlank = blankCount;
+      selected = ids; blankCount = 0; renderSheet();
+      return function(){ selected = keep; blankCount = keepBlank; renderSheet(); };
+    },
+    build:buildPdf});
   window.addEventListener("beforeprint", renderSheet);
 
   /* ---------------- views ---------------- */

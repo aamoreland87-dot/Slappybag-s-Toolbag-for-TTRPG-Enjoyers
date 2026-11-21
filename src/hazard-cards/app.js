@@ -259,7 +259,7 @@
   /* ---------------- editor state ---------------- */
   var zoom = 1, currentId = null;
   var img = {src:"", data:"", id:"", meta:"", dirty:false};
-  var imgScale = 100, source = "";
+  var imgScale = 100, source = "", block = "";   /* block: the full stat block as imported, for Next Session */
   var cardEl = null, photo = null;
 
   function texts(){ return cardbox.querySelectorAll("[data-f]"); }
@@ -271,7 +271,7 @@
   function field(name){ return cardbox.querySelector('[data-f="' + name + '"]'); }
 
   function collect(){
-    var d = {imgScale:imgScale, source:source};
+    var d = {imgScale:imgScale, source:source, block:block};
     FIELDS.forEach(function(f){ var el = field(f); d[f] = el ? textOf(el) : ""; });
     readIrw(d);
     d.traits = readHazTraits();
@@ -299,7 +299,7 @@
     setImage({src:d.imageSrc || d.image || (d.imageId ? "/_blob/" + d.imageId : ""),
               data:d.image || "", id:d.imageId || "", meta:d.imageMeta || "", dirty:!!d.imageDirty});
     setImgScale(d.imgScale || 100);
-    setSource(d.source || "");
+    setSource(d.source || ""); block = d.block || "";
     if(d.zoom) setZoom(d.zoom);
     refresh();
   }
@@ -734,6 +734,7 @@
     return out;
   }
   function importText(text, link){
+    var whole = String(text || "").trim();
     var p = parseHazardText(text);
     var got = ["name","ac","hp","stealthDc","disableDc"].filter(function(f){ return p[f]; });
     if(!got.length && !p.actions.length){ toast("No hazard stat block found in that text", 4000); return false; }
@@ -742,6 +743,7 @@
     renderHazTraits(p.traits);
     renderActionsBlock(p.actions.length ? p.actions : []);
     if(link) setSource(link);
+    block = whole;
     refresh(); saveDraft();
     var missing = ["name","ac","hp","stealthDc","disableDc"].filter(function(f){ return !p[f]; });
     toast(missing.length ? "Filled the card — still needs " + missing.join(", ") : "Filled the card from the stat block", 4000);
@@ -994,6 +996,14 @@
     if(!traitPicker.hidden) closeTraitPicker();
   });
   window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
+  /* Next Session asks for printed cards through this (toolbag-core.js TB.exportApi). */
+  TB.exportApi({kind:"hazard", ready:function(){ return TB.libReady(Lib); }, pages:function(){ return $("pages"); },
+    show:function(ids){
+      var keep = selected, keepBlank = blankCount;
+      selected = ids; blankCount = 0; renderSheet();
+      return function(){ selected = keep; blankCount = keepBlank; renderSheet(); };
+    },
+    build:function(){ return TB.rasterPages($("pages").querySelectorAll(".page"), {w:11, h:8.5, css:$("cardCss").textContent}); }});
   window.addEventListener("beforeprint", renderSheet);
 
   /* ---------------- views ---------------- */

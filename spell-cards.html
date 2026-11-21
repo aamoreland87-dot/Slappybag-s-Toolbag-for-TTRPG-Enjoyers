@@ -1,0 +1,2558 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>PF2E Spell Cards</title><link rel="stylesheet" href="fonts.css"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<style id="cardCss">
+:root{
+  --ink:#1A1820;
+  --ink-2:#575060;
+  --ink-3:#8A8290;
+  --paper:#FFFFFF;
+  --ground:#F0EEF2;
+  --rule:#CBC3D1;
+  --rule-soft:#E1DCE5;
+  --accent:#3E2463;
+  --accent-2:#6B4C93;
+  --on-accent:#FFFFFF;
+  --chip:#E9E4EE;
+  --ghost:#B1AAB8;
+  --shadow:0 1px 2px rgba(26,24,32,.06), 0 12px 30px rgba(26,24,32,.10);
+  /* A card is exactly 4x5in at 96px/in; its border is the cut line. */
+  --card-w:384px; --card-h:480px;
+  --card-fs:10px; --zoom:1;
+  /* Paizo-style roles (see fonts.css): titles, subheads, small headers, body */
+  --serif:var(--font-title);
+  --sub:var(--font-sub);
+  --caps:var(--font-caps);
+  --sans:var(--font-body);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#EAE4E2; --ink-2:#B0A6AC; --ink-3:#847A82;
+    --paper:#1E1B21; --ground:#131215; --rule:#3E3841;
+    --rule-soft:#2C282F; --accent:#C2A8E6; --accent-2:#9A7CC4;
+    --chip:#2A2430; --on-accent:#1E1B21; --ghost:#6A6068;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#EAE4E2; --ink-2:#B0A6AC; --ink-3:#847A82;
+  --paper:#1E1B21; --ground:#131215; --rule:#3E3841;
+  --rule-soft:#2C282F; --accent:#C2A8E6; --accent-2:#9A7CC4;
+  --chip:#2A2430; --on-accent:#1E1B21; --ghost:#6A6068;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px rgba(0,0,0,.45);
+}
+
+/* The card is paper: it keeps the light palette whatever theme the UI around it uses. */
+.cardbox,.page{
+  --ink:#1A1820; --ink-2:#575060; --ink-3:#8A8290; --paper:#FFFFFF; --ground:#F0EEF2;
+  --rule:#CBC3D1; --rule-soft:#E1DCE5; --accent:#3E2463; --accent-2:#6B4C93; --on-accent:#FFFFFF;
+  --chip:#E9E4EE; --ghost:#B1AAB8; color-scheme:light; color:var(--ink);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.45; padding:0 0 4rem;
+}
+[hidden]{display:none !important}
+
+/* ================= toolbar ================= */
+.bar{
+  position:sticky; top:0; z-index:20;
+  background:var(--paper); border-bottom:1px solid var(--rule);
+  padding:.6rem clamp(.6rem,3vw,2rem);
+  display:flex; flex-direction:column; gap:.45rem;
+}
+.bar-row{display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .8rem}
+.bar h1{font-family:var(--serif); font-size:1.15rem; font-weight:700; margin:0; white-space:nowrap}
+.bar h1 .sub{color:var(--accent); font-weight:600}
+/* ---- toolbag nav: back to menu + switch tool ---- */
+.toolbag{display:flex; flex:0 0 auto; align-items:center; gap:.6rem; position:relative}
+.toolbag .home{font-family:var(--caps); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); text-decoration:none; white-space:nowrap}
+.toolbag .home:hover{color:var(--accent)}
+.switch summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:.3rem; white-space:nowrap}
+.switch summary::-webkit-details-marker{display:none}
+.switch summary::after{content:"\25BE"; color:var(--accent); font-size:.8rem}
+.switch[open] summary::after{content:"\25B4"}
+.switch .menu{position:absolute; left:0; top:calc(100% + .45rem); z-index:30; margin:0; padding:.3rem 0; list-style:none; min-width:13rem; background:var(--paper); border:1px solid var(--rule); border-radius:2px; box-shadow:var(--shadow)}
+.switch .menu a{display:block; padding:.5rem 1rem; color:var(--ink); text-decoration:none; font-family:var(--caps); font-size:.82rem; letter-spacing:.06em; text-transform:uppercase}
+.switch .menu a:hover{background:var(--chip); color:var(--accent)}
+.switch .menu a[aria-current="page"]{color:var(--accent)}
+.switch .menu a[aria-current="page"]::before{content:"\25B8 "}
+.switch .menu .all{border-top:1px solid var(--rule-soft); margin-top:.3rem; padding-top:.3rem}
+.switch summary:focus-visible,.toolbag .home:focus-visible,.switch .menu a:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+.bar .grow{flex:1 1 1rem}
+.bar-group{display:flex; flex-wrap:wrap; align-items:center; gap:.35rem}
+.bar-label{
+  font-family:var(--caps); font-size:.78rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.tog,.btn{
+  font-family:var(--caps); letter-spacing:.06em; text-transform:uppercase;
+  cursor:pointer; border-radius:2px;
+}
+.tog{
+  font-size:.8rem; border:1px solid var(--rule);
+  background:var(--chip); color:var(--ink-2); padding:.22rem .55rem;
+}
+.tog[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.seg{display:inline-flex; border:1px solid var(--ink-2); border-radius:2px; overflow:hidden}
+.seg .tog{border:none; border-radius:0; background:transparent; color:var(--ink-2); padding:.26rem .7rem}
+.seg .tog + .tog{border-left:1px solid var(--rule)}
+.seg .tog[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+span.tog{display:inline-flex; align-items:center}
+#z-lvl{min-width:3.6em; justify-content:center; cursor:default; font-variant-numeric:tabular-nums}
+.btn{font-size:.82rem; border:1px solid var(--ink-2); background:transparent; color:var(--ink); padding:.28rem .7rem}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.solid{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+.btn.solid:hover{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.btn:disabled{opacity:.45; cursor:default}
+.tog:focus-visible,.btn:focus-visible,[contenteditable]:focus-visible,input:focus-visible,.photo:focus-visible,.gcard:focus-visible{
+  outline:2px solid var(--accent-2); outline-offset:2px;
+}
+.opts summary{
+  font-family:var(--caps); font-size:.8rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-2); cursor:pointer;
+  width:max-content; list-style:none;
+}
+.opts summary::-webkit-details-marker{display:none}
+.opts summary::before{content:"▸ "; color:var(--accent)}
+.opts[open] summary::before{content:"▾ "}
+.opts-body{
+  display:flex; flex-wrap:wrap; gap:.5rem 1.1rem; align-items:center;
+  padding-top:.45rem; margin-top:.35rem; border-top:1px solid var(--rule-soft);
+}
+.status{font-family:var(--caps); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.status b{color:var(--accent); font-weight:700}
+.account-slot:empty{display:none}
+.btn.account .who{display:inline-block; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom}
+
+/* ================= views ================= */
+.view{padding:1.5rem 1rem 0}
+.view[hidden]{display:none}
+.pane{width:100%; overflow-x:auto}
+.card-count{
+  font-family:var(--caps); font-size:.78rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); text-align:center; margin-top:.7rem;
+}
+.card-count b{color:var(--accent); font-weight:700}
+
+/* ================= the card ================= */
+/* Everything inside .cardbox is sized in card px; .cardbox carries the zoom. */
+.cardbox{
+  width:var(--card-w); margin:0 auto; font-size:var(--card-fs); line-height:1.35;
+  zoom:var(--zoom); box-shadow:var(--shadow);
+}
+.card{
+  position:relative; display:flex; flex-direction:column;
+  width:var(--card-w); height:var(--card-h); overflow:hidden;
+  border:2px solid var(--ink); background:var(--paper);
+  padding:calc(.7em + 10px) calc(.9em + 10px) calc(.8em + 10px);
+}
+/* Title: 16pt, allowed two lines; only shrinks once it would need a third. */
+.c-name{
+  font-family:var(--serif); font-weight:700; font-size:calc(16pt * var(--name-scale,1)); line-height:1.1;
+  text-align:center; margin:0; text-wrap:balance;
+  border-bottom:1.5px solid var(--ink); padding-bottom:.15em;
+}
+.c-cat{
+  display:flex; align-items:center; justify-content:space-between; gap:1em;
+  margin-top:.3em; font-family:var(--caps); font-weight:700; font-size:.85em;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--accent);
+}
+.c-cat.blank{display:none}
+.blanks .c-cat.blank{display:flex}
+.c-cat select{
+  appearance:none; -webkit-appearance:none; border:none; background:transparent;
+  font:inherit; color:inherit; letter-spacing:inherit; text-transform:inherit;
+  padding:0 1.2em 0 0; margin:0; cursor:pointer; max-width:100%;
+  background-image:linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(-45deg, transparent 50%, currentColor 50%);
+  background-position:right .5em top 55%, right .2em top 55%;
+  background-size:.3em .3em; background-repeat:no-repeat;
+}
+.c-cat select:focus{outline:none; background-color:var(--chip)}
+.c-cat select option{font-family:var(--sans); text-transform:none; letter-spacing:0; color:var(--ink); background:var(--paper)}
+
+/* category row: category + free note on the left (may wrap), charges pinned right */
+.c-cat{align-items:flex-start}
+.c-cat .c-left{flex:1 1 auto; min-width:0; display:inline; overflow-wrap:anywhere}
+.c-cat .note{color:var(--ink); letter-spacing:.06em; margin-left:.5em}
+.c-cat .note[contenteditable]{display:inline; min-width:1em}
+.blanks .c-cat .note:empty{display:inline-block; min-width:8em; border-bottom:1px dotted var(--ink-3)}
+.charges{flex:0 0 auto; display:inline-flex; align-items:center; gap:.35em; white-space:nowrap; color:var(--ink)}
+.charges .per [contenteditable]{display:inline; min-width:1em; letter-spacing:.06em}
+.blanks .charges .per [contenteditable]:empty{display:inline-block; min-width:4em; border-bottom:1px dotted var(--ink-3)}
+.dots{display:inline-flex; flex-wrap:wrap; gap:.28em; max-width:14em; justify-content:flex-end}
+.dot{
+  width:1.15em; height:1.15em; border-radius:50%; border:1.5px solid var(--ink);
+  background:var(--paper); cursor:pointer; display:inline-block;
+}
+.dot.used{background:var(--ink)}
+.chg-btn{
+  font:inherit; font-size:1.1em; line-height:1; width:1.5em; height:1.5em; padding:0;
+  border:1px solid var(--rule); border-radius:2px; background:var(--chip); color:var(--ink-2); cursor:pointer;
+}
+.chg-btn:hover{border-color:var(--accent); color:var(--accent)}
+
+.c-meta{
+  display:flex; justify-content:space-between; align-items:baseline; gap:1em;
+  margin-top:.25em; font-family:var(--sub); font-weight:700; font-size:1.2em; line-height:1;
+  letter-spacing:.05em; text-transform:uppercase;
+}
+.c-meta.blank{display:none}
+.blanks .c-meta.blank{display:flex}
+/* Traits wrap inside their own box; the value is pinned right and never overlapped. */
+.c-meta{align-items:flex-start}
+.c-meta .traits{flex:1 1 auto; min-width:0; overflow-wrap:anywhere; border-radius:2px}
+.c-meta .value{flex:0 0 auto; white-space:nowrap; text-align:right; min-width:3em}
+.c-meta .value[contenteditable]{display:inline-block}
+.blanks .c-meta .value:empty{min-width:5em; border-bottom:1px dotted var(--ink-3)}
+.editor .traits{cursor:pointer}
+.editor .traits:hover{background:var(--chip)}
+.editor .traits:empty::before{content:"+ traits"; color:var(--ghost); font-weight:400; letter-spacing:0; text-transform:none; font-style:italic}
+
+/* image: floats beside the description, or sits centred above it when there's no Passive */
+.flow{display:flow-root; flex:1 1 auto; min-height:0; overflow:hidden}
+.photo{
+  position:relative; float:left;
+  width:var(--img-w,120px); aspect-ratio:var(--img-ar,1);
+  margin:.1em .7em .25em 0; border:1px dashed var(--ink-3);
+  background:var(--chip); overflow:hidden; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.card.stacked .photo{float:none; margin:.15em auto .45em}
+.card.stacked .sec.grants{display:none !important}
+.photo img{width:100%; height:100%; object-fit:contain; display:block}
+.photo .ph-hint{
+  font-family:var(--caps); font-size:.85em; letter-spacing:.12em; line-height:1.5;
+  text-transform:uppercase; color:var(--ink-3); text-align:center; padding:0 1em;
+}
+.photo .ph-hint small{display:block; font-family:var(--sans); font-style:italic; letter-spacing:0; text-transform:none; font-size:.9em}
+.photo.has-img{border-style:solid; border-color:var(--rule); background:var(--paper); cursor:default}
+.photo.has-img .ph-hint{display:none}
+.photo.drop{border-color:var(--accent); border-width:2px; background:var(--chip)}
+.photo.busy{opacity:.6}
+.ph-grip{
+  position:absolute; right:0; bottom:0; z-index:3; width:14px; height:14px;
+  cursor:nwse-resize; touch-action:none;
+  background:linear-gradient(135deg, transparent 50%, var(--accent) 50%);
+}
+.ph-clear{
+  position:absolute; top:.3em; right:.3em; z-index:2;
+  font-size:1.1em; line-height:1; width:1.6em; height:1.6em; border-radius:50%;
+  cursor:pointer; border:1px solid var(--rule); background:var(--paper); color:var(--ink-2);
+  display:none; align-items:center; justify-content:center;
+}
+.photo.has-img .ph-clear{display:flex}
+.ph-meta{
+  position:absolute; left:.3em; bottom:.3em; z-index:2;
+  font-family:var(--caps); font-size:.72em; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-2); background:var(--paper); border:1px solid var(--rule);
+  padding:.05em .4em; display:none;
+}
+.photo.has-img .ph-meta{display:block}
+.ph-bg{
+  position:absolute; left:.3em; top:.3em; z-index:2; cursor:pointer;
+  display:inline-flex; align-items:center; gap:.3em;
+  font-family:var(--caps); font-size:.72em; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-2); background:var(--paper); border:1px solid var(--rule); padding:.05em .4em;
+}
+.ph-bg input{margin:0; width:1em; height:1em; accent-color:var(--accent)}
+
+/* sections: each box starts at the height its text (and image) needs; leftover card space is
+   shared Description 3 : Grants 2 : each action 2 : Special 1 (the prerequisite lines take only
+   what they need), and when the card is full every box shrinks in proportion (a hidden optional
+   section simply drops out). Every box clips; the fitters shrink the body text until nothing is
+   cut off. The PDF applies the same rule in drawCard. */
+.sec{margin-top:.55em; display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden}
+.sec.desc{flex-grow:3}
+.sec.active{flex-grow:2}
+
+/* ---- spell parts (the layout is the feat card's) ---- */
+/* the feat's own action cost rides after its name, as in a stat block */
+.c-name .ncost{display:inline-flex; vertical-align:-.08em; margin-left:.3em}
+.c-name .ncost svg{height:.78em; width:auto}
+.c-name .ncost:empty{display:none}
+/* level, pinned right on the traits row: FEAT 4 */
+.c-meta .lvl{flex:0 0 auto; white-space:nowrap; text-align:right}
+.c-meta .lvl [contenteditable]{display:inline-block; min-width:.6em}
+.blanks .c-meta .lvl [contenteditable]:empty{min-width:1.5em; border-bottom:1px dotted var(--ink-3)}
+.blanks .c-meta .lvl [contenteditable]:empty::before{content:""}
+/* the editor's cost picker for the feat itself sits under the title */
+.selfcost{display:none; justify-content:center; align-items:center; gap:.5em; margin-top:.25em;
+  font-family:var(--caps); font-size:.8em; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.blanks .selfcost{display:flex}
+.selfcost .pl{display:inline-flex}
+.selfcost .pl input{display:inline-block}
+.selfcost .pl:not(.on) .pv{color:var(--ghost)}
+/* prerequisites / access / frequency / trigger / requirements: stat-block lines, no caption */
+.sec.req{flex:0 0 auto; margin-top:.4em; padding-bottom:.25em; border-bottom:1px solid var(--rule)}
+.sec.req .body{white-space:normal; flex:0 0 auto}
+.rq{display:block; white-space:pre-wrap}
+.rq.blank{display:none}
+.blanks .rq.blank{display:block}
+.rq [contenteditable]{display:inline}
+.blanks .rq [contenteditable]:empty{display:inline-block; min-width:8em; border-bottom:1px dotted var(--ink-3)}
+.blanks .rq [contenteditable]:empty::before{content:""}
+/* grants: one line per thing the feat hands out — a bold kind, then the details */
+.sec.grants{flex-grow:2}
+.sec.grants .body{white-space:normal}
+.grant{display:block; white-space:pre-wrap; position:relative}
+.grant .gk{font-weight:700}
+.editor .grant .gk:empty::before{content:"+ kind"; color:var(--ghost); font-weight:400; font-style:italic}
+.editor .grant .gk{cursor:pointer; border-radius:2px}
+.editor .grant .gk:hover{background:var(--chip)}
+.grant .gt{display:inline}
+.grant .gx{display:none; position:absolute; right:0; top:.1em; width:1.3em; height:1.3em; padding:0; line-height:1;
+  font:inherit; border:1px solid var(--rule); border-radius:50%; background:var(--paper); color:var(--ink-3); cursor:pointer}
+.editor .grant:not(.spare):hover .gx,.editor .grant:not(.spare):focus-within .gx{display:inline-block}
+.grant.spare{display:none}
+.blanks .grant.spare{display:block}
+.sec.special{flex-grow:1}
+.sec-cap{
+  flex:0 0 auto; display:flex; align-items:baseline; gap:.6em; flex-wrap:wrap;
+  font-family:var(--sub); font-weight:700; font-size:1.15em; line-height:1; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--accent);
+  border-bottom:1px solid var(--rule); padding-bottom:.1em; margin-bottom:.2em;
+}
+.sec-cap .spacer{flex:1 1 auto}
+.sec-cap .range{
+  font-family:var(--sans); font-weight:400; font-size:.82em; letter-spacing:0;
+  text-transform:none; color:var(--ink);
+}
+.sec-cap .range b{
+  font-family:var(--caps); font-weight:700; font-size:.9em; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-2);
+}
+.sec-cap [contenteditable]{display:inline}
+.sec-cap .range.blank{display:none}
+.blanks .sec-cap .range.blank{display:inline}
+.blanks .sec-cap .range [contenteditable]:empty{display:inline-block; min-width:4em; border-bottom:1px dotted var(--ink-3)}
+/* Body text: 10pt at most, scaled down together until the card fits. */
+.sec .body{
+  white-space:pre-wrap; line-height:1.4; flex:1 1 auto; min-height:0; overflow:hidden;
+  font-size:calc(10pt * var(--body-scale,1));
+}
+
+/* action-cost picker on the Active line */
+.pick{display:inline}
+.pl{display:none; align-items:center; gap:.2em; cursor:pointer; letter-spacing:0}
+.pl.on{display:inline-flex}
+.blanks .pl{display:inline-flex}
+/* Action slots in the editor. A slot with a cost shows just that glyph (untick it to change your
+   mind); an idle slot shows the five cost boxes and hides its range, traits and write-up. */
+.sec.active .types .pl.on{display:inline-flex}
+.sec.active .types .pl.on input{display:inline-block}
+.blanks .sec.active:not(.idle) .types .pl:not(.on){display:none}
+.sec.active.idle .types .pl{display:inline-flex}
+.sec.active.idle .types .pl .pv{color:var(--ghost)}
+.sec.active.idle .types input{display:inline-block}
+.sec.active.idle .range,.sec.active.idle .atr{display:none !important}
+.sec.active.idle.empty .body{display:none !important}
+.sec.active.idle > .sec-cap > .alabel{color:var(--ghost)}
+/* the spare slot only shows while blank fields are on (a typed slot is content, so it always shows) */
+.sec.active.idle.empty{display:none}
+.blanks .sec.active.idle.empty{display:flex}
+.pl input{
+  appearance:none; -webkit-appearance:none; margin:0; display:none;
+  width:.85em; height:.85em; border:1px solid var(--ink-3);
+  background:var(--paper); border-radius:1px; cursor:pointer; position:relative;
+}
+.blanks .pl input{display:inline-block}
+.blanks .pl:not(.on) .pv{color:var(--ghost)}
+.pl input:checked{background:var(--accent); border-color:var(--accent)}
+.pl input:checked::after{
+  content:""; position:absolute; left:.27em; top:.05em;
+  width:.18em; height:.42em; border:solid var(--on-accent);
+  border-width:0 1.5px 1.5px 0; transform:rotate(42deg);
+}
+.pick .pl + .pl{margin-left:.35em}
+.glyph{display:inline-flex; align-items:center; vertical-align:-.18em; line-height:1}
+.glyph svg{height:1.15em; width:auto; display:block}
+/* action traits: printed in brackets after the cost, lowercase like a stat block */
+.atr{font-family:var(--sans); font-weight:400; font-size:1em; letter-spacing:0; text-transform:none; color:var(--ink)}
+/* in the editor the seven trait toggles take one full line: the words themselves are the toggles
+   (ghosted until ticked), small enough to sit side by side on the card */
+.blanks .sec.active .atr{flex:1 1 100%; white-space:nowrap; overflow:hidden; font-size:.74em; line-height:1.3; text-align:left}
+.blanks .sec.active .atr .pl{gap:0; margin:0 .5em 0 0}
+.blanks .sec.active .atr .pl input{display:none !important}
+.blanks .sec.active .atr .pl .pv{color:var(--ghost)}
+.blanks .sec.active .atr .pl.on .pv{color:var(--ink); font-weight:600}
+.blanks .sec.active .atr .pl.on ~ .pl.on::before{content:""}
+.blanks .sec.active .atr:has(.pl.on)::before{content:""} .blanks .sec.active .atr:has(.pl.on)::after{content:""}
+.atr .pl.on ~ .pl.on::before{content:", "}
+.blanks .atr .pl.on ~ .pl.on::before{content:""}
+.atr:has(.pl.on)::before{content:"("} .atr:has(.pl.on)::after{content:")"}
+.blanks .atr::before, .blanks .atr::after{content:""}
+
+[contenteditable]{overflow-wrap:anywhere}
+[contenteditable]:focus{outline:none; background:var(--chip)}
+[contenteditable]:empty::before{content:attr(data-ph); color:var(--ghost); font-style:italic}
+.num{font-variant-numeric:tabular-nums}
+.blank{display:none}
+.blanks .blank{display:flex}
+
+/* ================= library ================= */
+.lib-tools{display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center; max-width:1100px; margin:0 auto .9rem}
+.gallery{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:1rem 1rem;
+  max-width:1100px; margin:0 auto;
+}
+.gcard{position:relative; cursor:pointer; border-radius:2px}
+.gcard .cardbox{--zoom:0.46; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.10); pointer-events:none}
+.gcard.sel .cardbox{outline:3px solid var(--accent); outline-offset:2px}
+.gmeta{
+  display:flex; justify-content:space-between; gap:.5rem; margin-top:.35rem;
+  font-family:var(--caps); font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3);
+}
+.gmeta b{color:var(--ink-2); font-weight:700}
+.gsel{
+  position:absolute; top:6px; left:6px; z-index:2; width:22px; height:22px; margin:0;
+  accent-color:var(--accent); cursor:pointer;
+}
+.gdel{
+  position:absolute; top:4px; right:4px; z-index:2; width:24px; height:24px;
+  border-radius:50%; border:1px solid var(--rule); background:var(--paper); color:var(--ink-2);
+  font-size:1rem; line-height:1; cursor:pointer; display:none; align-items:center; justify-content:center;
+}
+.gcard:hover .gdel,.gcard:focus-within .gdel{display:flex}
+p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1rem}
+
+/* ================= print sheet ================= */
+.sheet-wrap{display:flex; flex-direction:column; align-items:center; gap:1.5rem}
+.page{
+  width:8.5in; height:11in; background:var(--paper); box-shadow:var(--shadow);
+  padding:.5in .25in; zoom:var(--sheet-zoom,1);
+  display:grid; grid-template-columns:4in 4in; grid-auto-rows:5in; justify-content:center; align-content:start;
+  font-size:var(--card-fs); line-height:1.35;
+}
+.page .cardbox{zoom:1; box-shadow:none; margin:0}
+/* Borders overlap by one stroke so the shared edge is a single cut line. */
+.page .slot:nth-child(2n) .cardbox{margin-left:-2px}
+.page .slot:nth-child(n+3) .cardbox{margin-top:-2px}
+.page .card{height:var(--card-h); overflow:hidden}
+.sheet-note{text-align:center; color:var(--ink-3); font-style:italic; font-size:.9rem}
+
+/* ================= trait picker ================= */
+.scrim{position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:30}
+.picker{
+  position:fixed; left:0; right:0; bottom:0; z-index:31; max-height:70vh; overflow:auto;
+  background:var(--paper); border-top:2px solid var(--accent); box-shadow:0 -8px 30px rgba(0,0,0,.18);
+  padding:.75rem clamp(.75rem,3vw,2rem) 1.25rem; font-size:15px;
+}
+.picker-head{display:flex; gap:.6rem; align-items:center; position:sticky; top:0; background:var(--paper); padding-bottom:.5rem}
+.picker-head input{
+  flex:1 1 auto; min-width:0; font:inherit; padding:.4rem .6rem;
+  border:1px solid var(--rule); border-radius:2px; background:var(--chip); color:var(--ink);
+}
+.picker-head input:focus{outline:2px solid var(--accent-2); outline-offset:1px}
+.picker-sel,.picker-group{margin-top:.6rem}
+.chips{display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.3rem}
+.chip{
+  font-family:var(--caps); font-size:.82rem; letter-spacing:.05em; text-transform:uppercase;
+  border:1px solid var(--rule); background:var(--chip); color:var(--ink-2);
+  border-radius:2px; padding:.2rem .55rem; cursor:pointer;
+}
+.chip.on{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.chip.rare{border-color:var(--accent-2)}
+.chips:empty::before{content:"none yet"; font-style:italic; color:var(--ink-3); font-size:.85rem}
+
+/* print fallback dialog */
+.modal{
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:32;
+  width:min(92vw, 30rem); background:var(--paper); border:1px solid var(--rule);
+  border-top:3px solid var(--accent); box-shadow:var(--shadow); padding:1.1rem 1.25rem 1rem;
+  font-size:15px;
+}
+.modal h3{font-family:var(--serif); font-size:1.2rem; margin:0 0 .4rem}
+.modal p{margin:0 0 .9rem; color:var(--ink-2); line-height:1.45}
+.modal .big{display:inline-block; text-decoration:none; padding:.55rem 1rem; font-size:.95rem}
+.modal-row{display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.9rem}
+.modal-row .grow{flex:1 1 1rem}
+.modal input[type=search],.modal textarea{width:100%; font:inherit; font-size:14px; padding:.45rem .6rem; border:1px solid var(--rule); border-radius:2px; background:var(--chip); color:var(--ink)}
+.modal textarea{resize:vertical; min-height:9rem; line-height:1.4}
+.modal input[type=search]:focus,.modal textarea:focus{outline:2px solid var(--accent-2); outline-offset:1px}
+.imp-row{margin:0 0 .5rem}
+.imp-opt{display:flex; align-items:center; gap:.4rem; margin-top:.5rem; font-size:.9rem; color:var(--ink-2)}
+.imp-opt input{accent-color:var(--accent)}
+.imp-note{min-height:1.2em; margin:.4rem 0 0 !important; font-size:.88rem; color:var(--accent) !important}
+.modal{max-height:92vh; overflow:auto}
+.preview-card{display:flex; justify-content:center; margin:.3rem 0 .9rem}
+.preview-card .cardbox{--zoom:.62; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.10); margin:0 auto}
+
+/* toast */
+.toast{
+  position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); z-index:40;
+  background:var(--ink); color:var(--paper); padding:.5rem .9rem; border-radius:2px;
+  font-family:var(--caps); font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+  box-shadow:var(--shadow); transition:opacity .3s; pointer-events:none;
+}
+.toast.hide{opacity:0}
+
+/* ================= print: only the sheet ================= */
+@page{size:letter; margin:0.45in 0.25in}
+@media print{
+  :root{
+    --ink:#000; --ink-2:#333; --ink-3:#666; --paper:#fff; --ground:#fff;
+    --rule:#777; --rule-soft:#b3b3b3; --accent:#2F1A4D; --accent-2:#2F1A4D;
+    --chip:#fff; --on-accent:#fff; --ghost:#fff; --shadow:none; --sheet-zoom:1;
+  }
+  *{print-color-adjust:exact; -webkit-print-color-adjust:exact}
+  body{background:#fff; padding:0}
+  .bar,.screen-only,.ph-clear,.ph-meta,.ph-bg,.ph-grip,.picker,.scrim,.toast,.modal,
+  #editorView,#libraryView,.sheet-note,.gsel,.gdel{display:none !important}
+  #sheetView{display:block !important; padding:0}
+  .sheet-wrap{display:block}
+  .page{width:auto; height:auto; padding:0; box-shadow:none; zoom:1; break-after:page}
+  .page:last-child{break-after:auto}
+  .photo{background:#fff; border-color:#666}
+  .photo .ph-hint{color:#fff}
+  .c-cat select{background-image:none; padding-right:0}
+  .traits:empty::before{content:"Traits"; color:#666}
+  [contenteditable]:empty::before{content:""}
+}
+@media (max-width:760px){
+  .view{padding:1rem .5rem 0}
+  .bar{padding:.55rem .6rem}
+  .bar h1 .sub{display:none}
+  .gallery{grid-template-columns:repeat(2, 1fr); gap:.75rem .5rem}
+  .gcard .cardbox{--zoom:0.42}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+</style>
+
+<div class="bar">
+  <div class="bar-row">
+    <nav class="toolbag" aria-label="Toolbag">
+      <a class="home" href="index.html">&lsaquo; Toolbag</a>
+      <details class="switch" id="toolSwitch">
+        <summary title="Switch tool"><h1>Spell Cards <span class="sub">&middot; PF2e</span></h1></summary>
+        <ul class="menu">
+          <li><a href="item-cards.html">Item Cards</a></li>
+          <li><a href="spell-cards.html">Feat Cards</a></li>
+          <li><a href="spell-cards.html" aria-current="page">Spell Cards</a></li>
+          <li><a href="initiative-cards.html">Initiative Cards</a></li>
+          <li><a href="hazard-cards.html">Hazard Cards</a></li>
+          <li class="all"><a href="index.html">All tools</a></li>
+        </ul>
+      </details>
+    </nav>
+    <div class="seg" role="group" aria-label="View">
+      <button class="tog" data-view="editor" aria-pressed="true">Editor</button>
+      <button class="tog" data-view="library" aria-pressed="false">Library</button>
+      <button class="tog" data-view="sheet" aria-pressed="false">Print sheet</button>
+    </div>
+    <div class="grow"></div>
+
+    <div class="bar-group" data-for="editor">
+      <button class="tog" id="blanks" aria-pressed="true" title="Show every field, and print it empty to fill in by hand">Show empty fields</button>
+      <button class="btn" id="importBtn" title="Fetch a spell by name, or paste it from Archives of Nethys or Demiplane">Import</button>
+      <button class="btn" id="newCard">New</button>
+      <button class="btn solid" id="saveCard">Save</button>
+    </div>
+    <div class="bar-group" data-for="library" hidden>
+      <span class="bar-label">Sort</span>
+      <div class="seg" role="group" aria-label="Sort">
+        <button class="tog" data-sort="cat" aria-pressed="false">Type</button>
+        <button class="tog" data-sort="level" aria-pressed="false">Level</button>
+        <button class="tog" data-sort="created" aria-pressed="true">Created</button>
+        <button class="tog" data-sort="edited" aria-pressed="false">Edited</button>
+      </div>
+      <button class="btn" id="selAll">Select all</button>
+      <button class="btn" id="selNone">Select none</button>
+      <button class="btn solid" id="toSheet">Print sheet (0)</button>
+    </div>
+    <div class="bar-group" data-for="sheet" hidden>
+      <button class="btn" id="addBlank">+ Blank card</button>
+      <button class="btn" id="sheetClear">Clear</button>
+      <button class="btn solid" id="print">Print / PDF</button>
+    </div>
+  </div>
+
+  <details class="opts" id="opts">
+    <summary>Options</summary>
+    <div class="opts-body">
+      <div class="bar-group">
+        <span class="bar-label">Zoom</span>
+        <div class="seg" role="group" aria-label="Screen zoom">
+          <button class="tog" id="z-out" aria-label="Zoom out">&minus;</button>
+          <span class="tog" id="z-lvl" aria-live="polite">100%</span>
+          <button class="tog" id="z-in" aria-label="Zoom in">+</button>
+        </div>
+      </div>
+      <div class="bar-group">
+        <span class="bar-label">Theme</span>
+        <div class="seg" role="group" aria-label="Theme">
+          <button class="tog" data-theme="" aria-pressed="true">Auto</button>
+          <button class="tog" data-theme="light" aria-pressed="false">Light</button>
+          <button class="tog" data-theme="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+      <div class="bar-group">
+        <button class="btn" id="example">Example</button>
+        <button class="btn" id="clear">Clear card</button>
+      </div>
+      <span class="status" id="status">Library: starting…</span>
+      <span class="account-slot" id="account"></span>
+    </div>
+  </details>
+</div>
+
+<!-- ================= EDITOR ================= -->
+<section class="view editor" id="editorView">
+<div class="pane blanks" id="pane">
+  <div class="cardbox">
+    <article class="card" id="card">
+
+      <h2 class="c-name" id="nameLine"><span class="nm" contenteditable data-f="name" data-ph="Spell Name"></span><span class="ncost glyph" id="nameCost"></span></h2>
+      <div class="selfcost" id="selfCost"><span>Cast</span><span class="pick" id="selfPick"></span></div>
+
+      <div class="c-cat" id="catRow">
+        <span class="c-left">
+          <select id="cat" aria-label="Spell type"><option value="">Spell type</option></select>
+          <span class="note" contenteditable data-f="note" data-ph="class · deity · source" aria-label="Class, deity or source"></span>
+        </span>
+        <span class="charges" id="charges">
+          <button class="chg-btn screen-only" id="chgMinus" aria-label="Fewer uses">&minus;</button>
+          <span class="dots" id="chgDots" aria-label="Uses"></span>
+          <button class="chg-btn screen-only" id="chgPlus" aria-label="More uses">+</button>
+          <span class="per">/ <span contenteditable data-f="per" data-ph="" aria-label="How often the uses refresh"></span></span>
+        </span>
+      </div>
+
+      <div class="c-meta" id="traitRow">
+        <span class="traits" id="traitLine" tabindex="0" role="button" aria-label="Edit traits"></span>
+        <span class="lvl"><span id="lvlWord">Spell</span> <span class="num" contenteditable data-f="level" data-ph="" aria-label="Spell rank"></span></span>
+      </div>
+
+      <section class="sec req" id="reqSec">
+        <div class="body">
+          <span class="rq" data-rq="trad"><b>Traditions</b> <span contenteditable data-f="trad" data-ph=""></span></span>
+          <span class="rq" data-rq="cast"><b>Cast</b> <span contenteditable data-f="cast" data-ph=""></span></span>
+          <span class="rq" data-rq="range"><b>Range</b> <span contenteditable data-f="range" data-ph=""></span></span>
+          <span class="rq" data-rq="area"><b>Area</b> <span contenteditable data-f="area" data-ph=""></span></span>
+          <span class="rq" data-rq="targets"><b>Targets</b> <span contenteditable data-f="targets" data-ph=""></span></span>
+          <span class="rq" data-rq="defense"><b>Defense</b> <span contenteditable data-f="defense" data-ph=""></span></span>
+          <span class="rq" data-rq="duration"><b>Duration</b> <span contenteditable data-f="duration" data-ph=""></span></span>
+          <span class="rq" data-rq="trigger"><b>Trigger</b> <span contenteditable data-f="trigger" data-ph=""></span></span>
+          <span class="rq" data-rq="reqs"><b>Requirements</b> <span contenteditable data-f="reqs" data-ph=""></span></span>
+        </div>
+      </section>
+
+      <section class="sec desc">
+        <div class="sec-cap">Description</div>
+        <div class="flow">
+          <div class="photo" id="photo" tabindex="0" role="button" aria-label="Add an image">
+            <span class="ph-hint">Drop image<small>or tap</small></span>
+            <button class="ph-clear screen-only" id="phClear" aria-label="Remove image" title="Remove image">&times;</button>
+            <span class="ph-meta screen-only" id="phMeta"></span>
+            <label class="ph-bg screen-only" id="phBg" title="When on, the next image you drop has its background removed and is trimmed to the subject"><input type="checkbox" id="bgToggle" checked> Remove background</label>
+            <span class="ph-grip screen-only" id="phGrip" tabindex="0" role="slider" aria-label="Image size" title="Drag to resize"></span>
+            <input type="file" accept="image/*,.webp" id="phFile" hidden>
+          </div>
+          <div class="body" contenteditable data-f="description" data-ph="What the spell does; degrees of success on their own lines."></div>
+        </div>
+      </section>
+
+      <section class="sec grants" id="grantSec">
+        <div class="sec-cap">Heightened</div>
+        <div class="body" id="grantBody"></div>
+      </section>
+
+      <!-- one section per action the feat gives is generated here by renderActionSections() -->
+
+      <section class="sec special" id="specialSec">
+        <div class="sec-cap">Notes</div>
+        <div class="body" contenteditable data-f="special" data-ph="Anything else worth remembering at the table."></div>
+      </section>
+
+    </article>
+  </div>
+  <p class="card-count screen-only" id="cardCount"></p>
+</div>
+</section>
+
+<!-- ================= LIBRARY ================= -->
+<section class="view" id="libraryView" hidden>
+  <div class="gallery" id="gallery"></div>
+  <p class="empty" id="libEmpty" hidden>No saved spells yet. Build one in the editor and press Save.</p>
+</section>
+
+<!-- ================= SHEET ================= -->
+<section class="view" id="sheetView" hidden>
+  <div class="sheet-wrap" id="pages"></div>
+  <p class="sheet-note screen-only" id="sheetNote"></p>
+</section>
+
+<div class="scrim" id="scrim" hidden></div>
+<section class="picker" id="picker" hidden aria-label="Traits">
+  <div class="picker-head">
+    <input type="search" id="traitSearch" placeholder="Search traits, or type a new one and press Enter" autocomplete="off">
+    <button class="btn solid" id="pickerDone">Done</button>
+  </div>
+  <div class="picker-sel">
+    <span class="bar-label">On the card</span>
+    <div class="chips" id="selChips"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">Kind of spell</span>
+    <div class="chips" id="kindChips"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">Rarity</span>
+    <div class="chips" id="rarChips"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label" id="sugLabel">Common traits</span>
+    <div class="chips" id="sugChips"></div>
+  </div>
+  <div class="picker-group">
+    <span class="bar-label">Other traits</span>
+    <div class="chips" id="allChips"></div>
+  </div>
+</section>
+
+<div class="toast hide" id="toast"></div>
+
+<section class="modal" id="previewModal" hidden role="dialog" aria-label="Save this spell">
+  <h3>This is how it'll look</h3>
+  <p>Same picture you'll see in the Library.</p>
+  <div class="preview-card" id="previewCard"></div>
+  <div class="modal-row">
+    <button class="btn" id="previewCancel">Keep editing</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="previewSave">Save to library</button>
+  </div>
+</section>
+
+<section class="modal" id="importModal" hidden role="dialog" aria-label="Import a spell">
+  <h3>Import a spell</h3>
+  <p id="importLead"></p>
+  <div class="imp-row" id="importNameRow">
+    <input type="search" id="importName" placeholder="Spell name, e.g. Fireball" autocomplete="off" aria-label="Spell name">
+  </div>
+  <textarea id="importText" rows="9" placeholder="Fireball Spell 3&#10;Concentrate Fire Manipulate&#10;Traditions arcane, primal&#10;Cast [two-actions]&#10;Range 500 feet; Area 20-foot burst&#10;Defense basic Reflex&#10;…" aria-label="Spell text"></textarea>
+  <label class="imp-opt" hidden><input type="checkbox" id="importGrants"></label>
+  <p class="imp-note" id="importNote" aria-live="polite"></p>
+  <div class="modal-row">
+    <button class="btn" id="importCancel">Cancel</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="importGo">Import</button>
+  </div>
+</section>
+
+<section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
+  <h3 id="printTitle">Your sheet is ready</h3>
+  <p id="printMsg">Save the PDF to this device, or open the sheet as a web page and print or save from your browser. Letter size, four cards per page.</p>
+  <div class="modal-row" style="margin-top:0">
+    <button class="btn solid big" id="saveSheet">Save as PDF</button>
+    <button class="btn big" id="openHtml">Open as HTML</button>
+  </div>
+  <div class="modal-row">
+    <span class="grow"></span>
+    <button class="btn" id="printModalClose">Close</button>
+  </div>
+</section>
+
+<script src="toolbag-core.js"></script>
+<script>
+(function(){
+  "use strict";
+  var DRAFT = "pf2e-spell-card-v1", LIB_LOCAL = "pf2e-spell-lib", SEL = "pf2e-spell-sel";
+  var $ = function(id){ return document.getElementById(id); };
+  var pane = $("pane"), cardEl = $("card"), photo = $("photo"), phFile = $("phFile");
+  var catSel = $("cat"), traitLine = $("traitLine"), grantSec = $("grantSec"), grantBody = $("grantBody"), specialSec = $("specialSec");
+  var ZOOMS = [.75, 1, 1.25, 1.5, 2, 2.5];
+  var IMG_MIN = 56, IMG_MAX = 250, CHG_MAX = 12;
+
+  /* ---------------- reference lists (static; after Archives of Nethys) ---------------- */
+  var CATEGORIES = ["Spell","Cantrip","Focus","Ritual"];
+  var RARITY = ["Uncommon","Rare","Unique"];
+  var CLASSES = ["Alchemist","Animist","Barbarian","Bard","Champion","Cleric","Commander","Druid","Exemplar",
+    "Fighter","Guardian","Gunslinger","Inventor","Investigator","Kineticist","Magus","Monk","Oracle","Psychic",
+    "Ranger","Rogue","Sorcerer","Summoner","Swashbuckler","Thaumaturge","Witch","Wizard"];
+  var ANCESTRIES = ["Android","Automaton","Azarketi","Catfolk","Centaur","Changeling","Conrasu","Dhampir","Dwarf",
+    "Elf","Fetchling","Fleshwarp","Ghoran","Gnoll","Gnome","Goblin","Goloma","Grippli","Half-Elf","Half-Orc",
+    "Halfling","Hobgoblin","Human","Kholo","Kitsune","Kobold","Leshy","Lizardfolk","Merfolk","Minotaur",
+    "Nagaji","Nephilim","Orc","Poppet","Ratfolk","Samsaran","Shisk","Skeleton","Sprite","Strix","Tanuki",
+    "Tengu","Vanara","Vishkanya","Yaksha"];
+  var FEAT = ["Cantrip","Focus","Ritual","Attack","Auditory","Aura","Concentrate","Manipulate","Curse","Death","Detection",
+    "Disease","Emotion","Fear","Fortune","Misfortune","Healing","Illusion","Incapacitation","Light","Darkness","Linguistic",
+    "Mental","Morph","Polymorph","Plant","Poison","Possession","Prediction","Revelation","Scrying","Shadow","Sleep",
+    "Summon","Teleportation","Visual","Spirit","Holy","Unholy","Hex","Composition","Cursebound","Sanctified","Stance",
+    "Extradimensional","Nonlethal","Subtle","Water","Air","Earth","Metal","Wood","Fire","Cold","Acid","Electricity","Sonic","Force","Vitality","Void"];
+  var TRADITION = ["Arcane","Divine","Occult","Primal"];
+  var ENERGY = ["Acid","Cold","Electricity","Fire","Force","Sonic","Vitality","Void"];
+  var ELEMENT = ["Air","Earth","Metal","Water","Wood"];
+  function uniq(a){ var s = {}, o = []; a.forEach(function(x){ if(!s[x]){ s[x] = 1; o.push(x); } }); return o; }
+  var ALL_TRAITS = uniq([].concat(RARITY, FEAT, CLASSES, ANCESTRIES, TRADITION, ENERGY, ELEMENT)).sort();
+  var SUGGEST = {
+    "Spell":   ["Concentrate","Manipulate","Attack","Mental","Emotion","Fear","Healing","Illusion","Incapacitation","Fire","Cold","Electricity","Force","Vitality","Void","Summon","Teleportation","Visual","Auditory","Light","Darkness"],
+    "Cantrip": ["Cantrip","Concentrate","Manipulate","Attack","Fire","Cold","Electricity","Acid","Sonic","Force","Void","Vitality","Light","Illusion","Mental","Detection"],
+    "Focus":   ["Focus","Concentrate","Manipulate","Hex","Composition","Cursebound","Sanctified","Healing","Mental","Emotion","Aura","Stance","Fortune"].concat(CLASSES),
+    "Ritual":  ["Ritual","Curse","Divine","Occult","Primal","Arcane","Summon","Teleportation","Scrying","Polymorph","Possession","Death"]
+  };
+  var GENERAL = ["Concentrate","Manipulate","Attack","Mental"].concat(RARITY, TRADITION);
+  /* What a feat can hand out, each with a hint of how it's written. Anything else can be typed in. */
+  var GRANTS = [
+    ["Heightened (+1)", "The damage increases by 1d6."],
+    ["Heightened (+2)", "The damage increases by 2d6."],
+    ["Heightened (2nd)", "What changes at that rank"],
+    ["Heightened (3rd)", "What changes at that rank"],
+    ["Heightened (4th)", "What changes at that rank"],
+    ["Heightened (5th)", "What changes at that rank"],
+    ["Heightened (6th)", "What changes at that rank"],
+    ["Heightened (7th)", "What changes at that rank"],
+    ["Heightened (8th)", "What changes at that rank"],
+    ["Heightened (9th)", "What changes at that rank"],
+    ["Heightened (10th)", "What changes at that rank"],
+    ["Amp", "What the amped version does"],
+    ["Amp Heightened (+1)", "What changes"],
+    ["Critical Success", "Outcome"], ["Success", "Outcome"], ["Failure", "Outcome"], ["Critical Failure", "Outcome"],
+    ["Primary Check", "Ritual: the check and proficiency"],
+    ["Secondary Casters", "Ritual: how many"],
+    ["Secondary Checks", "Ritual: which checks"],
+    ["Cost", "Ritual: materials and price"]
+  ];
+  var GRANT_KINDS = GRANTS.map(function(g){ return g[0]; });
+  function grantHint(k){ for(var i = 0; i < GRANTS.length; i++) if(GRANTS[i][0] === k) return GRANTS[i][1]; return "What it gives"; }
+  /* Action icons as inline SVG, drawn after the Paizo glyphs: a diamond notched with a
+     chevron, plus one chevron per extra action; a hooked arrow; a hollow diamond. */
+  var ICON = (function(){
+    /* Small diamond, then one thick chevron per action; chevron ends are cut on the diagonal. */
+    var dot = '<polygon points="5,7.5 9.5,12 5,16.5 0.5,12" fill="currentColor"/>';
+    var chev = function(x){ return '<polyline points="' + (x+1) + ',3 ' + (x+10) + ',12 ' + (x+1) + ',21" fill="none" stroke="currentColor" stroke-width="5.2" stroke-linejoin="miter" stroke-linecap="butt"/>'; };
+    var svg = function(w, body){ return '<svg viewBox="0 0 ' + w + ' 24" aria-hidden="true" focusable="false">' + body + '</svg>'; };
+    /* Reaction: a band along three quarters of an ellipse, thin at the tail (upper left),
+       thick at the head (bottom left), with the head pointing left. Kept as point lists so
+       the PDF can draw the same shape. */
+    var swoosh = (function(){
+      var cx = 13, cy = 11.5, rx = 10, ry = 8.5, a0 = 215, a1 = 480, n = 48, outer = [], inner = [];
+      var f = function(v){ return Math.round(v * 100) / 100; };
+      for(var i = 0; i <= n; i++){
+        var t = i / n, a = (a0 + (a1 - a0) * t) * Math.PI / 180, w = 0.6 + 4.6 * t;
+        outer.push([f(cx + rx * Math.cos(a)), f(cy + ry * Math.sin(a))]);
+        inner.unshift([f(cx + (rx - w) * Math.cos(a)), f(cy + (ry - w) * Math.sin(a))]);
+      }
+      var ah = a1 * Math.PI / 180, w1 = 0.6 + 4.6;
+      var bx = cx + (rx - w1 / 2) * Math.cos(ah), by = cy + (ry - w1 / 2) * Math.sin(ah);
+      var dx = -rx * Math.sin(ah), dy = ry * Math.cos(ah), L = Math.hypot(dx, dy); dx /= L; dy /= L;
+      var px = -dy, py = dx, s = 4.6, len = 7;
+      var body = outer.concat(inner);
+      var head = [[f(bx + dx * len), f(by + dy * len)], [f(bx + px * s), f(by + py * s)], [f(bx - px * s), f(by - py * s)]];
+      var pts = function(a){ return a.map(function(p){ return p.join(","); }).join(" "); };
+      return {body:body, head:head, svg:'<polygon points="' + pts(body) + '" fill="currentColor"/><polygon points="' + pts(head) + '" fill="currentColor"/>'};
+    })();
+    return {
+      a1: svg(23, dot + chev(10)),
+      a2: svg(34, dot + chev(10) + chev(21)),
+      a3: svg(45, dot + chev(10) + chev(21) + chev(32)),
+      /* Free action: the single-action mark cut out of a solid diamond. */
+      af: svg(24, '<polygon points="12,0.5 23.5,12 12,23.5 0.5,12" fill="currentColor"/>' +
+                  '<polygon points="7.5,8.5 11,12 7.5,15.5 4,12" fill="var(--paper)"/>' +
+                  '<polyline points="10.5,6 16.5,12 10.5,18" fill="none" stroke="var(--paper)" stroke-width="3.4" stroke-linejoin="miter" stroke-linecap="butt"/>'),
+      ar: svg(24, swoosh.svg),
+      /* Geometry for drawing the same icons into a PDF (24-unit tall box). */
+      geom:{
+        widths:{a1:23, a2:34, a3:45, af:24, ar:24},
+        dot:[[5,7.5],[9.5,12],[5,16.5],[0.5,12]],
+        chev:function(x){ return [[x+1,3],[x+10,12],[x+1,21]]; },
+        freeOuter:[[12,0.5],[23.5,12],[12,23.5],[0.5,12]],
+        freeDot:[[7.5,8.5],[11,12],[7.5,15.5],[4,12]],
+        freeChev:[[10.5,6],[16.5,12],[10.5,18]],
+        swooshBody:swoosh.body, swooshHead:swoosh.head
+      }
+    };
+  })();
+  var GLYPH = ICON;
+  document.querySelectorAll(".glyph[data-g]").forEach(function(el){ el.innerHTML = ICON[el.dataset.g]; });
+  var ATRAITS = ["move","attack","concentrate","manipulate","auditory","visual","interact"];
+  /* The cost boxes, in the order they sit on the card. */
+  var ATYPES = ["ar","af","a1","a2","a3"];   /* order on the card: Reaction, Free, 1, 2, 3 */
+  var ALABEL = {a1:"Action", a2:"Actions", a3:"Actions", af:"Free action", ar:"Reaction", "":"Action"};
+  /* A card's actions in card order, each {type, text, html, range, traits}. */
+  function actionsOf(d){
+    var out = [], trim = function(s){ return String(s || "").trim(); };
+    (Array.isArray(d.actions) ? d.actions : []).forEach(function(a){
+      if(a && (a.type || trim(a.text) || trim(a.range) || (a.traits || []).length))
+        out.push({type:a.type || "", text:a.text || "", html:a.html || "", range:a.range || "", traits:a.traits || []});
+    });
+    return out;
+  }
+  /* A card's grants, each {k, text, html}; rows with nothing in them are dropped. */
+  function grantsOf(d){
+    return (Array.isArray(d.grants) ? d.grants : []).filter(function(g){
+      return g && (String(g.k || "").trim() || String(g.text || "").trim());
+    });
+  }
+  /* Grants as one block of styled runs: a bold kind, then the details, one grant per line. */
+  function grantsHtml(list){
+    return list.map(function(g){ return (g.k ? "<b>" + esc(g.k) + "</b> " : "") + (g.html ? safeHtml(g.html) : esc(g.text)); }).join("\n");
+  }
+
+  var EXAMPLE = {
+    name:"Gatefire Lance", cat:"Spell", note:"Homebrew", traits:["Uncommon","Concentrate","Fire","Manipulate"], level:"3",
+    cost:"a2", chg:0, per:"",
+    trad:"arcane, primal", cast:"", range:"60 feet", area:"30-foot line", targets:"", defense:"basic Reflex", duration:"", trigger:"", reqs:"",
+    description:"A spear of flame torn from the far side of a gate scorches everything in a line, dealing 4d6 fire damage.",
+    descriptionHtml:"A spear of flame torn from the far side of a gate scorches everything in a line, dealing 4d6 fire damage.",
+    grants:[
+      {k:"Heightened (+1)", text:"The damage increases by 1d6."}
+    ],
+    actions:[],
+    special:"Leaves the ground scorched until the end of your next turn.",
+    used:[], imgW:110, imgAr:1, blanks:false   /* shown finished; Blank fields brings the empty slots back */
+  };
+
+  /* ---------------- editor state ---------------- */
+  var zoom = 1, currentId = null, bodyScale = 1, nameScale = 1;
+  var img = {src:"", data:"", id:"", meta:"", dirty:false};   /* what's shown, a pending upload, the stored asset */
+  var imgW = 120, imgAr = 1, traits = [], chg = 0, used = [], cost = "";
+
+  /* The flat fields (name, category, description…); the action sections are handled on their own. */
+  function texts(){ return Array.prototype.filter.call(pane.querySelectorAll("[data-f]"), function(el){ return !el.closest(".sec.active"); }); }
+  function checks(){ return Array.prototype.filter.call(pane.querySelectorAll("[data-c]"), function(el){ return !el.closest(".sec.active"); }); }
+  /* The editor's action sections: one per action the feat gives, in card order, plus one spare slot
+     at the end. A slot with no type yet shows the five cost boxes; tick one and it becomes that
+     action — the other boxes go, the range, traits and write-up appear, and a fresh spare slot is
+     added below. Untick the cost and the slot goes back to the five boxes (and away, if empty). */
+  function actionSection(a){
+    a = a || {};
+    var s = document.createElement("section"); s.className = "sec active"; s.dataset.type = a.type || "";
+    s.innerHTML =
+      '<div class="sec-cap"><span class="alabel">' + ALABEL[a.type || ""] + '</span>' +
+        '<span class="pick types">' + ATYPES.map(function(t){
+          return '<label class="pl tp" title="' + ALABEL[t] + '"><input type="checkbox" data-t="' + t + '"' + (a.type === t ? ' checked' : '') + '><span class="pv glyph">' + ICON[t] + '</span></label>';
+        }).join("") + '</span>' +
+        '<span class="range"><b>Range</b> <span contenteditable class="num" data-f="range" data-ph=""></span></span>' +
+        '<span class="pick atr">' + ATRAITS.map(function(tr){ return '<label class="pl"><input type="checkbox" data-c="t-' + tr + '"' + ((a.traits || []).indexOf(tr) >= 0 ? ' checked' : '') + '><span class="pv">' + tr + '</span></label>'; }).join("") + '</span>' +
+      '</div>' +
+      '<div class="body" contenteditable data-f="active" data-ph="The action’s name, then its frequency, trigger, and effect."></div>';
+    var body = s.querySelector(".body");
+    if(a.html) body.innerHTML = safeHtml(a.html); else body.innerText = a.text || "";
+    s.querySelector('[data-f="range"]').innerText = a.range || "";
+    return s;
+  }
+  function actionSecs(){ return pane.querySelectorAll(".sec.active[data-type]"); }
+  function secEmpty(sec){
+    var content = false;
+    sec.querySelectorAll("[data-f]").forEach(function(el){ if(!isEmpty(el)) content = true; });
+    if(sec.querySelector('input[data-c^="t-"]:checked')) content = true;
+    return !content;
+  }
+  function renderActionSections(list){
+    actionSecs().forEach(function(s){ s.remove(); });
+    list.forEach(function(a){ cardEl.insertBefore(actionSection(a), specialSec); });
+    ensureSpareSlot();
+  }
+  /* Slots keep card order — reaction, free action, 1, 2, 3 — the moment a cost is ticked (ties keep
+     the order they were made in); untyped slots with something in them sit below those, and the
+     one spare empty slot is always last. */
+  function sortActionSlots(){
+    var secs = Array.prototype.slice.call(actionSecs());
+    var rank = function(s){ return s.dataset.type ? ATYPES.indexOf(s.dataset.type) : (secEmpty(s) ? 99 : 50); };
+    secs.slice().sort(function(a, b){ return (rank(a) - rank(b)) || (secs.indexOf(a) - secs.indexOf(b)); })
+      .forEach(function(s){ cardEl.insertBefore(s, specialSec); });
+  }
+  function ensureSpareSlot(){
+    var spares = Array.prototype.filter.call(actionSecs(), function(s){ return !s.dataset.type && secEmpty(s); });
+    spares.slice(0, -1).forEach(function(s){ s.remove(); });   /* never more than one */
+    if(!spares.length) cardEl.insertBefore(actionSection(), specialSec);
+    sortActionSlots();
+  }
+  /* a cost box in a slot: pick that type (only one), or untick it to clear the type */
+  function setSlotType(sec, type){
+    sec.dataset.type = type;
+    sec.querySelector(".alabel").textContent = ALABEL[type];
+    sec.querySelectorAll(".types input").forEach(function(i){ i.checked = i.dataset.t === type; });
+    ensureSpareSlot();
+  }
+  renderActionSections([]);
+
+  /* ---------------- grants: one row per thing the feat hands out ----------------
+     Each row is a kind (picked from GRANTS or typed) and a line of detail. There is always one
+     empty row at the bottom to start the next grant; it only shows while blank fields are on. */
+  function grantRow(g){
+    g = g || {};
+    var row = document.createElement("div"); row.className = "grant";
+    row.innerHTML = '<span class="gk" tabindex="0" role="button" aria-label="Kind of grant"></span> ' +
+      '<span class="gt" contenteditable data-g="1"></span>' +
+      '<button type="button" class="gx screen-only" aria-label="Remove this grant" title="Remove">&times;</button>';
+    setGrantKind(row, g.k || "");
+    var gt = row.querySelector(".gt");
+    if(g.html) gt.innerHTML = safeHtml(g.html); else gt.innerText = g.text || "";
+    return row;
+  }
+  function setGrantKind(row, k){
+    row.dataset.k = k;
+    row.querySelector(".gk").textContent = k;
+    row.querySelector(".gt").dataset.ph = k ? grantHint(k) : "";
+  }
+  function grantRows(){ return Array.prototype.slice.call(grantBody.querySelectorAll(".grant")); }
+  function rowEmpty(row){ return !row.dataset.k && isEmpty(row.querySelector(".gt")); }
+  function renderGrants(list){
+    grantBody.innerHTML = "";
+    (list || []).forEach(function(g){ grantBody.appendChild(grantRow(g)); });
+    ensureSpareGrant();
+  }
+  function ensureSpareGrant(){
+    var rows = grantRows(), last = rows[rows.length - 1];
+    if(!last || !rowEmpty(last)){ last = grantRow(); grantBody.appendChild(last); rows.push(last); }
+    rows.forEach(function(r){ r.classList.toggle("spare", r === last); });
+  }
+  grantBody.addEventListener("click", function(e){
+    var row = e.target.closest(".grant"); if(!row) return;
+    if(e.target.classList.contains("gx")){ row.remove(); ensureSpareGrant(); refresh(); saveDraft(); return; }
+    if(e.target.classList.contains("gk")) openPicker(row);
+  });
+  grantBody.addEventListener("keydown", function(e){
+    if(e.target.classList.contains("gk") && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openPicker(e.target.closest(".grant")); }
+    /* Enter at the end of a grant starts the next one rather than a new line */
+    if(e.target.classList.contains("gt") && e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      ensureSpareGrant();
+      var rows = grantRows(), next = rows[rows.indexOf(e.target.closest(".grant")) + 1];
+      if(next) openPicker(next);
+    }
+  });
+  renderGrants([]);
+
+  /* ---------------- the feat's own action cost (none, or one of the five) ---------------- */
+  $("selfPick").innerHTML = ATYPES.map(function(t){
+    return '<label class="pl" title="' + ALABEL[t] + '"><input type="checkbox" data-cost="' + t + '"><span class="pv glyph">' + ICON[t] + '</span></label>';
+  }).join("");
+  function setCost(t){
+    cost = ATYPES.indexOf(t) >= 0 ? t : "";
+    $("selfPick").querySelectorAll("input").forEach(function(i){ i.checked = i.dataset.cost === cost; });
+    $("nameCost").innerHTML = cost ? ICON[cost] : "";
+  }
+  function isEmpty(el){ return el.innerText.replace(/\s+/g,"") === ""; }
+  function blanksOn(){ return pane.classList.contains("blanks"); }
+
+  /* Body fields keep bold / italic / underline and line breaks; everything else is stripped. */
+  var RICH = ["description","special","active"];
+  function richHtml(root){
+    var out = "";
+    function walk(n){
+      Array.prototype.forEach.call(n.childNodes, function(c){
+        if(c.nodeType === 3){ out += esc(c.nodeValue); return; }
+        if(c.nodeType !== 1) return;
+        var t = c.tagName.toLowerCase();
+        if(t === "br"){ out += "\n"; return; }
+        if(/^(div|p|li)$/.test(t) && out && !/\n$/.test(out)) out += "\n";
+        var st = c.style || {};
+        var bold = t === "b" || t === "strong" || /^(bold|[6-9]00)$/.test(st.fontWeight || "");
+        var ital = t === "i" || t === "em" || st.fontStyle === "italic";
+        var under = t === "u" || /underline/.test(st.textDecoration || "");
+        if(bold) out += "<b>"; if(ital) out += "<i>"; if(under) out += "<u>";
+        walk(c);
+        if(under) out += "</u>"; if(ital) out += "</i>"; if(bold) out += "</b>";
+      });
+    }
+    walk(root);
+    return out;
+  }
+  /* Only our own tags ever go back in; anything else in a stored string is escaped away. */
+  function safeHtml(h){
+    return String(h || "").replace(/<(?!\/?(b|i|u)>)/g, "&lt;");
+  }
+
+  /* The card as data — the shape that goes in the library. */
+  function collect(){
+    var usedFlags = [];
+    for(var i = 0; i < chg; i++) usedFlags.push(!!used[i]);   /* no holes or undefineds in the record */
+    var d = {traits:traits.slice(), c:{}, chg:chg, used:usedFlags, imgW:imgW, imgAr:imgAr,
+             cat:catSel.value, cost:cost, bodyScale:bodyScale, nameScale:nameScale};
+    d.grants = grantRows().filter(function(r){ return !rowEmpty(r); }).map(function(r){
+      var gt = r.querySelector(".gt");
+      return {k:r.dataset.k || "", text:gt.innerText, html:richHtml(gt)};
+    });
+    texts().forEach(function(el){
+      /* one-line fields as typed (innerText would hand back the caps the card displays them in) */
+      d[el.dataset.f] = RICH.indexOf(el.dataset.f) >= 0 ? el.innerText : el.textContent;
+      if(RICH.indexOf(el.dataset.f) >= 0) d[el.dataset.f + "Html"] = richHtml(el);
+    });
+    checks().forEach(function(el){ d.c[el.dataset.c] = el.checked; });
+    /* The actions in card order; the spare untyped slot is left out. */
+    d.actions = [];
+    actionSecs().forEach(function(sec){
+      if(!sec.dataset.type && secEmpty(sec)) return;
+      var body = sec.querySelector(".body"), range = sec.querySelector('[data-f="range"]');
+      d.actions.push({
+        type:sec.dataset.type, text:body.innerText, html:richHtml(body), range:range.innerText,
+        traits:ATRAITS.filter(function(t){ return sec.querySelector('input[data-c="t-' + t + '"]').checked; })
+      });
+    });
+    return d;
+  }
+  function saveDraft(){
+    var d = collect();
+    d.id = currentId; d.zoom = zoom; d.blanks = blanksOn();
+    d.image = img.data; d.imageId = img.id; d.imageSrc = img.src; d.imageMeta = img.meta; d.imageDirty = img.dirty;
+    var pic = TB.splitPics(d);   /* pictures go to TB.store, and only when they change */
+    try{ localStorage.setItem(DRAFT, JSON.stringify(d)); }catch(e){}
+    TB.putPic(DRAFT, pic);
+  }
+  /* typing: re-fit once per frame, write the draft once typing pauses (and when leaving) */
+  var saveDraftSoon = TB.debounce(saveDraft, 400), refreshSoon = TB.perFrame(refresh);
+  TB.onLeave(saveDraftSoon.flush);
+
+  /* Put card data into the editor. */
+  function load(d){
+    d = d || {};
+    texts().forEach(function(el){
+      var f = el.dataset.f, v = d[f];
+      if(RICH.indexOf(f) >= 0 && d[f + "Html"]) el.innerHTML = safeHtml(d[f + "Html"]);
+      else el.innerText = (v === undefined || v === null) ? "" : v;
+    });
+    checks().forEach(function(el){ el.checked = !!(d.c && d.c[el.dataset.c]); });
+    renderActionSections(actionsOf(d));
+    renderGrants(grantsOf(d));
+    setCost(d.cost || "");
+    catSel.value = d.cat || ""; if(catSel.selectedIndex < 0) catSel.value = "";
+    traits = orderTraits(d.traits || splitTraits(d.traitsText));
+    chg = Math.max(0, Math.min(CHG_MAX, d.chg || 0));
+    used = (d.used || []).slice(0, chg);
+    setImgSize(d.imgW || 120, d.imgAr || 1);
+    currentId = d.id || null;
+    setImage({src:d.imageSrc || d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : ""),
+              data:d.image || "", id:d.imageId || "", meta:d.imageMeta || "", dirty:!!d.imageDirty});
+    if(d.zoom) setZoom(d.zoom);
+    if(d.blanks !== undefined) setBlanks(d.blanks !== false);
+    refresh();
+  }
+
+  function setImgSize(w, ar){
+    imgW = Math.max(IMG_MIN, Math.min(IMG_MAX, Math.round(w)));
+    if(ar) imgAr = Math.max(0.6, Math.min(1.6, ar));
+    cardEl.style.setProperty("--img-w", imgW + "px");
+    cardEl.style.setProperty("--img-ar", (1 / imgAr).toFixed(3));
+    $("phGrip").setAttribute("aria-valuenow", imgW);
+  }
+  function setZoom(z){
+    zoom = z;
+    document.documentElement.style.setProperty("--zoom", z);
+    $("z-lvl").textContent = Math.round(z * 100) + "%";
+  }
+  function setBlanks(on){
+    pane.classList.toggle("blanks", on);
+    $("blanks").setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  function setImage(next){
+    img = next;
+    var el = photo.querySelector("img");
+    if(img.src){
+      if(!el){ el = document.createElement("img"); el.alt = ""; photo.insertBefore(el, photo.firstChild); }
+      if(cors(img.src)) el.crossOrigin = "anonymous"; else el.removeAttribute("crossorigin");
+      el.src = img.src;
+      photo.classList.add("has-img");
+    }else{
+      if(el) el.remove();
+      photo.classList.remove("has-img");
+    }
+    $("phMeta").textContent = img.meta || "";
+  }
+  /* Remove-background switch: a preference, applied to the next image dropped. */
+  var bgToggle = $("bgToggle");
+  try{ bgToggle.checked = localStorage.getItem("pf2e-spell-bg") !== "off"; }catch(e){}
+  bgToggle.addEventListener("change", function(){
+    try{ localStorage.setItem("pf2e-spell-bg", this.checked ? "on" : "off"); }catch(e){}
+    toast(this.checked ? "Next image: background removed" : "Next image: left as is");
+  });
+  $("phBg").addEventListener("click", function(e){ e.stopPropagation(); });
+
+  /* ---------------- image processing ---------------- */
+  function knockout(cv){
+    var w = cv.width, h = cv.height, ctx = cv.getContext("2d");
+    var im = ctx.getImageData(0, 0, w, h), d = im.data;
+    var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
+    if(corners.some(function(i){ return d[i + 3] < 24; })) return false;
+    var bg = [0, 0, 0], spread = 0;
+    for(var k = 0; k < 3; k++){
+      var vals = corners.map(function(i){ return d[i + k]; });
+      bg[k] = (vals[0] + vals[1] + vals[2] + vals[3]) / 4;
+      spread = Math.max(spread, Math.max.apply(null, vals) - Math.min.apply(null, vals));
+    }
+    if(spread > 40) return false;
+    var IN = 48, OUT = 150;
+    function dist(p){ var i = p * 4; return Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]); }
+    var seen = new Uint8Array(w * h), stack = [];
+    function push(p){ if(!seen[p] && dist(p) < OUT){ seen[p] = 1; stack.push(p); } }
+    for(var x = 0; x < w; x++){ push(x); push((h - 1) * w + x); }
+    for(var y = 0; y < h; y++){ push(y * w); push(y * w + w - 1); }
+    while(stack.length){
+      var p = stack.pop(), px = p % w, py = (p - px) / w;
+      if(px > 0) push(p - 1); if(px < w - 1) push(p + 1);
+      if(py > 0) push(p - w); if(py < h - 1) push(p + w);
+    }
+    var n = 0;
+    for(var q = 0; q < w * h; q++){
+      if(!seen[q]) continue;
+      var dd = dist(q), i = q * 4, a = dd <= IN ? 0 : Math.min(1, (dd - IN) / (OUT - IN));
+      if(a <= 0){ d[i + 3] = 0; }
+      else{
+        for(var c = 0; c < 3; c++) d[i + c] = Math.max(0, Math.min(255, Math.round((d[i + c] - (1 - a) * bg[c]) / a)));
+        d[i + 3] = Math.round(a * 255);
+      }
+      n++;
+    }
+    if(n) ctx.putImageData(im, 0, 0);
+    return n > 0;
+  }
+  function trimBox(cv){
+    var w = cv.width, h = cv.height, d = cv.getContext("2d").getImageData(0, 0, w, h).data;
+    var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
+    var alphaMode = corners.some(function(i){ return d[i + 3] < 24; });
+    var bg = [0, 0, 0];
+    if(!alphaMode){
+      var spread = 0;
+      for(var k = 0; k < 3; k++){
+        var vals = corners.map(function(i){ return d[i + k]; });
+        bg[k] = (vals[0] + vals[1] + vals[2] + vals[3]) / 4;
+        spread = Math.max(spread, Math.max.apply(null, vals) - Math.min.apply(null, vals));
+      }
+      if(spread > 40) return null;
+    }
+    var TOL = 34;
+    function isBg(i){
+      if(d[i + 3] < 24) return true;
+      if(alphaMode) return false;
+      return Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]) < TOL * 3;
+    }
+    var top = -1, bottom = -1, left = w, right = -1;
+    for(var y = 0; y < h; y++){
+      var rowHas = false;
+      for(var x = 0; x < w; x++){
+        if(!isBg((y * w + x) * 4)){ rowHas = true; if(x < left) left = x; if(x > right) right = x; }
+      }
+      if(rowHas){ if(top < 0) top = y; bottom = y; }
+    }
+    if(top < 0) return null;
+    var pad = Math.round(Math.max(w, h) * 0.02);
+    left = Math.max(0, left - pad); top = Math.max(0, top - pad);
+    right = Math.min(w - 1, right + pad); bottom = Math.min(h - 1, bottom + pad);
+    var bw = right - left + 1, bh = bottom - top + 1;
+    if(bw * bh > w * h * 0.92) return null;
+    return {x:left, y:top, w:bw, h:bh};
+  }
+  function loadImage(file){
+    if(!file) return;
+    var isImage = /^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || "");
+    if(!isImage) return;
+    photo.classList.add("busy");
+    var reader = new FileReader();
+    reader.onload = function(){
+      var im = new Image();
+      im.onload = function(){
+        var fw = im.width, fh = im.height, WORK = 1024;
+        if(fw > WORK || fh > WORK){ var fs = Math.min(WORK / fw, WORK / fh); fw = Math.round(fw * fs); fh = Math.round(fh * fs); }
+        var full = document.createElement("canvas"); full.width = fw; full.height = fh;
+        full.getContext("2d").drawImage(im, 0, 0, fw, fh);
+        /* Scale a region of a canvas down to card size and encode it. */
+        function encode(src, sx, sy, sw, sh, asJpeg){
+          var max = 640, w = sw, h = sh;
+          if(w > max || h > max){ var s = Math.min(max / w, max / h); w = Math.round(w * s); h = Math.round(h * s); }
+          var out = document.createElement("canvas"); out.width = w; out.height = h;
+          out.getContext("2d").drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
+          return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:w, h:h};
+        }
+        var isJpeg = /jpe?g/i.test(file.type), v;
+        if(bgToggle.checked){
+          /* Background knocked out and trimmed to the subject. */
+          var cut = false, box = null;
+          try{ cut = knockout(full); }catch(e){}
+          try{ box = trimBox(full); }catch(e){}
+          v = box ? encode(full, box.x, box.y, box.w, box.h, false) : encode(full, 0, 0, fw, fh, isJpeg && !cut);
+          v.meta = (isJpeg && !cut && !box ? "JPG" : "PNG") + " · " + v.w + "×" + v.h + (cut ? " · bg removed" : (box ? " · trimmed" : ""));
+        }else{
+          /* As dropped. */
+          v = encode(full, 0, 0, fw, fh, isJpeg);
+          v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
+        }
+        setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
+        setImgSize(imgW, v.h / v.w);
+        photo.classList.remove("busy");
+        refresh(); saveDraft();
+      };
+      im.onerror = function(){ photo.classList.remove("busy"); };
+      im.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ---------------- traits ---------------- */
+  function splitTraits(s){ if(!s) return []; return s.split(/[|,;]/).map(function(x){ return x.trim(); }).filter(Boolean); }
+  function orderTraits(list){
+    list = uniq((list || []).filter(Boolean));
+    var r = list.filter(function(t){ return RARITY.indexOf(t) >= 0; });
+    var o = list.filter(function(t){ return RARITY.indexOf(t) < 0; }).sort();
+    return r.concat(o);
+  }
+  function toggleTrait(name){
+    var i = traits.indexOf(name);
+    if(i >= 0) traits.splice(i, 1); else traits.push(name);
+    traits = orderTraits(traits);
+    renderPicker(); refresh(); saveDraft();
+  }
+  var picker = $("picker"), scrim = $("scrim"), search = $("traitSearch");
+  function chip(name, on){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip" + (on ? " on" : "") + (RARITY.indexOf(name) >= 0 ? " rare" : "");
+    b.textContent = name; b.dataset.trait = name; return b;
+  }
+  /* The picker does two jobs: the card's traits (pick any number), or the kind of one grant row
+     (pick one, and it closes). grantFor is that row while it's doing the second. */
+  var grantFor = null;
+  /* Picker order, the same on every card builder: what kind of feat it is, rarity, then the traits
+     that usually go with the ones already chosen, then everything else. The pairings (TRAIT_NEAR)
+     come from the feats on Archives of Nethys (2026-09); before anything is chosen, the
+     suggestions are the ones common on the feat type instead. */
+  var KIND = ["Cantrip","Focus","Ritual"];
+  var TRAIT_NEAR = {};   /* the feat tool's pairings don't fit spells; suggestions come from SUGGEST by spell type */
+  function isTop(t){ return KIND.indexOf(t) >= 0 || RARITY.indexOf(t) >= 0; }
+  function suggestions(have, cat){
+    var score = {}, out;
+    /* rarity goes with everything, so it doesn't steer the suggestions */
+    have.filter(function(t){ return RARITY.indexOf(t) < 0; }).forEach(function(t){
+      (TRAIT_NEAR[t] || "").split(",").filter(Boolean).forEach(function(c, i){ score[c] = (score[c] || 0) + (10 - i); });
+    });
+    out = Object.keys(score).sort(function(a, b){ return score[b] - score[a]; });
+    out = uniq(out.concat(SUGGEST[cat] || GENERAL));
+    return out.filter(function(t){ return !isTop(t) && have.indexOf(t) < 0; }).slice(0, 16);
+  }
+  function renderPicker(){
+    var q = search.value.trim().toLowerCase();
+    var match = function(t){ return !q || t.toLowerCase().indexOf(q) >= 0; };
+    var on = function(t){ return traits.indexOf(t) >= 0; };
+    var fill = function(id, list){ var box = $(id); box.innerHTML = ""; list.filter(match).forEach(function(t){ box.appendChild(chip(t, on(t))); }); };
+    var sel = $("selChips"), sug = $("sugChips"), all = $("allChips");
+    sel.innerHTML = ""; sug.innerHTML = ""; all.innerHTML = "";
+    /* choosing a grant's kind uses only the suggestion row */
+    all.parentNode.hidden = $("kindChips").parentNode.hidden = $("rarChips").parentNode.hidden = !!grantFor;
+    if(grantFor){
+      var k = grantFor.dataset.k || "";
+      if(k) sel.appendChild(chip(k, true));
+      $("sugLabel").textContent = "Heightened and other entries";
+      GRANT_KINDS.filter(match).forEach(function(t){ sug.appendChild(chip(t, t === k)); });
+      return;
+    }
+    traits.forEach(function(t){ sel.appendChild(chip(t, true)); });
+    var cat = catSel.value;
+    fill("kindChips", KIND);
+    fill("rarChips", RARITY);
+    $("sugLabel").textContent = traits.length ? "Often seen with " + traits.join(", ") : (cat ? "Common on " + cat.toLowerCase() + (cat === "Focus" ? " spells" : "s") : "Common traits");
+    fill("sugChips", suggestions(traits, cat));
+    fill("allChips", ALL_TRAITS.filter(function(t){ return !isTop(t); }));
+  }
+  function openPicker(row){
+    grantFor = row && row.nodeType === 1 ? row : null;
+    search.value = "";
+    search.placeholder = grantFor ? "Search, or type your own kind and press Enter" : "Search traits, or type a new one and press Enter";
+    renderPicker(); picker.hidden = false; scrim.hidden = false;
+    if(window.innerWidth > 760) search.focus();
+  }
+  function closePicker(){
+    picker.hidden = true; scrim.hidden = true;
+    var row = grantFor; grantFor = null;
+    if(row && row.isConnected) row.querySelector(row.dataset.k ? ".gt" : ".gk").focus(); else traitLine.focus();
+  }
+  /* a kind picked for a grant row: set it (tapping the current one clears it) and go write the details */
+  function pickKind(k){
+    var row = grantFor;
+    setGrantKind(row, row.dataset.k === k ? "" : k);
+    ensureSpareGrant(); refresh(); saveDraft(); closePicker();
+  }
+  function pick(name){ if(grantFor) pickKind(name); else toggleTrait(name); }
+  traitLine.addEventListener("click", function(){ openPicker(); });
+  traitLine.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openPicker(); } });
+  picker.addEventListener("click", function(e){ var t = e.target.dataset && e.target.dataset.trait; if(t) pick(t); });
+  $("pickerDone").addEventListener("click", closePicker);
+  scrim.addEventListener("click", function(){ if(!picker.hidden) closePicker(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !picker.hidden) closePicker(); });
+  search.addEventListener("input", renderPicker);
+  search.addEventListener("keydown", function(e){
+    if(e.key !== "Enter") return;
+    e.preventDefault();
+    var q = search.value.trim(); if(!q) return;
+    var list = grantFor ? GRANT_KINDS : ALL_TRAITS;
+    var hit = list.filter(function(t){ return t.toLowerCase() === q.toLowerCase(); })[0];
+    pick(hit || q.replace(/\b\w/g, function(c){ return c.toUpperCase(); }));
+    if(grantFor || picker.hidden) return;
+    search.value = ""; renderPicker();
+  });
+
+  /* ---------------- charges ---------------- */
+  var dotsEl = $("chgDots");
+  function dotsHtml(n, usedArr){
+    var s = "";
+    for(var i = 0; i < n; i++) s += '<span class="dot' + (usedArr[i] ? " used" : "") + '" data-i="' + i + '"></span>';
+    return s;
+  }
+  function renderCharges(){ dotsEl.innerHTML = dotsHtml(chg, used); }
+  dotsEl.addEventListener("click", function(e){
+    var i = e.target.dataset && e.target.dataset.i; if(i === undefined) return;
+    used[i] = !used[i]; refresh(); saveDraft();
+  });
+  $("chgMinus").addEventListener("click", function(){ chg = Math.max(0, chg - 1); used = used.slice(0, chg); refresh(); saveDraft(); });
+  $("chgPlus").addEventListener("click", function(){ chg = Math.min(CHG_MAX, chg + 1); refresh(); saveDraft(); });
+
+  /* ---------------- layout, fit, refresh ---------------- */
+
+  /* How many lines the title occupies — one client rect per line box, zoom-proof. */
+  function nameLines(card){
+    var nm = card.querySelector(".c-name .nm") || card.querySelector(".c-name");
+    var r = document.createRange();
+    r.selectNodeContents(nm);
+    var rects = r.getClientRects(), n = rects.length;
+    /* the cost glyph after the name can wrap onto a line of its own */
+    var g = card.querySelector(".c-name .ncost svg");
+    if(g && n){ var gr = g.getBoundingClientRect(), last = rects[n - 1]; if(gr.top + gr.height / 2 > last.bottom) n++; }
+    return n;
+  }
+  /* Title at 16pt on up to two lines; shrink only when a third line would be needed. */
+  function fitName(card){
+    /* steps 1.00, 0.95 … 0.60 */
+    var i = TB.firstFit(8, function(k){ card.style.setProperty("--name-scale", (1 - 0.05 * k).toFixed(2)); },
+                        function(){ return nameLines(card) <= 2; });
+    return 1 - 0.05 * i;
+  }
+  /* Does any section's text (or its floated image) spill out of the section's box? */
+  function overflows(card){
+    var boxes = card.querySelectorAll(".sec:not(.blank) > .body, .sec:not(.blank) > .flow");
+    for(var k = 0; k < boxes.length; k++) if(boxes[k].scrollHeight > boxes[k].clientHeight + 1) return true;
+    return false;
+  }
+  /* Largest body-text size (10pt down to ~4.5pt) at which every section fits its box. */
+  function fitCard(card){
+    /* steps 1.00, 0.96 … 0.48, then the floor 0.46 */
+    var step = function(k){ return k < 14 ? 1 - 0.04 * k : 0.46; };
+    var i = TB.firstFit(14, function(k){ card.style.setProperty("--body-scale", step(k).toFixed(2)); },
+                        function(){ return !overflows(card); });
+    return step(i);
+  }
+  /* Run now, and again once the embedded web fonts are usable (text measured with a fallback font wraps differently). */
+  function whenFontsReady(fn){
+    fn();
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(fn);
+  }
+  function refresh(){
+    $("lvlWord").textContent = lvlWord(catSel.value);
+    /* An action slot without a cost yet is idle: it shows the five boxes and nothing else. */
+    actionSecs().forEach(function(sec){
+      sec.classList.toggle("idle", !sec.dataset.type);
+      sec.classList.toggle("empty", secEmpty(sec));
+      sec.querySelector(".range").classList.toggle("blank", isEmpty(sec.querySelector('[data-f="range"]')));
+    });
+    pane.querySelectorAll(".pl").forEach(function(l){ l.classList.toggle("on", l.querySelector("input").checked); });
+    ensureSpareGrant();
+    var hasGrants = grantRows().some(function(r){ return !rowEmpty(r); });
+    /* No grants (and not showing blanks): image centres above a full-width description. */
+    cardEl.classList.toggle("stacked", !hasGrants && !blanksOn());
+    pane.querySelectorAll(".rq").forEach(function(l){ l.classList.toggle("blank", isEmpty(l.querySelector("[data-f]"))); });
+    pane.querySelectorAll(".sec").forEach(function(sec){
+      var filled = false;
+      sec.querySelectorAll("[data-f]").forEach(function(el){ if(!isEmpty(el)) filled = true; });
+      if(sec.querySelector(".pl.on")) filled = true;
+      if(sec.classList.contains("desc") && img.src) filled = true;   /* an image is content too */
+      if(sec === grantSec && hasGrants) filled = true;
+      sec.classList.toggle("blank", !filled);
+    });
+    photo.classList.toggle("blank", !img.src);
+    traitLine.textContent = traits.join(" | ");
+    renderCharges();
+    var f = function(name){ return pane.querySelector('[data-f="' + name + '"]'); };
+    var noCharges = chg === 0 && isEmpty(f("per"));
+    $("charges").classList.toggle("blank", noCharges);
+    $("catRow").classList.toggle("blank", !catSel.value && isEmpty(f("note")) && noCharges);
+    $("traitRow").classList.toggle("blank", traits.length === 0 && isEmpty(f("level")));
+    nameScale = fitName(cardEl);
+    bodyScale = fitCard(cardEl);
+    $("cardCount").innerHTML = overflows(cardEl)
+      ? "<b>Text is cut off</b> &middot; shorten the write-up or shrink the image — the print looks exactly like this"
+      : "Fits <b>1 card</b> &middot; 4 &times; 5 in &middot; text at " + Math.round(bodyScale * 10) + "pt";
+  }
+
+  /* ---------------- editor events ---------------- */
+  document.addEventListener("input", function(e){ if(e.target && e.target.isContentEditable){ refreshSoon(); saveDraftSoon(); } });
+  document.addEventListener("change", function(e){
+    var t = e.target;
+    if(t && t.dataset && t.dataset.t && t.closest(".sec.active")){ setSlotType(t.closest(".sec.active"), t.checked ? t.dataset.t : ""); refresh(); saveDraft(); return; }
+    if(t && t.dataset && t.dataset.cost){ setCost(t.checked ? t.dataset.cost : ""); refresh(); saveDraft(); return; }
+    if(t === catSel || (t && t.dataset && t.dataset.c)){ refresh(); saveDraft(); }
+  });
+  document.addEventListener("paste", function(e){
+    if(!e.target || !e.target.isContentEditable) return;
+    var items = (e.clipboardData || {}).items || [];
+    for(var i = 0; i < items.length; i++){
+      if(items[i].type && items[i].type.indexOf("image/") === 0){ e.preventDefault(); loadImage(items[i].getAsFile()); return; }
+    }
+    e.preventDefault();
+    document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain"));
+  });
+  photo.addEventListener("click", function(e){ if(e.target.id !== "phClear" && !img.src) phFile.click(); });
+  photo.addEventListener("keydown", function(e){ if((e.key === "Enter" || e.key === " ") && !img.src){ e.preventDefault(); phFile.click(); } });
+  phFile.addEventListener("change", function(){ loadImage(this.files[0]); this.value = ""; });
+  $("phClear").addEventListener("click", function(e){
+    e.stopPropagation(); setImage({src:"", data:"", id:"", meta:"", dirty:true}); refresh(); saveDraft();
+  });
+  function hasFile(e){ var t = e.dataTransfer; return t && t.types && Array.prototype.indexOf.call(t.types, "Files") >= 0; }
+  ["dragenter","dragover"].forEach(function(t){
+    cardEl.addEventListener(t, function(e){ if(!hasFile(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; photo.classList.add("drop"); });
+  });
+  cardEl.addEventListener("dragleave", function(e){ if(!cardEl.contains(e.relatedTarget)) photo.classList.remove("drop"); });
+  cardEl.addEventListener("drop", function(e){ if(!hasFile(e)) return; e.preventDefault(); photo.classList.remove("drop"); loadImage(e.dataTransfer.files[0]); });
+  window.addEventListener("dragover", function(e){ if(hasFile(e)) e.preventDefault(); });
+  window.addEventListener("drop", function(e){ if(hasFile(e)) e.preventDefault(); });
+
+  var grip = $("phGrip"), dragX = 0, dragW = 0;
+  grip.setAttribute("aria-valuemin", IMG_MIN); grip.setAttribute("aria-valuemax", IMG_MAX);
+  grip.addEventListener("pointerdown", function(e){ e.preventDefault(); e.stopPropagation(); dragX = e.clientX; dragW = imgW; grip.setPointerCapture(e.pointerId); });
+  grip.addEventListener("pointermove", function(e){ if(!grip.hasPointerCapture(e.pointerId)) return; setImgSize(dragW + (e.clientX - dragX) / zoom, null); refresh(); });
+  grip.addEventListener("pointerup", function(e){ grip.releasePointerCapture(e.pointerId); saveDraft(); });
+  grip.addEventListener("click", function(e){ e.stopPropagation(); });
+  grip.addEventListener("keydown", function(e){
+    var step = (e.key === "ArrowRight" || e.key === "ArrowUp") ? 8 : (e.key === "ArrowLeft" || e.key === "ArrowDown") ? -8 : 0;
+    if(!step) return; e.preventDefault(); e.stopPropagation(); setImgSize(imgW + step, null); refresh(); saveDraft();
+  });
+
+  $("blanks").addEventListener("click", function(){ setBlanks(this.getAttribute("aria-pressed") !== "true"); refresh(); saveDraft(); });
+  function stepZoom(dir){ var i = ZOOMS.indexOf(zoom); if(i < 0) i = 1; i = Math.min(ZOOMS.length - 1, Math.max(0, i + dir)); setZoom(ZOOMS[i]); refresh(); saveDraft(); }
+  $("z-out").addEventListener("click", function(){ stepZoom(-1); });
+  $("z-in").addEventListener("click", function(){ stepZoom(1); });
+  $("example").addEventListener("click", function(){ var d = JSON.parse(JSON.stringify(EXAMPLE)); d.id = null; load(d); saveDraft(); });
+  $("clear").addEventListener("click", function(){ load({id:currentId, blanks:true}); saveDraft(); pane.querySelector('[data-f="name"]').focus(); });
+  $("newCard").addEventListener("click", function(){ load({blanks:true}); saveDraft(); showView("editor"); pane.querySelector('[data-f="name"]').focus(); });
+
+  function fitZoom(){
+    var room = Math.min(window.innerWidth - 24, 900), best = ZOOMS[0];
+    ZOOMS.forEach(function(z){ if(z <= 2 && 384 * z <= room) best = z; });
+    return best;
+  }
+
+  /* ---------------- toast ---------------- */
+  var toastT = null;
+  function toast(msg, ms){
+    var t = $("toast"); t.textContent = msg; t.classList.remove("hide");
+    clearTimeout(toastT);
+    toastT = setTimeout(function(){ t.classList.add("hide"); }, ms || (/failed|not stored/i.test(msg) ? 6000 : 2200));
+  }
+
+  /* ---------------- rendering a saved card (library + sheet) ---------------- */
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  /* Art from another origin (the cloud library) needs CORS to reach the PDF canvas; local and data: art does not. */
+  function cors(src){ return /^https?:/i.test(src) ? ' crossorigin="anonymous"' : ""; }
+  /* The prerequisite-style lines under the traits, in stat-block order. */
+  var REQ = [["trad", "Traditions"], ["cast", "Cast"], ["range", "Range"], ["area", "Area"], ["targets", "Targets"], ["defense", "Defense"], ["duration", "Duration"], ["trigger", "Trigger"], ["reqs", "Requirements"]];
+  var REQ_BLANK = [REQ[0], REQ[1], REQ[2], REQ[5], REQ[6]];   /* a blank card: traditions, cast, range, defense, duration */
+  /* "Spell 3", "Cantrip 1", "Focus 4", "Ritual 5" */
+  function lvlWord(cat){ return cat === "Cantrip" || cat === "Focus" || cat === "Ritual" ? cat : "Spell"; }
+  function renderCard(d, opts){
+    opts = opts || {};
+    var box = document.createElement("div");
+    box.className = "cardbox" + (opts.blanks ? " blanks" : "");
+    var has = function(s){ return !!(s || "").trim(); };
+    var grants = grantsOf(d);
+    var stacked = !grants.length && !opts.blanks;
+    var src = d.image || d.imageUrl || (d.imageId ? "/_blob/" + d.imageId : "");
+    var imgAr = d.imgAr || 1;
+    var rich = function(f){ return d[f + "Html"] ? safeHtml(d[f + "Html"]) : esc(d[f]); };
+    var sec = function(cls, cap, f){
+      if(!has(d[f]) && !opts.blanks) return "";
+      return '<section class="sec ' + cls + '"><div class="sec-cap">' + cap + '</div><div class="body">' + rich(f) + '</div></section>';
+    };
+    var reqs = REQ.filter(function(r){ return has(d[r[0]]); });
+    if(opts.blanks) reqs = REQ_BLANK;
+    var reqHtml = reqs.length ? '<section class="sec req"><div class="body">' + reqs.map(function(r){
+      return '<span class="rq"><b>' + r[1] + '</b> <span>' + esc(d[r[0]]) + '</span></span>';
+    }).join("") + '</div></section>' : "";
+    var grantHtml = (grants.length || opts.blanks) ? '<section class="sec grants"><div class="sec-cap">Heightened</div><div class="body">' +
+      grants.map(function(g){
+        return '<div class="grant"><span class="gk">' + esc(g.k) + '</span> <span class="gt">' + (g.html ? safeHtml(g.html) : esc(g.text)) + '</span></div>';
+      }).join("") + '</div></section>' : "";
+    /* One section per action, captioned by its type; a blank card gets one generic Action section. */
+    var actionHtml = function(a){
+      return '<section class="sec active"><div class="sec-cap"><span>' + ALABEL[a.type] + '</span>' +
+        (a.type ? '<span class="pick"><span class="glyph">' + GLYPH[a.type] + '</span></span>' : '') +
+        (has(a.range) ? '<span class="range"><b>Range</b> ' + esc(a.range) + '</span>' : '') +
+        (a.traits.length ? '<span class="atr">(' + a.traits.join(", ") + ')</span>' : '') +
+        '</div><div class="body">' + (a.html ? safeHtml(a.html) : esc(a.text)) + '</div></section>';
+    };
+    var blankActive = '<section class="sec active"><div class="sec-cap"><span>Action</span><span class="range"><b>Range</b> </span></div><div class="body"></div></section>';
+    var actions = opts.blanks ? blankActive : actionsOf(d).map(actionHtml).join("");
+    var level = has(d.level) ? lvlWord(d.cat) + " " + esc(d.level) : (opts.blanks ? lvlWord(d.cat) + " " : "");
+    box.innerHTML =
+      '<article class="card' + (stacked ? " stacked" : "") + '" style="--img-w:' + (d.imgW || 120) + 'px;--img-ar:' + (1 / imgAr).toFixed(3) + ';--body-scale:' + (d.bodyScale || 1) + ';--name-scale:' + (d.nameScale || 1) + '">' +
+        '<h2 class="c-name"><span class="nm">' + esc(d.name) + '</span><span class="ncost glyph">' + (ICON[d.cost] && ATYPES.indexOf(d.cost) >= 0 ? ICON[d.cost] : "") + '</span></h2>' +
+        ((d.cat || has(d.note) || d.chg > 0 || has(d.per) || opts.blanks) ?
+          '<div class="c-cat"><span class="c-left"><span>' + esc(d.cat || (opts.blanks ? "Spell type" : "")) + '</span>' +
+            (has(d.note) ? '<span class="note">' + esc(d.note) + '</span>' : '') + '</span>' +
+            ((d.chg > 0 || has(d.per) || opts.blanks) ? '<span class="charges"><span class="dots">' + dotsHtml(d.chg || 0, d.used || []) + '</span>' +
+              ((has(d.per) || opts.blanks) ? '<span class="per">/ ' + esc(d.per) + '</span>' : '') + '</span>' : '') + '</div>' : '') +
+        (((d.traits || []).length || level) ?
+          '<div class="c-meta"><span class="traits">' + esc((d.traits || []).join(" | ")) + '</span><span class="lvl">' + level + '</span></div>' : '') +
+        reqHtml +
+        '<section class="sec desc"><div class="sec-cap">Description</div><div class="flow">' +
+          ((src || opts.blanks) ? '<div class="photo' + (src ? " has-img" : "") + '">' + (src ? '<img alt=""' + cors(src) + ' src="' + esc(src) + '">' : '') + '</div>' : '') +
+          '<div class="body">' + rich("description") + '</div></div></section>' +
+        grantHtml +
+        actions +
+        sec("special", "Notes", "special") +
+      '</article>';
+    return box;
+  }
+
+  /* ---------------- library store: db when hosted, localStorage otherwise ---------------- */
+  var Lib = {mode:"local", cards:[], listeners:[], db:null, assets:null};
+  Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
+  Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
+  /* The local library lives in IndexedDB (TB.store), loaded once at start; a card saved before
+     that finishes is kept and merged in. */
+  Lib.ready = false;
+  Lib.loadLocal = function(){
+    Lib.mode = "local"; Lib.cards = []; Lib.ready = false;
+    return TB.store.get(LIB_LOCAL).then(null, function(){ return null; }).then(function(v){
+      if(Lib.mode !== "local" || Lib.ready) return;
+      var early = Lib.cards, ids = {};
+      early.forEach(function(c){ ids[c.id] = 1; });
+      Lib.cards = (Array.isArray(v) ? v : []).filter(function(c){ return !ids[c.id]; }).concat(early);
+      Lib.ready = true;
+      if(early.length) Lib.writeLocal();
+      Lib.emit();
+    });
+  };
+  Lib.writeLocal = function(){ if(Lib.ready) TB.store.set(LIB_LOCAL, Lib.cards).catch(function(){ toast("Storage full — image too large to keep"); }); };
+  Lib.newId = function(){ return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
+  Lib.save = function(card, id){
+    var now = new Date().toISOString();
+    if(Lib.mode === "db"){
+      var ref = Lib.db.collection("cards").doc(id || Lib.newId());
+      var existing = Lib.cards.filter(function(c){ return c.id === ref.id; })[0];
+      card.createdAt = existing ? existing.createdAt : now; card.updatedAt = now;
+      return ref.set(card).then(function(){ return ref.id; });
+    }
+    id = id || Lib.newId();
+    var i = Lib.cards.findIndex(function(c){ return c.id === id; });
+    card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
+    if(Lib.mode === "cloud") return Cloud.save(id, card).then(function(){ return id; });
+    card.id = id;
+    if(i >= 0) Lib.cards[i] = card; else Lib.cards.push(card);
+    Lib.writeLocal(); Lib.emit();
+    return Promise.resolve(id);
+  };
+  Lib.remove = function(id){
+    if(Lib.mode === "db") return Lib.db.collection("cards").doc(id).delete();
+    if(Lib.mode === "cloud") return Cloud.remove(id);
+    Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; });
+    Lib.writeLocal(); Lib.emit();
+    return Promise.resolve();
+  };
+  Lib.start = function(){
+    Lib.loadLocal();
+    $("status").innerHTML = "Saved on <b>this device</b>";
+    if(window.Cloud && Cloud.available){
+      Cloud.init({kind:"items", mount:$("account"),
+        onStatus:function(html){ $("status").innerHTML = html; },
+        onCards:function(cards){
+          if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
+          else{ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; }
+          Lib.emit();
+        }});
+      return;
+    }
+    var tries = 0;
+    (function wait(){
+      if(window.claude && window.claude.use) return Lib.connect();
+      if(++tries < 40) setTimeout(wait, 250);
+    })();
+  };
+  Lib.connect = function(){
+    Promise.all([claude.use("db"), claude.use("assets")]).then(function(r){
+      var db = r[0]; Lib.assets = r[1];
+      if(!db) return;
+      Lib.db = db; Lib.mode = "db";
+      $("status").innerHTML = "Library: <b>synced</b>";
+      db.collection("cards").onSnapshot(function(snap){
+        Lib.cards = snap.docs.map(function(s){ var d = Object.assign({}, s.data()); d.id = s.id; return d; });
+        Lib.emit();
+      }, function(e){ $("status").innerHTML = "Library: <b>sync lost</b> — " + esc(e.code); });
+    }).catch(function(){});
+  };
+
+  /* A data: URL back into a Blob without fetch(), which the sandbox blocks. */
+  function dataUrlToBlob(u){
+    var m = /^data:([^;,]+)(;base64)?,(.*)$/.exec(u);
+    if(!m) return null;
+    var type = m[1], raw = m[2] ? atob(m[3]) : decodeURIComponent(m[3]);
+    var bytes = new Uint8Array(raw.length);
+    for(var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return new Blob([bytes], {type:type});
+  }
+  function errText(e){
+    if(!e) return "unknown";
+    return (e.code ? e.code + " " : "") + (e.message || "");
+  }
+
+  /* Save opens a preview first — the same rendering the Library uses, not the editor's
+     contenteditable one — so what gets saved is what you'll actually see there. */
+  var previewModal = $("previewModal"), previewCard = $("previewCard");
+  function openPreview(){
+    var card = collect();
+    card.image = img.data || img.src || "";
+    previewCard.innerHTML = "";
+    previewCard.appendChild(renderCard(card));
+    previewModal.hidden = false; scrim.hidden = false;
+    whenFontsReady(function(){ previewCard.querySelectorAll(".card").forEach(function(c){ fitName(c); fitCard(c); }); });
+    $("previewSave").focus();
+  }
+  function closePreview(){ previewModal.hidden = true; scrim.hidden = true; }
+  $("saveCard").addEventListener("click", openPreview);
+  $("previewCancel").addEventListener("click", closePreview);
+  scrim.addEventListener("click", closePreview);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !previewModal.hidden) closePreview(); });
+
+  /* Save the editor card into the library: upload a new image first when hosted. */
+  $("previewSave").addEventListener("click", function(){
+    var btn = this; btn.disabled = true;
+    var card = collect();
+    var note = "";
+    var p = Promise.resolve();
+    if(Lib.mode === "db"){
+      if(img.dirty && img.data){
+        if(!Lib.assets){
+          note = " (image not stored: uploads unavailable here)";
+        }else{
+          var blob = dataUrlToBlob(img.data);
+          p = Lib.assets.upload(blob, {type:blob.type || "image/png"})
+            .then(function(res){ img.id = res.id; img.src = res.url; img.data = ""; img.dirty = false; },
+                  function(e){ note = " (image not stored: " + errText(e) + ")"; });
+        }
+      }else if(img.dirty && !img.src){ img.id = ""; img.dirty = false; }
+      p = p.then(function(){ card.imageId = img.id || ""; card.imageMeta = img.meta || ""; });
+    }else if(Lib.mode === "cloud"){
+      /* the image lives in Storage under the card's id, so a new card gets its id before the upload */
+      var isNew = !Lib.cards.some(function(c){ return c.id === currentId; });
+      if(isNew && Cloud.full()){ toast(Cloud.fullMessage(), 5000); btn.disabled = false; return; }
+      currentId = isNew ? Lib.newId() : currentId;
+      if(img.dirty && img.data){
+        p = Cloud.upload(currentId, dataUrlToBlob(img.data))
+          .then(function(url){ img.src = url; img.data = ""; img.dirty = false; },
+                function(e){ note = " (image not stored: " + errText(e) + ")"; });
+      }else if(img.dirty && !img.src){ Cloud.removeArt(currentId); img.dirty = false; }
+      p = p.then(function(){ card.imageUrl = img.src || ""; card.imageMeta = img.meta || ""; });
+    }else{
+      card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
+    }
+    p.then(function(){ return Lib.save(card, currentId); })
+     .then(function(id){ currentId = id; saveDraft(); closePreview(); toast("Saved to library" + note); showView("library"); })
+     .catch(function(e){ toast("Save failed: " + errText(e), 5000); console.error("save", e); if(Lib.mode === "cloud" && isNew){ Cloud.removeArt(currentId); currentId = null; } })
+     .then(function(){ btn.disabled = false; });
+  });
+
+
+  /* ---------------- import: a spell by name (Demiplane), or pasted from AoN / Demiplane ----------------
+     Whatever comes in is turned into plain text, one stat-block line or paragraph per line, then
+     parseSpell() splits it into the card's fields: Traditions / Cast / Range… lines, the description
+     (degrees of success kept bold), and Heightened / Amp entries as rows. The result lands in the
+     editor as a new, unsaved card. */
+  var COST_WORDS = [
+    [/\[(?:one-action|1-action|a)\]|\bsingle action\b|\bone action\b|◆/i, "a1"],
+    [/\[(?:two-actions|2-actions|aa)\]|\btwo actions\b|◆◆/i, "a2"],
+    [/\[(?:three-actions|3-actions|aaa)\]|\bthree actions\b|◆◆◆/i, "a3"],
+    [/\[(?:reaction|r)\]|\breaction\b|⬲/i, "ar"],
+    [/\[(?:free-action|f)\]|\bfree action\b|◇/i, "af"]
+  ];
+  var COST_TOKEN = /\s*(\[(?:one-action|two-actions|three-actions|reaction|free-action|1-action|2-actions|3-actions)\]|\b(?:single action|one action|two actions|three actions|reaction|free action)\b|[◆◇⬲]+)\s*/i;
+  function costOf(tok){
+    for(var i = COST_WORDS.length - 1; i >= 0; i--) if(COST_WORDS[i][0].test(tok)) return COST_WORDS[i][1];
+    return "";
+  }
+  var HEAD_LABELS = {"traditions":"trad", "tradition":"trad", "cast":"cast", "range":"range", "area":"area",
+    "targets":"targets", "target":"targets", "defense":"defense", "saving throw":"defense", "duration":"duration",
+    "trigger":"trigger", "requirements":"reqs", "requirement":"reqs", "deities":"note", "deity":"note", "domain":"note",
+    "cost":"g:Cost", "primary check":"g:Primary Check", "secondary casters":"g:Secondary Casters", "secondary checks":"g:Secondary Checks",
+    "source":"", "pfs note":"", "pfs":"", "legacy content":"", "remastered":"", "bloodline":"", "bloodlines":"", "mystery":"",
+    "patron theme":"", "patron themes":"", "lesson":"", "spell list":""};
+  var SKILLS = ["Acrobatics","Arcana","Athletics","Crafting","Deception","Diplomacy","Intimidation","Medicine",
+    "Nature","Occultism","Performance","Religion","Society","Stealth","Survival","Thievery"];
+  function cap1(s){ s = String(s || "").trim(); return s.charAt(0).toUpperCase() + s.slice(1); }
+  /* "Class Archetype Dedication" → ["Class Archetype","Dedication"]: known two-word traits stay together */
+  function splitTraitWords(line){
+    if(/,/.test(line)) return line.split(",").map(function(t){ return t.trim(); }).filter(Boolean);
+    var w = line.split(/\s+/).filter(Boolean), out = [];
+    var known = function(t){ return ALL_TRAITS.some(function(x){ return x.toLowerCase() === t.toLowerCase(); }); };
+    for(var i = 0; i < w.length; i++){
+      if(i + 1 < w.length && known(w[i] + " " + w[i + 1])){ out.push(w[i] + " " + w[i + 1]); i++; }
+      else out.push(w[i]);
+    }
+    return out.map(function(t){ var hit = ALL_TRAITS.filter(function(x){ return x.toLowerCase() === t.toLowerCase(); })[0]; return hit || cap1(t); });
+  }
+  function labelOf(line){
+    for(var k in HEAD_LABELS){
+      if(line.toLowerCase() === k || line.toLowerCase().indexOf(k + " ") === 0 || line.toLowerCase().indexOf(k + ":") === 0)
+        return {key:HEAD_LABELS[k], rest:line.slice(k.length).replace(/^\s*:?\s*/, "")};
+    }
+    return null;
+  }
+  /* A paragraph that opens with a name and an action cost is an action the feat gives. */
+  function actionFrom(para){
+    var m = /^([A-Z][\w'’ -]{1,40}?)\s*(\[(?:one-action|two-actions|three-actions|reaction|free-action|1-action|2-actions|3-actions)\]|\b(?:Single Action|One Action|Two Actions|Three Actions|Reaction|Free Action)\b|[◆◇⬲]+)\s*(?:\(([^)]*)\))?\s*([\s\S]*)$/.exec(para);
+    if(!m || !m[4]) return null;
+    var tr = (m[3] || "").split(",").map(function(t){ return t.trim().toLowerCase(); }).filter(Boolean);
+    var keep = tr.filter(function(t){ return ATRAITS.indexOf(t) >= 0; }), rest = tr.filter(function(t){ return ATRAITS.indexOf(t) < 0; });
+    var lead = "<b>" + esc(m[1].trim()) + "</b>" + (rest.length ? " (" + esc(rest.join(", ")) + ")" : "") + " ";
+    return {type:costOf(m[2]), range:"", traits:keep, name:m[1].trim(),
+            text:m[1].trim() + (rest.length ? " (" + rest.join(", ") + ")" : "") + " " + m[4].trim(), html:lead + esc(m[4].trim())};
+  }
+  var DEGREE = /^(Critical Success|Success|Failure|Critical Failure)\b\s*/;
+  function parseSpell(raw){
+    var lines = String(raw || "").replace(/\r/g, "").replace(/ /g, " ").split("\n")
+      .map(function(l){ return l.replace(/\s+/g, " ").trim(); })
+      .filter(function(l){ return l && !/^-{3,}$/.test(l) && !/^(may contain spoilers|legacy content|there is a (?:remastered|legacy) version)/i.test(l); });
+    var d = {name:"", level:"", cost:"", traits:[], cat:"", note:"", trad:"", cast:"", range:"", area:"", targets:"", defense:"",
+             duration:"", trigger:"", reqs:"", description:"", descriptionHtml:"", special:"", actions:[], grants:[], chg:0, used:[], imgW:120, imgAr:1};
+    if(!lines.length) return null;
+    /* the title: "Name [cost] Spell 3" (or Cantrip 1, Focus 2, Ritual 4), or the name on one line and "Spell 3" on the next */
+    var TL = /^(.*?)\s*\b(Spell|Cantrip|Focus|Ritual)\s+(\d+)\s*$/i;
+    var i = 0, t = lines[0], m = TL.exec(t);
+    if(!m && lines[1] && /^(Spell|Cantrip|Focus|Ritual)\s+\d+$/i.test(lines[1])){ var w = lines[1].split(/\s+/); m = [null, t, w[0], w[1]]; i = 1; }
+    var title = m ? m[1] : t;
+    if(m){ d.level = m[3]; d.cat = cap1(m[2].toLowerCase()); }
+    var ct = COST_TOKEN.exec(title);
+    if(ct){ d.cost = costOf(ct[1]); title = title.replace(COST_TOKEN, " ").trim(); }
+    d.name = title.replace(/\s+$/, "");
+    i++;
+    var isTraitLine = function(l){
+      var tw = splitTraitWords(l);
+      if(tw.every(function(x){ return ALL_TRAITS.indexOf(x) >= 0; })) return true;
+      return !labelOf(l) && tw.length <= 8 && !/[.;:]$/.test(l);
+    };
+    if(lines[i] && isTraitLine(lines[i])){ d.traits = orderTraits(splitTraitWords(lines[i])); i++; }
+    /* labelled lines, several to a line split by ";": Traditions, Cast, Range; Area; Targets, Defense, Duration… */
+    var label = function(piece){
+      var L = labelOf(piece); if(!L) return false;
+      if(L.key === "note") d.note = L.rest.replace(/\*$/, "");
+      else if(L.key === "cast"){
+        var c = COST_TOKEN.exec(L.rest);
+        if(c){ d.cost = costOf(c[1]); L.rest = L.rest.replace(COST_TOKEN, " ").trim(); }
+        d.cast = L.rest.replace(/^\(|\)$/g, "").trim();
+      }
+      else if(L.key.indexOf("g:") === 0) d.grants.push({k:L.key.slice(2), text:L.rest});
+      else if(L.key) d[L.key] = L.rest;
+      return true;
+    };
+    for(; i < lines.length; i++){
+      var parts = lines[i].split(/;\s+/);
+      if(!labelOf(parts[0])) break;
+      parts.forEach(function(pc){ if(!label(pc) && d.cast === "" && !d.range) d.cast = pc; });
+    }
+    /* the body: description, degrees of success (kept bold), Heightened and Amp entries */
+    var desc = [], html = [];
+    for(; i < lines.length; i++){
+      var p = lines[i];
+      var h = /^((?:Amp )?Heightened \([^)]+\)|Amp)\s+(.*)$/.exec(p);
+      if(h){ d.grants.push({k:h[1], text:h[2]}); continue; }
+      var dg = DEGREE.exec(p);
+      if(dg){ desc.push(p); html.push("<b>" + esc(dg[1]) + "</b> " + esc(p.slice(dg[0].length))); continue; }
+      desc.push(p); html.push(esc(p));
+    }
+    d.description = desc.join("\n"); d.descriptionHtml = html.join("\n");
+    var has = function(x){ return d.traits.indexOf(x) >= 0; };
+    if(has("Cantrip")) d.cat = "Cantrip"; else if(has("Focus")) d.cat = "Focus"; else if(!d.cat) d.cat = "Spell";
+    if(!d.note){
+      var cl = d.traits.filter(function(x){ return CLASSES.indexOf(x) >= 0; })[0];
+      if(cl && d.cat === "Focus") d.note = cl;
+    }
+    return d;
+  }
+  /* Demiplane: its GraphQL API answers without a login and allows other sites; a claude.ai artifact
+     can't reach it, so there only pasting works. Remaster entries win over legacy ones. */
+  var DP_API = "https://apiv4.demiplane.com/v1/graphql";
+  function canFetch(){ return !(window.claude && window.claude.use); }
+  function dpSpell(name){
+    var q = function(pattern){
+      return fetch(DP_API, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({
+        query:'query($n:String!){ demiplane_element_display_version(order_by:{version_number:desc}, where:{name:{_ilike:$n}, elementDisplayByElementDisplayId:{category:{_in:["spell","ritual"]}, nexus:{slug:{_eq:"pathfinder2e"}}}}, limit:12){ name level traits element_display is_legacy activation_unit activation_value } }',
+        variables:{n:pattern}})})
+        .then(function(r){ if(!r.ok) throw new Error("Demiplane answered " + r.status); return r.json(); })
+        .then(function(j){ if(j.errors) throw new Error(j.errors[0].message); return (j.data && j.data.demiplane_element_display_version) || []; });
+    };
+    return q(name).then(function(list){ return list.length ? list : q("%" + name + "%"); }).then(function(list){
+      list.sort(function(a, b){ return (a.is_legacy ? 1 : 0) - (b.is_legacy ? 1 : 0); });
+      if(!list[0]) throw new Error("No spell called “" + name + "” on Demiplane.");
+      return dpText(list[0]);
+    });
+  }
+  /* A Demiplane entry as the text parseSpell reads; action icons become [two-actions] and the like. */
+  function dpText(v){
+    var html = String(v.element_display || "")
+      .replace(/<span[^>]*aria-label="([^"]+)"[^>]*>\s*<\/span>/gi, function(m, lab){ return " [" + lab.toLowerCase().replace(/^single action$/, "one-action").replace(/ /g, "-").replace(/^two-actions?$/, "two-actions").replace(/^three-actions?$/, "three-actions") + "] "; })
+      .replace(/<\/p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+    var ta = document.createElement("textarea"); ta.innerHTML = html;
+    var traits = String(v.traits || "").split(",").map(function(t){ return t.split("|")[0].trim(); }).filter(Boolean);
+    var lower = traits.map(function(t){ return t.toLowerCase(); });
+    var word = lower.indexOf("cantrip") >= 0 ? "Cantrip" : lower.indexOf("focus") >= 0 ? "Focus" : lower.indexOf("ritual") >= 0 ? "Ritual" : "Spell";
+    /* the casting time isn't always in the text; Demiplane keeps it as activation unit and count */
+    var u = String(v.activation_unit || "").toLowerCase(), n = +v.activation_value || 0, cast = "";
+    if(u === "reaction") cast = "[reaction]"; else if(/free/.test(u)) cast = "[free-action]";
+    else if(u === "action" && n >= 1 && n <= 3) cast = ["[one-action]", "[two-actions]", "[three-actions]"][n - 1];
+    else if(u && n) cast = n + " " + u + (n > 1 && !/s$/.test(u) ? "s" : "");
+    var body = ta.value, castLine = cast && !/^\s*Cast\b/m.test(body) ? "Cast " + cast + "\n" : "";
+    return v.name + " " + word + " " + v.level + "\n" + traits.join(", ") + "\n" + castLine + body;
+  }
+
+  var importModal = $("importModal");
+  function openImport(){
+    $("importText").value = ""; $("importNote").textContent = "";
+    $("importName").value = ""; $("importNameRow").hidden = !canFetch();
+    $("importLead").textContent = canFetch()
+      ? "Type a spell's name to fetch it from Demiplane, or paste the spell from Archives of Nethys or Demiplane."
+      : "Paste the spell from Archives of Nethys or Demiplane — from the title line down.";
+    importModal.hidden = false; scrim.hidden = false;
+    $(canFetch() ? "importName" : "importText").focus();
+  }
+  function closeImport(){ importModal.hidden = true; scrim.hidden = true; }
+  function fillFromText(txt){
+    var d = parseSpell(txt);
+    if(!d || !d.name){ $("importNote").textContent = "Couldn't find a spell in that text — start from the title line (“Name Spell 3”)."; return false; }
+    d.id = null; d.blanks = false;
+    load(d); saveDraft(); closeImport(); showView("editor");
+    toast("Imported " + d.name + " — check it, then Save");
+    return true;
+  }
+  function runImport(){
+    var txt = $("importText").value.trim(), name = $("importName").value.trim();
+    if(txt){ fillFromText(txt); return; }
+    if(name && canFetch()){
+      var btn = $("importGo"); btn.disabled = true; $("importNote").textContent = "Asking Demiplane…";
+      dpSpell(name).then(fillFromText).catch(function(e){ $("importNote").textContent = errText(e); })
+        .then(function(){ btn.disabled = false; });
+      return;
+    }
+    $("importNote").textContent = canFetch() ? "Type a spell's name, or paste its text." : "Paste the spell's text first.";
+  }
+  $("importBtn").addEventListener("click", openImport);
+  $("importCancel").addEventListener("click", closeImport);
+  $("importGo").addEventListener("click", runImport);
+  $("importName").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); runImport(); } });
+  scrim.addEventListener("click", function(){ if(!importModal.hidden) closeImport(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !importModal.hidden) closeImport(); });
+  /* ---------------- library view ---------------- */
+  var sortMode = "created", selected = [];
+  try{ selected = JSON.parse(localStorage.getItem(SEL)) || []; }catch(e){}
+  function saveSel(){ try{ localStorage.setItem(SEL, JSON.stringify(selected)); }catch(e){} }
+  function sorted(){
+    var a = Lib.cards.slice();
+    var lvl = function(c){ var n = parseInt(c.level, 10); return isNaN(n) ? 99 : n; };
+    if(sortMode === "level") a.sort(function(x, y){ return (lvl(x) - lvl(y)) || (x.name || "").localeCompare(y.name || ""); });
+    else if(sortMode === "cat") a.sort(function(x, y){ return (x.cat || "~").localeCompare(y.cat || "~") || (x.name || "").localeCompare(y.name || ""); });
+    else if(sortMode === "edited") a.sort(function(x, y){ return (y.updatedAt || "").localeCompare(x.updatedAt || ""); });
+    else a.sort(function(x, y){ return (y.createdAt || "").localeCompare(x.createdAt || ""); });
+    return a;
+  }
+  function fmtDate(s){ if(!s) return "—"; var d = new Date(s); return isNaN(d) ? "—" : d.toLocaleDateString(undefined, {month:"short", day:"numeric"}); }
+  function renderGallery(){
+    var g = $("gallery"); g.innerHTML = "";
+    var list = sorted();
+    $("libEmpty").hidden = list.length > 0;
+    selected = selected.filter(function(id){ return Lib.cards.some(function(c){ return c.id === id; }); });
+    list.forEach(function(d){
+      var w = document.createElement("div");
+      w.className = "gcard" + (selected.indexOf(d.id) >= 0 ? " sel" : ""); w.tabIndex = 0; w.dataset.id = d.id;
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.className = "gsel"; cb.checked = selected.indexOf(d.id) >= 0; cb.setAttribute("aria-label", "Select for the sheet");
+      var del = document.createElement("button"); del.className = "gdel"; del.innerHTML = "&times;"; del.title = "Delete card";
+      w.appendChild(cb); w.appendChild(del); w.appendChild(renderCard(d));
+      var meta = document.createElement("div"); meta.className = "gmeta";
+      meta.innerHTML = "<b>" + esc([d.cat, (d.level || "").trim() ? lvlWord(d.cat).toLowerCase() + " " + d.level.trim() : ""].filter(Boolean).join(" · ") || "untyped") + "</b><span>" + (sortMode === "edited" ? "edited " + fmtDate(d.updatedAt) : "made " + fmtDate(d.createdAt)) + "</span>";
+      w.appendChild(meta);
+      g.appendChild(w);
+    });
+    /* Stored scales predate edits to the layout; fit again so the thumbnails match the print. */
+    whenFontsReady(function(){ g.querySelectorAll(".card").forEach(function(c){ fitName(c); fitCard(c); }); });
+    $("toSheet").textContent = "Print sheet (" + selected.length + ")";
+  }
+  $("gallery").addEventListener("click", function(e){
+    var w = e.target.closest(".gcard"); if(!w) return;
+    var id = w.dataset.id;
+    if(e.target.classList.contains("gsel")){
+      var i = selected.indexOf(id);
+      if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
+      w.classList.toggle("sel", e.target.checked); saveSel();
+      $("toSheet").textContent = "Print sheet (" + selected.length + ")";
+      return;
+    }
+    if(e.target.classList.contains("gdel")){
+      var d = Lib.cards.filter(function(c){ return c.id === id; })[0];
+      if(confirm("Delete “" + (d && d.name || "this card") + "” from the library?")){
+        Lib.remove(id).then(function(){ if(currentId === id){ currentId = null; saveDraft(); } toast("Deleted"); });
+      }
+      return;
+    }
+    var d2 = Lib.cards.filter(function(c){ return c.id === id; })[0];
+    if(d2){ load(Object.assign({}, d2, {blanks:false})); saveDraft(); showView("editor"); }
+  });
+  $("gallery").addEventListener("keydown", function(e){
+    if(e.key === "Enter" && e.target.classList.contains("gcard")) e.target.click();
+  });
+  document.querySelectorAll("[data-sort]").forEach(function(b){
+    b.addEventListener("click", function(){
+      sortMode = b.dataset.sort;
+      document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      try{ localStorage.setItem("pf2e-spell-sort", sortMode); }catch(e){}
+      renderGallery();
+    });
+  });
+  $("selAll").addEventListener("click", function(){ selected = sorted().map(function(c){ return c.id; }); saveSel(); renderGallery(); });
+  $("selNone").addEventListener("click", function(){ selected = []; saveSel(); renderGallery(); });
+  $("toSheet").addEventListener("click", function(){ showView("sheet"); });
+  Lib.onChange(function(){ renderGallery(); if(!$("sheetView").hidden) renderSheet(); });
+
+  /* ---------------- print sheet: 4-up on letter, borders shared ---------------- */
+  var blankCount = 0, sheetItems = [];
+  function renderSheet(){
+    var wrap = $("pages"); wrap.innerHTML = "";
+    var order = sorted().filter(function(c){ return selected.indexOf(c.id) >= 0; });
+    var items = order.map(function(c){ return {d:c}; });
+    sheetItems = items;
+    for(var i = 0; i < blankCount; i++) items.push({d:{name:"", traits:[], grants:[], imgW:120, imgAr:1, chg:0}, blanks:true});
+    var z = Math.min(1, (window.innerWidth - 32) / 816);
+    document.documentElement.style.setProperty("--sheet-zoom", z.toFixed(3));
+    for(var p = 0; p < items.length; p += 4){
+      var page = document.createElement("div"); page.className = "page";
+      items.slice(p, p + 4).forEach(function(it){
+        var slot = document.createElement("div"); slot.className = "slot";
+        slot.appendChild(renderCard(it.d, {blanks:it.blanks})); page.appendChild(slot);
+      });
+      wrap.appendChild(page);
+    }
+    /* Fit each card's text again here, in case the stored scale is missing or stale. */
+    whenFontsReady(function(){ wrap.querySelectorAll(".card").forEach(function(c){ fitName(c); fitCard(c); }); });
+    var n = items.length;
+    $("sheetNote").textContent = n
+      ? n + (n === 1 ? " card" : " cards") + " on " + Math.ceil(n / 4) + (n > 4 ? " letter pages" : " letter page") + " · cut along the shared borders"
+      : "Nothing on the sheet yet. Tick cards in the Library, or add a blank card.";
+    $("print").disabled = n === 0;
+  }
+  $("addBlank").addEventListener("click", function(){ blankCount++; renderSheet(); });
+  $("sheetClear").addEventListener("click", function(){ blankCount = 0; selected = []; saveSel(); renderSheet(); renderGallery(); });
+  /* ---- the sheet as a PDF, drawn directly: text and shapes, no frames or canvases ----
+     All layout is done in CSS pixels (a card is 384x480) and converted to points on output,
+     so the metrics track the on-screen card. */
+  var libsReady = null;
+  function loadScript(src, sri){
+    return new Promise(function(res, rej){
+      var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error("could not load " + src)); };
+      if(sri){ s.integrity = sri; s.crossOrigin = "anonymous"; }
+      document.head.appendChild(s);
+    });
+  }
+  function loadLibs(){
+    if(!libsReady) libsReady = loadScript(TB.JSPDF.url, TB.JSPDF.sri);
+    return libsReady;
+  }
+  var PT = 0.75;                                  /* px -> pt */
+  var INK = [0, 0, 0], INK2 = [51, 51, 51], INK3 = [102, 102, 102], ACCENT = [47, 26, 77], RULE = [119, 119, 119];
+  var fontsLoaded = false, fontData = null;
+  /* The same files fonts.css uses, as base64 for jsPDF. The site fetches them from fonts/ on the
+     first export; the artifact build carries them inline in #pdfFonts. */
+  var FONT_FILES = {
+    body:"ebgaramond-400.ttf", bodyBold:"ebgaramond-600.ttf", bodyItalic:"ebgaramond-400i.ttf", bodyBoldItalic:"ebgaramond-600.ttf",   /* the set has no 600 italic: bold italic prints bold */
+    title:"eczar-700.ttf", sub:"teko-700.ttf", caps:"tauri-400.ttf"
+  };
+  function loadFontData(){
+    if(fontData) return Promise.resolve(fontData);
+    var raw = $("pdfFonts");
+    if(raw){ fontData = JSON.parse(raw.textContent); return Promise.resolve(fontData); }
+    var keys = Object.keys(FONT_FILES);
+    return Promise.all(keys.map(function(k){
+      return fetch("fonts/" + FONT_FILES[k]).then(function(r){ if(!r.ok) throw new Error(r.status + " " + FONT_FILES[k]); return r.arrayBuffer(); })
+        .then(function(buf){ var b = new Uint8Array(buf), out = "", CH = 0x8000; for(var i = 0; i < b.length; i += CH) out += String.fromCharCode.apply(null, b.subarray(i, i + CH)); return btoa(out); });
+    })).then(function(list){ fontData = {}; keys.forEach(function(k, i){ fontData[k] = list[i]; }); return fontData; });
+  }
+  function registerFonts(pdf){
+    var F = fontData; if(!F) return;
+    var add = function(k, name, style){ pdf.addFileToVFS(FONT_FILES[k], F[k]); pdf.addFont(FONT_FILES[k], name, style); };
+    add("body", "Sans", "normal"); add("bodyBold", "Sans", "bold");
+    add("bodyItalic", "Sans", "italic"); add("bodyBoldItalic", "Sans", "bolditalic");
+    add("title", "Serif", "bold");
+    add("sub", "Sub", "bold");
+    add("caps", "Caps", "normal"); add("caps", "Caps", "bold");   /* Tauri has one weight */
+    fontsLoaded = true;
+  }
+  /* An image element as a data: URL for jsPDF (JPEG if opaque, PNG if it has transparency). */
+  function imgData(el){
+    try{
+      var cv = document.createElement("canvas");
+      cv.width = el.naturalWidth || el.width || 1; cv.height = el.naturalHeight || el.height || 1;
+      cv.getContext("2d").drawImage(el, 0, 0);
+      return TB.canvasData(cv);
+    }catch(e){ return ""; }
+  }
+  /* Our stored rich text (<b>/<i>/<u> + escaped text) as runs. */
+  function runsOf(html, plain){
+    if(!html) return [{t:String(plain || ""), b:false, i:false}];
+    var runs = [], b = 0, i = 0, buf = "";
+    var flush = function(){ if(buf){ runs.push({t:buf, b:b > 0, i:i > 0}); buf = ""; } };
+    var dec = function(s){ return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&"); };
+    html.split(/(<\/?[biu]>)/).forEach(function(part){
+      if(part === "<b>"){ flush(); b++; } else if(part === "</b>"){ flush(); b = Math.max(0, b - 1); }
+      else if(part === "<i>"){ flush(); i++; } else if(part === "</i>"){ flush(); i = Math.max(0, i - 1); }
+      else if(part === "<u>" || part === "</u>"){ }
+      else buf += dec(part);
+    });
+    flush();
+    return runs;
+  }
+
+  /* Draw one card. Returns the content height used (px). With measure=true nothing is drawn. */
+  function drawCard(pdf, d, img, X, Y, opts){
+    opts = opts || {};
+    var measure = !!opts.measure, bs = opts.bodyScale || 1, ns = opts.nameScale || 1;
+    var W = 384, H = 480, BORDER = 2, PADX = 19, PADT = 17;
+    var x0 = X + BORDER + PADX, cw = W - 2 * (BORDER + PADX), y = Y + BORDER + PADT;
+    var pt = function(v){ return v * PT; };
+    var SUB = 1.25;   /* Teko renders small for its em; same bump as the CSS */
+    var setFont = function(name, style, px){
+      if(!fontsLoaded){ pdf.setFont(name === "Serif" || name === "Sans" ? "times" : "helvetica", style); }
+      else pdf.setFont(name, style);
+      pdf.setFontSize(px * (name === "Sub" && fontsLoaded ? SUB : 1) * PT);
+    };
+    var width = function(s){ return pdf.getTextWidth(s) / PT; };
+    var color = function(c){ pdf.setTextColor(c[0], c[1], c[2]); pdf.setDrawColor(c[0], c[1], c[2]); pdf.setFillColor(c[0], c[1], c[2]); };
+    var text = function(s, x, baseline, o){ if(!measure) pdf.text(s, pt(x), pt(baseline), o || {}); };
+    var rule = function(x1, x2, yy, w, c){ if(measure) return; color(c); pdf.setLineWidth(pt(w)); pdf.line(pt(x1), pt(yy), pt(x2), pt(yy)); };
+    var has = function(s){ return !!(s || "").trim(); };
+    var up = function(s){ return String(s || "").toUpperCase(); };
+    var poly = function(points, x, yy, sc, style){
+      if(measure) return;
+      var segs = [], px = points[0][0], py = points[0][1];
+      for(var k = 1; k < points.length; k++){ segs.push([points[k][0] - px, points[k][1] - py]); px = points[k][0]; py = points[k][1]; }
+      pdf.lines(segs, pt(x + points[0][0] * sc), pt(yy + points[0][1] * sc), [pt(sc), pt(sc)], style, style !== "S");
+    };
+    var stroked = function(points, x, yy, sc, lw){
+      if(measure) return;
+      pdf.setLineWidth(pt(lw * sc)); pdf.setLineJoin(0); pdf.setLineCap(0);
+      var segs = [];
+      for(var k = 1; k < points.length; k++) segs.push([points[k][0] - points[k-1][0], points[k][1] - points[k-1][1]]);
+      pdf.lines(segs, pt(x + points[0][0] * sc), pt(yy + points[0][1] * sc), [pt(sc), pt(sc)], "S", false);
+    };
+
+    /* card frame */
+    if(!measure){ color(INK); pdf.setLineWidth(pt(BORDER)); pdf.rect(pt(X + BORDER / 2), pt(Y + BORDER / 2), pt(W - BORDER), pt(H - BORDER), "S"); }
+
+    /* An action glyph ih px tall with its top-left at (x, iy); returns its width. */
+    var glyphAt = function(k, x, iy, ih){
+      var sc = ih / 24, G = ICON.geom;
+      color(INK);
+      if(k === "af"){
+        poly(G.freeOuter, x, iy, sc, "F"); if(!measure){ pdf.setFillColor(255, 255, 255); pdf.setDrawColor(255, 255, 255); }
+        poly(G.freeDot, x, iy, sc, "F"); stroked(G.freeChev, x, iy, sc, 3.4); color(INK);
+      }else if(k === "ar"){
+        poly(G.swooshBody, x, iy, sc, "F"); poly(G.swooshHead, x, iy, sc, "F");
+      }else{
+        poly(G.dot, x, iy, sc, "F");
+        var n = k === "a1" ? 1 : k === "a2" ? 2 : 3;
+        for(var c = 0; c < n; c++) stroked(G.chev(10 + 11 * c), x, iy, sc, 5.2);
+      }
+      return G.widths[k] * sc;
+    };
+
+    /* title: 16pt, two lines at most, the feat's own cost glyph after the last word */
+    var tsize = 21.33 * ns;
+    setFont("Serif", "bold", tsize); color(INK);
+    var cost = ATYPES.indexOf(d.cost) >= 0 ? d.cost : "";
+    var tl = titleLines(d.name, cost, cw, width, tsize), tlines = tl.lines;
+    var tlh = tsize * 1.1;
+    tlines.forEach(function(l, k){
+      var lastLine = k === tlines.length - 1, gap = lastLine && tl.gw && l ? tl.gap : 0;
+      var lw = width(l) + (lastLine ? gap + tl.gw : 0), lx = x0 + (cw - lw) / 2;
+      var base = y + k * tlh + tlh * 0.5 + tsize * 0.32;
+      color(INK); text(l, lx, base);
+      if(lastLine && tl.gw){ var ih = tsize * 0.78; glyphAt(cost, lx + width(l) + gap, base + tsize * 0.08 - ih, ih); }
+    });
+    y += Math.max(1, tlines.length) * tlh + 3.2;
+    rule(x0, x0 + cw, y + 0.75, 1.5, INK); y += 1.5;
+
+    /* category row: category + note left, charges right */
+    var chg = d.chg || 0, cons = chg > 0 || has(d.per);
+    if(d.cat || has(d.note) || cons || opts.blanks){
+      y += 3; var rf = 8.5, rlh = rf * 1.35, base = y + rlh * 0.5 + rf * 0.35;
+      var rightW = 0;
+      if(cons){
+        setFont("Caps", "bold", rf);
+        var perTxt = has(d.per) ? "/ " + up(d.per) : (opts.blanks ? "/" : "");
+        var dotsW = chg * (9.8 + 2.4);
+        rightW = dotsW + (perTxt ? width(perTxt) + 4 : 0);
+        var rx = x0 + cw - rightW;
+        for(var k = 0; k < chg; k++){
+          if(!measure){ color(INK); pdf.setLineWidth(pt(1.5)); pdf.circle(pt(rx + 4.9), pt(y + rlh / 2), pt(4.2), (d.used || [])[k] ? "FD" : "S"); }
+          rx += 12.2;
+        }
+        if(perTxt){ color(INK); text(perTxt, rx + 4, base, {charSpace:pt(0.5)}); }
+      }
+      setFont("Caps", "bold", rf); color(ACCENT);
+      var catTxt = up(d.cat || (opts.blanks ? "Spell type" : ""));
+      text(catTxt, x0, base, {charSpace:pt(0.9)});
+      if(has(d.note)){ color(INK); text(up(d.note), x0 + width(catTxt) + 0.9 * catTxt.length + 6, base, {charSpace:pt(0.5)}); }
+      y += rlh;
+    }
+    /* traits row: traits left (wrapping), FEAT n right */
+    var traits = (d.traits || []).join(" | ");
+    if(traits || has(d.level) || opts.blanks){
+      y += 2.5; var tf = 9.5, tlh2 = tf * 1.35;
+      setFont("Sub", "bold", tf); color(INK);
+      var valTxt = has(d.level) ? up(lvlWord(d.cat)) + " " + up(d.level).trim() : (opts.blanks ? up(lvlWord(d.cat)) : ""), valW = valTxt ? width(valTxt) + 0.4 * valTxt.length : 0;
+      if(valTxt) text(valTxt, x0 + cw, y + tlh2 * 0.5 + tf * 0.35, {align:"right", charSpace:pt(0.4)});
+      var lines = wrapPlain(up(traits), cw - valW - 10, function(s){ return width(s) + 0.4 * s.length; });
+      lines.forEach(function(l, k){ text(l, x0, y + k * tlh2 + tlh2 * 0.5 + tf * 0.35, {charSpace:pt(0.4)}); });
+      y += Math.max(1, lines.length) * tlh2;
+    }
+
+    /* sections — the same rule as the page's CSS: each box starts at the height its text (and
+       image) needs; leftover card space is shared Description 3 : Grants 2 : each action 2 :
+       Special 1 (the prerequisite lines take only what they need); when the card is full every
+       box shrinks in proportion and clips. The worst spill (px) is returned so the fitter can
+       shrink the text. Pass 1 measures, pass 2 draws. */
+    var PADB = 18, SEC_GAP = 5.5;
+    var grants = grantsOf(d);
+    var stacked = !grants.length && !opts.blanks;
+    var actions = actionsOf(d);
+    var reqs = opts.blanks ? REQ_BLANK : REQ.filter(function(r){ return has(d[r[0]]); });
+    var drawing = false, vis = function(){ return !measure && drawing; };
+
+    var capFont = 9, capLH = capFont * 1.35, CAP_BLOCK = capLH + 1 + 1 + 2;
+    var cap = function(label, extraDraw){
+      setFont("Sub", "bold", capFont); color(ACCENT);
+      if(vis()) text(up(label), x0, y + capLH * 0.5 + capFont * 0.35, {charSpace:pt(0.8)});
+      var xEnd = x0 + width(up(label)) + 0.8 * label.length;
+      if(extraDraw && vis()) extraDraw(xEnd + 6, y, capLH);
+      y += capLH + 1;
+      if(vis()) rule(x0, x0 + cw, y + 0.5, 1, RULE);
+      y += 1 + 2;
+    };
+    var bodyFont = 13.33 * bs, bodyLH = bodyFont * 1.4;
+    /* Body text from y down; returns where it ends (text or float, whichever is lower). */
+    var body = function(field, floatBox){ return bodyRuns(runsOf(d[field + "Html"], d[field]), floatBox); };
+    var bodyRuns = function(runs, floatBox){
+      var lines = wrapRuns(runs, function(lineTop){
+        if(floatBox && lineTop < floatBox.bottom) return {x:x0 + floatBox.w + 7, w:cw - floatBox.w - 7};
+        return {x:x0, w:cw};
+      }, y, bodyLH, function(s, b, i){ setFont("Sans", b ? (i ? "bolditalic" : "bold") : (i ? "italic" : "normal"), bodyFont); return width(s); });
+      if(vis()){
+        color(INK);
+        lines.forEach(function(line){
+          var x = line.x, base = line.top + bodyLH * 0.5 + bodyFont * 0.35;
+          line.parts.forEach(function(p){
+            setFont("Sans", p.b ? (p.i ? "bolditalic" : "bold") : (p.i ? "italic" : "normal"), bodyFont);
+            text(p.t, x, base); x += width(p.t);
+          });
+        });
+      }
+      return Math.max(y + lines.length * bodyLH, floatBox ? floatBox.bottom : 0);
+    };
+    var descBody = function(){
+      var floatBox = null;
+      if(img && img.data){
+        var iw = d.imgW || 120, ih = iw * (d.imgAr || 1);
+        if(stacked){
+          y += 1.5;
+          if(vis()) pdf.addImage(img.data, TB.imgFormat(img.data), pt(x0 + (cw - iw) / 2), pt(y), pt(iw), pt(ih));
+          y += ih + 4.5;
+        }else{
+          if(vis()) pdf.addImage(img.data, TB.imgFormat(img.data), pt(x0), pt(y + 1), pt(iw), pt(ih));
+          floatBox = {w:iw, bottom:y + 1 + ih + 2.5};
+        }
+      }else if(opts.blanks){
+        var bw = 120; if(vis()){ color(INK3); pdf.setLineWidth(pt(1)); pdf.setLineDashPattern([pt(3), pt(3)], 0); pdf.rect(pt(x0), pt(y + 1), pt(bw), pt(bw), "S"); pdf.setLineDashPattern([], 0); }
+        floatBox = {w:bw, bottom:y + 1 + bw + 2.5};
+      }
+      return body("description", floatBox);
+    };
+    /* An action's caption extras: its cost glyph, range, and traits. */
+    var actionCap = function(a){ return function(x, top, lh){
+      var ih = 10.35, iy = top + (lh - ih) / 2;
+      if(a.type) x += glyphAt(a.type, x, iy, ih) + 4;
+      var base = top + lh * 0.5 + 9 * 0.35;
+      if(has(a.range)){
+        setFont("Caps", "bold", 8.1); color(INK2); text("RANGE", x, base, {charSpace:pt(0.5)}); x += width("RANGE") + 0.5 * 5 + 3;
+        setFont("Sans", "normal", 10.5); color(INK); text(a.range, x, base); x += width(a.range) + 6;
+      }
+      if(a.traits.length){ setFont("Sans", "normal", 10); color(INK); text("(" + a.traits.join(", ") + ")", x, base); }
+    }; };
+    /* Prerequisites and friends: a bold label, then the text, one per line. */
+    var reqRuns = [];
+    reqs.forEach(function(r, k){
+      if(k) reqRuns.push({t:"\n", b:false, i:false});
+      reqRuns.push({t:r[1] + " ", b:true, i:false});
+      reqRuns = reqRuns.concat(runsOf("", d[r[0]] || ""));
+    });
+    /* the req block has no caption: .4em above it, then .25em and a rule under it */
+    var REQ_GAP = 4, REQ_TAIL = 2.5 + 1;
+    var secs = [];
+    if(reqs.length) secs.push({label:null, w:0, gap:REQ_GAP, tail:REQ_TAIL, body:function(){ return bodyRuns(reqRuns, null); }});
+    secs.push({label:"Description", w:3, extra:null, body:descBody});
+    if(grants.length || opts.blanks) secs.push({label:"Heightened", w:2, extra:null, body:function(){ return bodyRuns(runsOf(grantsHtml(grants), ""), null); }});
+    /* One section per action; a blank card gets a single generic Action section. */
+    if(opts.blanks) secs.push({label:"Action", w:2, extra:null, body:function(){ return bodyRuns([], null); }});
+    else actions.forEach(function(a){ secs.push({label:ALABEL[a.type], w:2, extra:actionCap(a), body:function(){ return bodyRuns(runsOf(a.html, a.text), null); }}); });
+    if(has(d.special) || opts.blanks) secs.push({label:"Notes", w:1, extra:null, body:function(){ return body("special", null); }});
+    secs.forEach(function(s){ s.head = s.label === null ? 0 : CAP_BLOCK; s.gap = s.gap || SEC_GAP; s.tail = s.tail || 0; });
+
+    /* pass 1: natural heights (caption block + body), measured without drawing */
+    var yTop = y, natSum = 0, wsum = 0, gaps = 0;
+    secs.forEach(function(s){
+      var y0 = yTop + s.head; y = y0;      /* s.body() may advance y itself (stacked image) */
+      s.nat = s.head + (s.body() - y0) + s.tail;
+      natSum += s.nat; wsum += s.w; gaps += s.gap;
+    });
+    y = yTop;
+    var free = (Y + H - BORDER - PADB) - y - gaps;
+    var spill = Math.max(0, natSum - free);
+    secs.forEach(function(s){
+      s.box = spill > 0 ? s.nat - spill * s.nat / natSum : s.nat + (free - natSum) * s.w / wsum;
+    });
+
+    /* pass 2: draw each section clipped to its box; y lands on the box's bottom edge */
+    drawing = true;
+    secs.forEach(function(s){
+      y += s.gap;
+      var bottom = y + s.box;
+      if(s.head) cap(s.label, s.extra);
+      var clipTo = bottom - s.tail;
+      if(!measure){ pdf.saveGraphicsState(); pdf.rect(pt(x0 - 2), pt(y), pt(cw + 4), pt(Math.max(0, clipTo - y)), null); pdf.clip(); pdf.discardPath(); }
+      s.body();
+      if(!measure) pdf.restoreGraphicsState();
+      if(s.tail) rule(x0, x0 + cw, bottom - 0.5, 1, RULE);
+      y = bottom;
+    });
+    return spill;
+  }
+  /* The title wrapped to a width, with room for the feat's cost glyph after the last word (it drops to a
+     line of its own when it won't fit). */
+  function titleLines(name, cost, w, meas, tsize){
+    var lines = wrapPlain(name || "", w, meas);
+    var gw = ATYPES.indexOf(cost) >= 0 ? ICON.geom.widths[cost] * (tsize * 0.78 / 24) : 0, gap = gw ? tsize * 0.3 : 0;
+    var last = lines[lines.length - 1] || "";
+    if(gw && last && meas(last) + gap + gw > w) lines.push("");
+    return {lines:lines, gw:gw, gap:gap};
+  }
+  /* Word-wrap plain text to a width using a measuring function (px). */
+  function wrapPlain(s, w, meas){
+    var out = [];
+    String(s || "").split("\n").forEach(function(para){
+      var words = para.split(/(\s+)/), line = "";
+      words.forEach(function(tok){
+        if(!tok) return;
+        var cand = line + tok;
+        if(line && meas(cand.replace(/\s+$/, "")) > w && !/^\s+$/.test(tok)){ out.push(line.replace(/\s+$/, "")); line = tok.replace(/^\s+/, ""); }
+        else line = cand;
+      });
+      out.push(line.replace(/\s+$/, ""));
+    });
+    return out.filter(function(l, k, a){ return l !== "" || a.length === 1; });
+  }
+  /* Word-wrap styled runs; the available box may change per line (for the floated image). */
+  function wrapRuns(runs, boxAt, top, lh, meas){
+    var lines = [], cur = null, n = 0;
+    var newLine = function(){ var b = boxAt(top + n * lh); cur = {top:top + n * lh, x:b.x, w:b.w, used:0, parts:[]}; lines.push(cur); n++; };
+    newLine();
+    var push = function(t, r){
+      var last = cur.parts[cur.parts.length - 1];
+      if(last && last.b === r.b && last.i === r.i) last.t += t; else cur.parts.push({t:t, b:r.b, i:r.i});
+      cur.used += meas(t, r.b, r.i);
+    };
+    runs.forEach(function(r){
+      r.t.split(/(\n)/).forEach(function(chunk){
+        if(chunk === "\n"){ newLine(); return; }
+        chunk.split(/(\s+)/).forEach(function(tok){
+          if(!tok) return;
+          var w = meas(tok, r.b, r.i);
+          if(/^\s+$/.test(tok)){ if(cur.used > 0) push(tok, r); return; }
+          if(cur.used > 0 && cur.used + w > cur.w){
+            var lp = cur.parts[cur.parts.length - 1]; if(lp) lp.t = lp.t.replace(/\s+$/, "");
+            newLine();
+          }
+          push(tok, r);
+        });
+      });
+    });
+    lines.forEach(function(l){ var lp = l.parts[l.parts.length - 1]; if(lp) lp.t = lp.t.replace(/\s+$/, ""); });
+    /* Blank lines (paragraph gaps) keep their height, as pre-wrap does; only trailing ones go. */
+    while(lines.length > 1 && !lines[lines.length - 1].parts.length) lines.pop();
+    return lines;
+  }
+  /* Fit a card the way the page does: title to two lines, then body text down until no section spills. */
+  function fitAndDraw(pdf, d, img, X, Y, blanks){
+    var ns = 1;
+    for(; ns >= 0.6; ns -= 0.05){
+      pdf.setFont(fontsLoaded ? "Serif" : "times", "bold"); pdf.setFontSize(21.33 * ns * PT);
+      if(titleLines(d.name, d.cost, 384 - 42, function(s){ return pdf.getTextWidth(s) / PT; }, 21.33 * ns).lines.length <= 2) break;
+    }
+    var bs = 1, best = 0.46;
+    for(; bs >= 0.46 - 1e-9; bs -= 0.04){
+      var spill = drawCard(pdf, d, img, X, Y, {measure:true, bodyScale:bs, nameScale:ns, blanks:blanks});
+      if(spill <= 0.5){ best = bs; break; }
+    }
+    drawCard(pdf, d, img, X, Y, {bodyScale:best, nameScale:ns, blanks:blanks});
+  }
+  function buildPdf(){
+    return loadLibs().then(function(){ return loadFontData().catch(function(e){ console.warn("fonts", e); fontData = null; }); }).then(function(){
+      var pdf = new jspdf.jsPDF({unit:"pt", format:"letter", orientation:"portrait", compress:true});
+      try{ registerFonts(pdf); }catch(e){ console.warn("fonts", e); fontsLoaded = false; }
+      var slots = $("pages").querySelectorAll(".slot");
+      var items = sheetItems.map(function(it, i){
+        var el = slots[i] && slots[i].querySelector("img");
+        return {d:it.d, blanks:!!it.blanks, img:el ? {data:imgData(el)} : null};
+      });
+      /* 2x2 per page; the block is 8x10in centred on letter with 0.25in side margins. */
+      var ox = 0.25 * 96, oy = 0.5 * 96;
+      items.forEach(function(it, i){
+        var p = Math.floor(i / 4), k = i % 4;
+        if(k === 0 && p > 0) pdf.addPage("letter", "portrait");
+        var X = ox + (k % 2) * (384 - 2), Y = oy + Math.floor(k / 2) * (480 - 2);
+        fitAndDraw(pdf, it.d, it.img, X, Y, it.blanks);
+      });
+      return pdf.output("blob");
+    });
+  }
+  /* The sheet as a standalone web page: the same markup and stylesheet (fonts and print rules
+     included), images inlined, so it opens and prints from any browser with nothing else needed. */
+  function buildHtml(){
+    var live = $("pages"), copy = live.cloneNode(true);
+    var srcImgs = live.querySelectorAll("img");
+    copy.querySelectorAll("img").forEach(function(im, i){ var data = srcImgs[i] && imgData(srcImgs[i]); if(data) im.src = data; });
+    copy.querySelectorAll("[contenteditable]").forEach(function(el){ el.removeAttribute("contenteditable"); });
+    var n = copy.querySelectorAll(".page").length;
+    return '<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Spell cards</title>' +
+      '<style>' + fontsCssAbs() + '</style><style>' + $("cardCss").textContent + '</style>' +
+      '<style>:root{--sheet-zoom:1}body{margin:0;padding:1.5rem 0 3rem;background:#DDD9D6}' +
+      '.hint{text-align:center;font-style:italic;font-size:.9rem;color:#575060;margin:0 0 1.2rem}' +
+      '@media print{.hint{display:none}body{padding:0;background:#fff}}</style></head><body>' +
+      '<p class="hint">' + n + (n === 1 ? " letter page" : " letter pages") + ' · print at 100% (Ctrl+P / ⌘P), or choose “Save as PDF” in the print dialog.</p>' +
+      '<section class="view" id="sheetView"><div class="sheet-wrap" id="pages">' + copy.innerHTML + '</div></section></body></html>';
+  }
+
+  /* fonts.css, with its relative url()s made absolute, for documents that live at blob: URLs */
+  var fontsCssText = "";
+  if(!$("pdfFonts")) fetch("fonts.css").then(function(r){ return r.ok ? r.text() : ""; }).then(function(t){ fontsCssText = t; }).catch(function(){});
+  function fontsCssAbs(){
+    var base = new URL(".", location.href).href;
+    return fontsCssText.replace(/url\((["']?)(?![a-z]+:)/g, function(m, q){ return "url(" + q + base; });
+  }
+  /* the artifact's downloads when hosted on claude.ai (set below), a plain download link on the site */
+  var dlNs = window.claude ? null : TB.downloads, lastPdf = null, lastHtml = "";
+  var printModal = $("printModal");
+  function closePrintModal(){ printModal.hidden = true; scrim.hidden = true; }
+  /* Print: build the PDF and the web page, then offer both — save the PDF, or open the HTML. */
+  $("print").addEventListener("click", function(){
+    var btn = this; if(btn.disabled) return;
+    btn.disabled = true; renderSheet(); toast("Building the PDF…");
+    lastHtml = buildHtml();
+    buildPdf().then(function(b){
+      lastPdf = b;
+      $("saveSheet").hidden = !dlNs;
+      printModal.hidden = false; scrim.hidden = false;
+      (dlNs ? $("saveSheet") : $("openHtml")).focus();
+      btn.disabled = false;
+    }).catch(function(e){
+      toast("Could not build the PDF: " + errText(e)); console.error("pdf", e);
+      btn.disabled = false;
+    });
+  });
+  $("saveSheet").addEventListener("click", function(){
+    if(!dlNs || !lastPdf) return;
+    dlNs.save({filename:"spell-cards.pdf", data:lastPdf})
+      .then(function(){ toast("Saved spell-cards.pdf"); closePrintModal(); })
+      .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e)); });
+  });
+  $("openHtml").addEventListener("click", function(){
+    if(!lastHtml) return;
+    var blob = new Blob([lastHtml], {type:"text/html"}), url = "", w = null;
+    try{ url = URL.createObjectURL(blob); }catch(e){}
+    if(url){ try{ w = window.open(url, "_blank"); }catch(e){} }
+    if(w){ toast("Sheet opened in a new tab"); closePrintModal(); return; }
+    /* Pop-ups are blocked here (the desktop app): hand the page over as a file instead. */
+    if(!dlNs){ toast("Could not open a tab here, and saving isn't available", 6000); return; }
+    dlNs.save({filename:"feat-cards.html", data:blob})
+      .then(function(){ toast("Saved spell-cards.html — open it in your browser to view or print", 6000); closePrintModal(); })
+      .catch(function(e){ if(e && e.code !== "cancelled") toast("Could not save: " + errText(e), 6000); });
+  });
+  $("printModalClose").addEventListener("click", closePrintModal);
+  scrim.addEventListener("click", closePrintModal);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !printModal.hidden) closePrintModal(); });
+  (function waitDl(n){
+    if(window.claude && window.claude.use){ claude.use("downloads").then(function(d){ dlNs = d; }).catch(function(){}); }
+    else if(n < 20) setTimeout(function(){ waitDl(n + 1); }, 500);
+  })(0);
+  window.addEventListener("resize", function(){ if(!$("sheetView").hidden) renderSheet(); });
+  /* Next Session asks for printed cards through this (toolbag-core.js TB.exportApi). */
+  TB.exportApi({kind:"spell", ready:function(){ return TB.libReady(Lib); }, pages:function(){ return $("pages"); },
+    show:function(ids){
+      var keep = selected, keepBlank = blankCount;
+      selected = ids; blankCount = 0; renderSheet();
+      return function(){ selected = keep; blankCount = keepBlank; renderSheet(); };
+    },
+    build:buildPdf});
+  window.addEventListener("beforeprint", renderSheet);
+
+  /* ---------------- views ---------------- */
+  function showView(name){
+    ["editor","library","sheet"].forEach(function(v){
+      $(v + "View").hidden = v !== name;
+      document.querySelectorAll('.bar-group[data-for="' + v + '"]').forEach(function(g){ g.hidden = v !== name; });
+    });
+    document.querySelectorAll("[data-view]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.view === name ? "true" : "false"); });
+    if(name === "library") renderGallery();
+    if(name === "sheet") renderSheet();
+    if(name === "editor") refresh();
+    try{ localStorage.setItem("pf2e-spell-view", name); }catch(e){}
+  }
+  document.querySelectorAll("[data-view]").forEach(function(b){ b.addEventListener("click", function(){ showView(b.dataset.view); }); });
+
+  /* ---------------- theme: Auto follows the device, Light/Dark override it ---------------- */
+  function setTheme(t){
+    if(t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+    document.querySelectorAll("[data-theme]").forEach(function(b){
+      if(b.tagName === "BUTTON") b.setAttribute("aria-pressed", b.dataset.theme === (t || "") ? "true" : "false");
+    });
+    try{ localStorage.setItem("pf2e-spell-theme", t || ""); }catch(e){}
+  }
+  document.querySelectorAll("button[data-theme]").forEach(function(b){ b.addEventListener("click", function(){ setTheme(b.dataset.theme); }); });
+  try{ setTheme(localStorage.getItem("pf2e-spell-theme") || ""); }catch(e){}
+
+  /* ---------------- start ---------------- */
+  CATEGORIES.forEach(function(c){ var o = document.createElement("option"); o.textContent = c; catSel.appendChild(o); });
+  $("opts").open = window.innerWidth > 760;
+  try{ sortMode = localStorage.getItem("pf2e-spell-sort") || "created"; }catch(e){}
+  document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.sort === sortMode ? "true" : "false"); });
+
+  var draft = null;
+  try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
+  if(draft && (draft.name || draft.description || draft.image || draft.picStored || draft.imageId || (draft.grants || []).length)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
+  else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
+  TB.restorePic(DRAFT, draft, function(p){
+    if(img.data) return;
+    setImage({src:p.imageSrc || img.src || p.image || "", data:p.image || "", id:img.id, meta:img.meta, dirty:img.dirty});
+    refresh();
+  });
+  /* The embedded fonts arrive a beat after first paint; a fit measured with fallback metrics wraps differently. */
+  whenFontsReady(refresh);
+  if(document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", function(){
+    refresh(); document.querySelectorAll("#gallery .card, #pages .card").forEach(function(c){ fitName(c); fitCard(c); });
+  });
+  Lib.start();
+  var lastView = "editor";
+  try{ lastView = localStorage.getItem("pf2e-spell-view") || "editor"; }catch(e){}
+  showView(lastView === "sheet" ? "library" : lastView);
+})();
+</script>
+
+
+<script>
+/* Close the tool switcher on outside click or Escape. */
+(function(){
+  var sw = document.getElementById("toolSwitch"); if(!sw) return;
+  document.addEventListener("click", function(e){ if(sw.open && !sw.contains(e.target)) sw.open = false; });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && sw.open){ sw.open = false; sw.querySelector("summary").focus(); } });
+})();
+</script>
+</body></html>
