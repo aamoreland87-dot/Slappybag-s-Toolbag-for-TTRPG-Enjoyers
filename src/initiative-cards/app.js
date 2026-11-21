@@ -2078,6 +2078,9 @@
   document.querySelectorAll("[data-sort]").forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.sort === sortMode ? "true" : "false"); });
   var draft = null;
   try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
+  /* tool.html#new (Next Session's "New card"): open straight on a blank card, not the saved draft */
+  var wantNew = location.hash === "#new";
+  if(wantNew) draft = null;
   if(draft && (draft.name || draft.ac || draft.hp || draft.image || draft.picStored || draft.imageId)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
   else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
   TB.restorePic(DRAFT, draft, function(p){
@@ -2089,6 +2092,7 @@
   var lastView = "editor";
   try{ lastView = localStorage.getItem("pf2e-init-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
+  if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
   /* fonts arrive after first paint; fit again once they do */
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ refresh(); });
 })();

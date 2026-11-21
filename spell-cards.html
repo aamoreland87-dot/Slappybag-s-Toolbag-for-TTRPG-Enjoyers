@@ -2527,6 +2527,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
   var draft = null;
   try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
+  /* tool.html#new (Next Session's "New card"): open straight on a blank card, not the saved draft */
+  var wantNew = location.hash === "#new";
+  if(wantNew) draft = null;
   if(draft && (draft.name || draft.description || draft.image || draft.picStored || draft.imageId || (draft.grants || []).length)){ if(!draft.zoom) draft.zoom = fitZoom(); load(draft); }
   else{ var ex = JSON.parse(JSON.stringify(EXAMPLE)); ex.zoom = fitZoom(); load(ex); }
   TB.restorePic(DRAFT, draft, function(p){
@@ -2543,6 +2546,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   var lastView = "editor";
   try{ lastView = localStorage.getItem("pf2e-spell-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
+  if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
 })();
 </script>
 

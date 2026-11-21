@@ -2108,6 +2108,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
   var draft = null;
   try{ draft = JSON.parse(localStorage.getItem(DRAFT)); }catch(e){}
+  /* tool.html#new (Next Session's "New card"): open straight on a blank card, not the saved draft */
+  var wantNew = location.hash === "#new";
+  if(wantNew) draft = null;
   if(!draft){
     /* Carry the previous version's draft forward. */
     try{
@@ -2134,6 +2137,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   var lastView = "editor";
   try{ lastView = localStorage.getItem("pf2e-item-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
+  if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
 })();
 </script>
 

@@ -579,7 +579,7 @@ function renderTab(){
   var t = tab(ui.tab), k = t[0], lib = t[3], all = k === "library";
   var list = filtered(k), total = cardsFor(k).length;
   var inN = cardsFor(k).filter(function(c){ return all ? inDocket(c) : pickOf(k, c.ref); }).length;
-  var adds = all ? '' : (lib ? '<a class="addcard" href="' + TOOLS[lib].page + '" target="_blank" rel="noopener">＋ New ' + t[4] + ' card<small>opens ' + TOOLS[lib].name + '; it appears here once saved</small></a>' : '') +
+  var adds = all ? '' : (lib ? '<a class="addcard" href="' + TOOLS[lib].page + '#new" target="_blank" rel="noopener">＋ New ' + t[4] + ' card<small>opens a blank card in ' + TOOLS[lib].name + '; save it there and it appears here</small></a>' : '') +
     '<button class="addcard" id="addc"' + (lib ? ' style="min-height:60px;font-size:.85rem"' : '') + '>＋ ' + (lib ? 'Quick card here' : 'Add ' + t[4] + ' card') + '</button>';
   var html = '<div class="libhead"><span style="font-size:1.4rem">' + t[2] + '</span><h2>' + t[1] + '</h2>' +
     '<input class="search" id="q" type="search" placeholder="Search names, traits…" value="' + esc(ui.q) + '">' +
