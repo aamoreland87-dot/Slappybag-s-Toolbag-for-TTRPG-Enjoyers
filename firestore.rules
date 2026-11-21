@@ -2,10 +2,13 @@ rules_version = '2';
 
 // Slappybag's Toolbag — Firestore rules.
 //
-//   users/{uid}                     plan ('free' | 'pro'), counters `creatures` / `items`,
-//                                   and `last_creatures` / `last_items` (id of the card the counter last moved for)
+//   users/{uid}                     plan ('free' | 'pro'), one counter per kind (`creatures`, `items`, `feats`,
+//                                   `spells`, `hazards`) and `last_<kind>` (id of the card the counter last moved for)
 //   users/{uid}/creatures/{id}      initiative cards
 //   users/{uid}/items/{id}          item cards
+//   users/{uid}/feats/{id}          feat cards      (before 2026-11-21 feat and spell cards were set to sync
+//   users/{uid}/spells/{id}         spell cards      into `items` — a bug that never ran, as cloud was off)
+//   users/{uid}/hazards/{id}        hazard cards
 //
 // Everything is private to its owner. The free cap is enforced here, not in the page: a card can only be
 // created in a batch that also moves the owner's counter by +1 and names the card in last_<kind>; the
@@ -21,10 +24,11 @@ service cloud.firestore {
     function cardDoc(uid, kind, id) { return /databases/$(database)/documents/users/$(uid)/$(kind)/$(id); }
 
     // A counter may stay put, or move by exactly one alongside the card it names.
+    // Records made before a kind existed have no counter for it yet: missing reads as 0.
     function counterStep(uid, kind) {
-      let before = resource.data[kind];
-      let after = request.resource.data[kind];
-      let last = request.resource.data['last_' + kind];
+      let before = resource.data.get(kind, 0);
+      let after = request.resource.data.get(kind, 0);
+      let last = request.resource.data.get('last_' + kind, '');
       return after == before
         || (after == before + 1 && !exists(cardDoc(uid, kind, last)) && existsAfter(cardDoc(uid, kind, last)))
         || (after == before - 1 && exists(cardDoc(uid, kind, last)) && !existsAfter(cardDoc(uid, kind, last)));
@@ -34,17 +38,23 @@ service cloud.firestore {
       allow read: if me(uid);
       allow create: if me(uid)
         && request.resource.data.plan == 'free'
-        && request.resource.data.creatures == 0
-        && request.resource.data.items == 0;
+        && request.resource.data.get('creatures', 0) == 0
+        && request.resource.data.get('items', 0) == 0
+        && request.resource.data.get('feats', 0) == 0
+        && request.resource.data.get('spells', 0) == 0
+        && request.resource.data.get('hazards', 0) == 0;
       allow update: if me(uid)
         && request.resource.data.plan == resource.data.plan
         && counterStep(uid, 'creatures')
-        && counterStep(uid, 'items');
+        && counterStep(uid, 'items')
+        && counterStep(uid, 'feats')
+        && counterStep(uid, 'spells')
+        && counterStep(uid, 'hazards');
       allow delete: if false;
     }
 
     match /users/{uid}/{kind}/{id} {
-      function isKind() { return kind == 'creatures' || kind == 'items'; }
+      function isKind() { return kind in ['creatures', 'items', 'feats', 'spells', 'hazards']; }
       function ownerAfter() { return getAfter(userDoc(uid)).data; }
       function ownerBefore() { return get(userDoc(uid)).data; }
 
@@ -54,11 +64,11 @@ service cloud.firestore {
       allow create: if me(uid) && isKind()
         && request.resource.data.size() < 200
         && ownerAfter()['last_' + kind] == id
-        && ownerAfter()[kind] == ownerBefore()[kind] + 1
-        && ownerAfter()[kind] <= limitFor(ownerAfter().plan);
+        && ownerAfter().get(kind, 0) == ownerBefore().get(kind, 0) + 1
+        && ownerAfter().get(kind, 0) <= limitFor(ownerAfter().plan);
       allow delete: if me(uid) && isKind()
         && ownerAfter()['last_' + kind] == id
-        && ownerAfter()[kind] == ownerBefore()[kind] - 1;
+        && ownerAfter().get(kind, 0) == ownerBefore().get(kind, 0) - 1;
     }
   }
 }

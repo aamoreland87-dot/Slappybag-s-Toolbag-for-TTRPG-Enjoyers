@@ -539,7 +539,7 @@ span.tog{display:inline-flex; align-items:center}
   </div>
   <div class="picker-group" id="traitAllWrap"></div>
 </section>
-<script src="toolbag-core.js"></script>
+<script src="toolbag-core.js"></script><script src="tb-parse.js"></script><script src="tb-images.js"></script>
 <script>
 /* PF2e hazard traits, and the traits on hazards' actions, with how often they appear together —
    distilled from the 565 hazards on Archives of Nethys (legacy and remastered, 2026-09). "near" holds each
@@ -1096,6 +1096,10 @@ var HAZ_TRAITS = {
   photo.addEventListener("click", function(){ if(!img.src) phFile.click(); });
   photo.addEventListener("keydown", function(e){ if((e.key === "Enter" || e.key === " ") && !img.src){ e.preventDefault(); phFile.click(); } });
   $("phPick").addEventListener("click", function(){ phFile.click(); });
+  /* the picture finder (tb-images.js, site only) searches free picture sites by the card's name */
+  if(TB.pictures) TB.pictures.register({load:loadImage, meta:function(){ return img.meta || ""; },
+    title:function(){ var n = field("name"); return n ? n.innerText.trim() : ""; }, traits:function(){ return readHazTraits(); },
+    anchor:$("phPick")});
   phFile.addEventListener("change", function(){ loadImage(this.files[0]); this.value = ""; });
   $("phClear").addEventListener("click", function(){ setImage({src:"", data:"", id:"", meta:"", dirty:true}); refresh(); saveDraft(); });
   $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraftSoon(); });
@@ -1220,6 +1224,7 @@ var HAZ_TRAITS = {
           v = encode(full, 0, 0, fw, fh, isJpeg);
           v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
         }
+        if(opts.credit) v.meta += " · Credit: " + opts.credit;   /* picture finder: who made it, and the licence */
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
         photo.classList.remove("busy");
         refresh(); saveDraft();
@@ -1235,8 +1240,10 @@ var HAZ_TRAITS = {
     var t = String(text || "").replace(/\r/g, "").replace(/[–−]/g, "-");
     var lines = t.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
     var out = {actions:[]}, li = -1, m;
-    for(var i = 0; i < lines.length; i++){ if((m = /^Hazard\s+(-?\d+)\s*$/i.exec(lines[i]))){ li = i; out.level = m[1]; break; } }
-    if(li > 0) out.name = lines[li - 1];
+    /* "Hazard 3" on its own line under the name (Demiplane, the books), or "Hidden Pit Hazard 0" on one
+       line (Archives of Nethys) */
+    for(var i = 0; i < lines.length; i++){ if((m = /^(.*?)\s*\bHazard\s+(-?\d+)\s*$/i.exec(lines[i]))){ li = i; out.level = m[2]; if(m[1].trim()) out.name = m[1].trim(); break; } }
+    if(li > 0 && !out.name) out.name = lines[li - 1];
     var typeLine = "";
     if(li >= 0 && lines[li + 1] && !/^(Source\b|Complexity\b|Stealth\b|Disable\b|AC\s+\d|Description\b)/i.test(lines[li + 1])) typeLine = lines[li + 1];
     var cLine = lines.filter(function(l){ return /^Complexity\s+/i.test(l); })[0];
@@ -1271,20 +1278,24 @@ var HAZ_TRAITS = {
         .replace(/electricity/gi, "elec.").replace(/precision/gi, "prec.").replace(/physical/gi, "phys.")
         .replace(/\bdamage\b/gi, "dmg");
     };
-    var hpLine = lines.filter(function(l){ return /^HP\s+\d+/i.test(l); })[0] || flat;
-    [["immune", /Immunities\s+([^;]+?)(?:,?\s*(?:Resistances|Weaknesses)\b|$)/i],
-     ["resist", /Resistances\s+([^;]+?)(?:,?\s*(?:Immunities|Weaknesses)\b|$)/i],
-     ["weak", /Weaknesses\s+([^;]+?)(?:,?\s*(?:Immunities|Resistances)\b|$)/i]].forEach(function(q){
+    /* the HP line, which may start with the part's name ("Trapdoor HP 12 (BT 6); Immunities …");
+       the defences stop at the end of their line */
+    var hpLine = lines.filter(function(l){ return /^HP\s+\d+/i.test(l); })[0] || lines.filter(function(l){ return /\bHP\s+\d+/.test(l) && /Immunities|Resistances|Weaknesses/i.test(l); })[0] || flat;
+    [["immune", /Immunities\s+([^;\n]+?)(?:,?\s*(?:Resistances|Weaknesses)\b|$)/im],
+     ["resist", /Resistances\s+([^;\n]+?)(?:,?\s*(?:Immunities|Weaknesses)\b|$)/im],
+     ["weak", /Weaknesses\s+([^;\n]+?)(?:,?\s*(?:Immunities|Resistances)\b|$)/im]].forEach(function(q){
       var mm = q[1].exec(hpLine); if(mm) out[q[0]] = abbr(mm[1]);
     });
-    var costMap = {"reaction":"reaction","free action":"free","one action":"1","two actions":"2","three actions":"3","single action":"1"};
+    var costMap = {"reaction":"reaction","free action":"free","one action":"1","two actions":"2","three actions":"3","single action":"1",
+                   "free-action":"free","one-action":"1","two-actions":"2","three-actions":"3","1-action":"1","2-actions":"2","3-actions":"3"};
     var actionRe = /^(.*?)\s*\[([^\]]+)\]\s*(?:\(([^)]+)\)\s*)?(.*)$/;
     lines.forEach(function(l){
       var mm = actionRe.exec(l); if(!mm) return;
       var key = mm[2].trim().toLowerCase(); if(!(key in costMap)) return;
       var traits = mm[3] ? mm[3].split(",").map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean) : [];
       var rest = mm[4].trim(), trigger = "", effect = rest;
-      var tm = /^Trigger\s+(.*?);\s*Effect\s+(.*)$/is.exec(rest);
+      /* "Trigger …; Effect …" (books) or "Trigger …. Effect …" (Archives of Nethys) */
+      var tm = /^Trigger\s+(.*?)[;.]?\s+Effect\s+(.*)$/is.exec(rest);
       if(tm){ trigger = tm[1].trim(); effect = tm[2].trim(); }
       else{
         var tm2 = /^Trigger\s+(.*)$/is.exec(rest);
@@ -1319,6 +1330,10 @@ var HAZ_TRAITS = {
   function runImport(){
     var txt = $("importText").value;
     if(!txt.trim()){ $("importNote").textContent = "Paste the hazard's stat block text."; return; }
+    /* one reader for every paste: a creature or a spell pasted here is offered to its own tool */
+    var rec = TB.parse(txt);
+    if(TB.offerRoute($("importNote"), rec, "hazard")) return;
+    txt = rec.text;
     if(importText(txt, "")) closeImport();
     else $("importNote").textContent = "That doesn't look like a PF2e hazard stat block (no Hazard N / AC / HP lines).";
   }
@@ -1612,6 +1627,9 @@ var HAZ_TRAITS = {
   try{ lastView = localStorage.getItem("pf2e-hazard-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
   if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
+  /* tool.html#import: a paste carried here from the home page or another tool's Import box */
+  var handed = TB.handoff && TB.handoff.take();
+  if(handed){ showView("editor"); openImport(); $("importText").value = handed; runImport(); }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ refresh(); });
 })();
 

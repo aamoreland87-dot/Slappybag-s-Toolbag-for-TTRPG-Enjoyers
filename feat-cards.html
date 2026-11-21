@@ -293,6 +293,19 @@ span.tog{display:inline-flex; align-items:center}
 .rq [contenteditable]{display:inline}
 .blanks .rq [contenteditable]:empty{display:inline-block; min-width:8em; border-bottom:1px dotted var(--ink-3)}
 .blanks .rq [contenteditable]:empty::before{content:""}
+/* the source line: book and page, small, in the card's bottom margin (it takes no room from the text) */
+.c-src{position:absolute; right:calc(.9em + 10px); bottom:3px; max-width:70%; font-family:var(--caps);
+  font-size:7px; letter-spacing:.04em; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2}
+.c-src:empty{display:none}
+.blanks .c-src [contenteditable]:empty{display:inline-block; min-width:6em; border-bottom:1px dotted var(--ink-3)}
+/* editor helpers under the card: area and save pickers */
+.aoe{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:.4rem 1.1rem; margin:.7rem auto 0; max-width:40rem;
+  font-size:.85rem; color:var(--ink-2)}
+.aoe .grp{display:inline-flex; align-items:center; gap:.35rem}
+.aoe .lab{font-family:var(--caps); font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3)}
+.aoe input[type=number]{width:4.2em}
+.aoe input, .aoe select{font:inherit; padding:.15rem .3rem; border:1px solid var(--rule); background:var(--paper); color:var(--ink); border-radius:2px}
+.aoe label{display:inline-flex; align-items:center; gap:.25rem}
 /* grants: one line per thing the feat hands out — a bold kind, then the details */
 .sec.grants{flex-grow:2}
 .sec.grants .body{white-space:normal}
@@ -631,6 +644,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           <span class="rq" data-rq="freq"><b>Frequency</b> <span contenteditable data-f="freq" data-ph=""></span></span>
           <span class="rq" data-rq="trigger"><b>Trigger</b> <span contenteditable data-f="trigger" data-ph=""></span></span>
           <span class="rq" data-rq="reqs"><b>Requirements</b> <span contenteditable data-f="reqs" data-ph=""></span></span>
+          <span class="rq" data-rq="area"><b>Area</b> <span contenteditable data-f="area" data-ph=""></span></span>
+          <span class="rq" data-rq="defense"><b>Defense</b> <span contenteditable data-f="defense" data-ph=""></span></span>
         </div>
       </section>
 
@@ -661,7 +676,21 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         <div class="body" contenteditable data-f="special" data-ph="Can it be taken more than once? Does it lock anything out?"></div>
       </section>
 
+      <div class="c-src" id="srcLine"><span contenteditable data-f="src" data-ph="Source · page" aria-label="Source book and page"></span></div>
     </article>
+  </div>
+  <div class="aoe screen-only" id="aoeCtl">
+    <span class="grp"><span class="lab">Area</span>
+      <input type="number" id="aoeSize" min="0" step="5" placeholder="ft" aria-label="Area size in feet">
+      <select id="aoeType" aria-label="Area type">
+        <option value="">none</option><option>burst</option><option>cone</option><option>emanation</option>
+        <option>line</option><option>cylinder</option><option>cube</option><option value="custom">custom…</option>
+      </select></span>
+    <span class="grp"><span class="lab">Save</span>
+      <select id="aoeSave" aria-label="Saving throw">
+        <option value="">none</option><option>Fortitude</option><option>Reflex</option><option>Will</option>
+      </select>
+      <label><input type="checkbox" id="aoeBasic"> basic</label></span>
   </div>
   <p class="card-count screen-only" id="cardCount"></p>
 </div>
@@ -750,6 +779,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 </section>
 
 <script src="toolbag-core.js"></script>
+<script src="tb-parse.js"></script>
+<script src="tb-images.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1129,6 +1160,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(d.zoom) setZoom(d.zoom);
     if(d.blanks !== undefined) setBlanks(d.blanks !== false);
     refresh();
+    syncAoe();
   }
 
   function setImgSize(w, ar){
@@ -1244,7 +1276,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(bw * bh > w * h * 0.92) return null;
     return {x:left, y:top, w:bw, h:bh};
   }
-  function loadImage(file){
+  function loadImage(file, opts){
+    opts = opts || {};
     if(!file) return;
     var isImage = /^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || "");
     if(!isImage) return;
@@ -1266,7 +1299,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:w, h:h};
         }
         var isJpeg = /jpe?g/i.test(file.type), v;
-        if(bgToggle.checked){
+        if(opts.bg === false ? false : bgToggle.checked){
           /* Background knocked out and trimmed to the subject. */
           var cut = false, box = null;
           try{ cut = knockout(full); }catch(e){}
@@ -1278,6 +1311,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           v = encode(full, 0, 0, fw, fh, isJpeg);
           v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
         }
+        if(opts.credit) v.meta += " · Credit: " + opts.credit;   /* picture finder: who made it, and the licence */
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
         setImgSize(imgW, v.h / v.w);
         photo.classList.remove("busy");
@@ -1288,6 +1322,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     };
     reader.readAsDataURL(file);
   }
+
+
+  /* the picture finder (tb-images.js, site only) searches free picture sites by the card's name */
+  if(TB.pictures) TB.pictures.register({load:loadImage, meta:function(){ return img.meta || ""; },
+    title:function(){ var n = pane.querySelector('[data-f="name"]'); return n ? n.innerText.trim() : ""; }, traits:function(){ return traits.slice(); },
+    anchor:photo});
 
   /* ---------------- traits ---------------- */
   function splitTraits(s){ if(!s) return []; return s.split(/[|,;]/).map(function(x){ return x.trim(); }).filter(Boolean); }
@@ -1550,7 +1590,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   /* Art from another origin (the cloud library) needs CORS to reach the PDF canvas; local and data: art does not. */
   function cors(src){ return /^https?:/i.test(src) ? ' crossorigin="anonymous"' : ""; }
   /* The prerequisite-style lines under the traits, in stat-block order. */
-  var REQ = [["prereq","Prerequisites"],["access","Access"],["freq","Frequency"],["trigger","Trigger"],["reqs","Requirements"]];
+  var REQ = [["prereq","Prerequisites"],["access","Access"],["freq","Frequency"],["trigger","Trigger"],["reqs","Requirements"],
+             ["area","Area"],["defense","Defense"]];
   function renderCard(d, opts){
     opts = opts || {};
     var box = document.createElement("div");
@@ -1602,6 +1643,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         grantHtml +
         actions +
         sec("special", "Special", "special") +
+        (has(d.src) ? '<div class="c-src">' + esc(d.src) + '</div>' : '') +
       '</article>';
     return box;
   }
@@ -1655,7 +1697,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     Lib.loadLocal();
     $("status").innerHTML = "Saved on <b>this device</b>";
     if(window.Cloud && Cloud.available){
-      Cloud.init({kind:"items", mount:$("account"),
+      Cloud.init({kind:"feats", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
@@ -1754,6 +1796,39 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   });
 
 
+  /* ---------------- area and save: pickers under the card that write the Area / Defense lines ----------------
+     The card keeps plain text ("30-foot cone", "basic Reflex") so it prints and imports like any
+     other line; the pickers only read and write that text. "custom…" leaves the Area line to type in. */
+  var AREA_TYPES = ["burst","cone","emanation","line","cylinder","cube"];
+  function areaField(){ return pane.querySelector('[data-f="area"]'); }
+  function defField(){ return pane.querySelector('[data-f="defense"]'); }
+  function syncAoe(){
+    var a = areaField().textContent.trim(), m = /^(\d+)-?\s*(?:foot|feet|ft\.?)\s+(\w+)$/i.exec(a);
+    if(m && AREA_TYPES.indexOf(m[2].toLowerCase()) >= 0){ $("aoeSize").value = m[1]; $("aoeType").value = m[2].toLowerCase(); }
+    else{ $("aoeSize").value = ""; $("aoeType").value = a ? "custom" : ""; }
+    var dv = defField().textContent.trim(), sm = /^(basic\s+)?(Fortitude|Reflex|Will)\b/i.exec(dv);
+    $("aoeSave").value = sm ? cap1(sm[2].toLowerCase()) : "";
+    $("aoeBasic").checked = !!(sm && sm[1]);
+  }
+  function writeAoe(){
+    var t = $("aoeType").value, n = $("aoeSize").value.trim();
+    if(t === "custom"){ var af = areaField(); if(!af.textContent.trim()) af.focus(); }
+    else areaField().textContent = t ? (n ? n + "-foot " : "") + t : "";
+    var sv = $("aoeSave").value;
+    defField().textContent = sv ? ($("aoeBasic").checked ? "basic " : "") + sv : "";
+    refresh(); saveDraft();
+  }
+  ["aoeSize","aoeType","aoeSave","aoeBasic"].forEach(function(id){ $(id).addEventListener(id === "aoeSize" ? "input" : "change", writeAoe); });
+  ["area","defense"].forEach(function(f){ pane.querySelector('[data-f="' + f + '"]').addEventListener("blur", syncAoe); });
+  /* An imported feat whose text names an area or a save gets those lines filled in. */
+  function guessAoe(d){
+    var all = [d.description || ""].concat((d.actions || []).map(function(a){ return a.text || ""; })).join("\n");
+    var m = /\b(\d+)-foot\s+(burst|cone|emanation|line|cylinder|cube)\b/i.exec(all);
+    if(m && !d.area) d.area = m[1] + "-foot " + m[2].toLowerCase();
+    var s2 = /\b(basic\s+)?(Fortitude|Reflex|Will)\s+sav(?:e|ing throw)\b/i.exec(all);
+    if(s2 && !d.defense) d.defense = (s2[1] ? "basic " : "") + cap1(s2[2].toLowerCase());
+  }
+
   /* ---------------- import: a feat by name (Demiplane), or pasted from AoN / Demiplane ----------------
      Whatever comes in is turned into plain text, one stat-block line or paragraph per line, then
      parseFeat() splits it into the card's fields and guessGrants() reads the rules text for the
@@ -1772,7 +1847,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   var HEAD_LABELS = {"prerequisites":"prereq", "prerequisite":"prereq", "access":"access", "frequency":"freq",
     "trigger":"trigger", "requirements":"reqs", "requirement":"reqs", "archetype":"note", "archetypes":"note",
-    "source":"", "pfs note":"", "pfs":"", "cost":"", "legacy content":"", "remastered":"", "effect":""};
+    "source":"", "pfs note":"", "pfs":"", "cost":"", "legacy content":"", "remastered":"", "effect":"",
+    "area":"area", "defense":"defense", "saving throw":"defense"};
   var SKILLS = ["Acrobatics","Arcana","Athletics","Crafting","Deception","Diplomacy","Intimidation","Medicine",
     "Nature","Occultism","Performance","Religion","Society","Stealth","Survival","Thievery"];
   function cap1(s){ s = String(s || "").trim(); return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -1967,9 +2043,16 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   function closeImport(){ importModal.hidden = true; scrim.hidden = true; }
   function fillFromText(txt){
-    var d = parseFeat(txt);
+    /* one reader for every paste: a spell or a creature pasted here is offered to its own tool */
+    var rec = TB.parse(txt);
+    if(TB.offerRoute($("importNote"), rec, "feat")) return false;
+    var d = parseFeat(rec.text);
     if(!d || !d.name){ $("importNote").textContent = "Couldn't find a feat in that text — start from the title line (“Name Feat 2”)."; return false; }
     if($("importGrants").checked) d.grants = guessGrants(d);
+    d.src = TB.sourceLine(rec);
+    if(rec.fields.Area) d.area = rec.fields.Area;
+    if(rec.fields.Defense || rec.fields["Saving Throw"]) d.defense = rec.fields.Defense || rec.fields["Saving Throw"];
+    guessAoe(d);
     d.id = null; d.blanks = false;
     load(d); saveDraft(); closeImport(); showView("editor");
     toast("Imported " + d.name + " — check it, then Save");
@@ -2380,6 +2463,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       if(s.tail) rule(x0, x0 + cw, bottom - 0.5, 1, RULE);
       y = bottom;
     });
+    /* source line: book and page in the bottom margin, right-aligned */
+    if(has(d.src) && !measure){
+      setFont("Caps", "normal", 7); color(INK3);
+      var srcTxt = String(d.src).trim();
+      while(srcTxt.length > 4 && width(srcTxt) > cw * 0.7) srcTxt = srcTxt.slice(0, -2).trim() + "...";
+      text(srcTxt, x0 + cw, Y + H - BORDER - 4, {align:"right", charSpace:pt(0.25)});
+    }
     return spill;
   }
   /* The title wrapped to a width, with room for the feat's cost glyph after the last word (it drops to a
@@ -2467,6 +2557,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         var X = ox + (k % 2) * (384 - 2), Y = oy + Math.floor(k / 2) * (480 - 2);
         fitAndDraw(pdf, it.d, it.img, X, Y, it.blanks);
       });
+      /* picture credits per page, licence notice on the last (in the 0.5in strip under the cards) */
+      var perPage = [];
+      items.forEach(function(it, i){ (perPage[Math.floor(i / 4)] = perPage[Math.floor(i / 4)] || []).push(it.d); });
+      if(TB.pdfFooters) TB.pdfFooters(pdf, perPage, {top:758, bottom:788, left:18, width:576});
       return pdf.output("blob");
     });
   }
@@ -2604,6 +2698,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   try{ lastView = localStorage.getItem("pf2e-feat-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
   if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
+  /* tool.html#import: a paste carried here from the home page or another tool's Import box */
+  var handed = TB.handoff && TB.handoff.take();
+  if(handed){ showView("editor"); openImport(); $("importText").value = handed; runImport(); }
 })();
 </script>
 

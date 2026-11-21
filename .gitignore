@@ -12,3 +12,4 @@ _frametest/
 src/hazard-cards/artifact.html
 src/item-cards/artifact.html
 src/feat-cards/artifact.html
+tests/out/

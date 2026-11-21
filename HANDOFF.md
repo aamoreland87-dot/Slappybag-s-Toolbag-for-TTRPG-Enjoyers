@@ -137,3 +137,18 @@ scales free forever, no live sync, more OAuth friction.
   on this machine, hence 8741.
 - Claude-side memory files (in the user's Claude memory) hold the same policies plus the
   Demiplane/AoN API notes; this file is the repo's copy.
+
+## 2026-11-21: audit, one paste reader, picture finder
+
+- `tb-parse.js`: one reader for every paste; each tool's own parser now reads the cleaned text, and a paste for
+  another tool is offered there. Home page has Paste anything. Item cards got an importer (they had none).
+- Hazard parser fixed for Archives of Nethys pastes ("Hidden Pit Hazard 0" on one line, `[reaction]` icons,
+  "Trigger …. Effect …", immunities running into the next line).
+- Item cards no longer save one-line fields in the capitals the CSS shows (innerText → textContent, as feats do).
+- Feat cards: Area and Defense lines with pickers under the card; source line (book and page) bottom right.
+  Spell cards got the source line too.
+- `tb-images.js`: the picture finder; credits print under the cards with the ORC notice (`TB.pdfFooters`).
+  Hazard sheets print through the browser and don't carry the footer yet.
+- Cloud: feat and spell cards were set to sync into `items`; now `feats` / `spells`, rules updated (still off).
+- The hourly Drive mirror of the item library described above no longer exists as a scheduled task.
+- Full findings: the Project doc `claude/code-audit-2026-11.md`.

@@ -899,6 +899,7 @@
           v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
         }
         if(opts.from) v.meta += " · from " + opts.from;
+        if(opts.credit) v.meta += " · Credit: " + opts.credit;   /* picture finder: who made it, and the licence */
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
         photo.classList.remove("busy");
         refresh(); saveDraft();
@@ -939,6 +940,10 @@
   photo.addEventListener("click", function(){ if(!img.src) phFile.click(); });
   photo.addEventListener("keydown", function(e){ if((e.key === "Enter" || e.key === " ") && !img.src){ e.preventDefault(); phFile.click(); } });
   $("phPick").addEventListener("click", function(){ phFile.click(); });
+  /* the picture finder (tb-images.js, site only) searches free picture sites by the card's name */
+  if(TB.pictures) TB.pictures.register({load:loadImage, meta:function(){ return img.meta || ""; },
+    title:function(){ var n = field("name"); return n ? n.innerText.trim() : ""; }, traits:function(){ return readTraits(); },
+    anchor:$("phPick")});
   phFile.addEventListener("change", function(){ loadImage(this.files[0]); this.value = ""; });
   $("phClear").addEventListener("click", function(){ setImage({src:"", data:"", id:"", meta:"", dirty:true}); refresh(); saveDraft(); });
   $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraftSoon(); });
@@ -1326,6 +1331,10 @@
       }
       queueLink(k); return;
     }
+    /* one reader for every paste: a spell or an item pasted here is offered to its own tool */
+    var rec = TB.parse(txt);
+    if(TB.offerRoute($("importNote"), rec, "init")) return;
+    txt = rec.text;
     if(importText(txt, link)) closeImport();
     else $("importNote").textContent = "That doesn't look like a PF2e stat block (no AC / HP / Perception lines).";
   }
@@ -1967,6 +1976,10 @@
         if(k === 0 && p > 0) pdf.addPage("letter", "landscape");
         drawCard(pdf, it.d, it.img, ox + k * (G.W - 1), oy, it.blank);
       });
+      /* picture credits per page, licence notice on the last (in the strip under the cards) */
+      var perPage = [];
+      items.forEach(function(it, i){ (perPage[Math.floor(i / 4)] = perPage[Math.floor(i / 4)] || []).push(it.d); });
+      if(TB.pdfFooters) TB.pdfFooters(pdf, perPage, {top:oy + G.H + 2, bottom:609, left:ox, width:4 * G.W - 3});
       return pdf.output("blob");
     });
   }
@@ -2093,6 +2106,9 @@
   try{ lastView = localStorage.getItem("pf2e-init-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
   if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
+  /* tool.html#import: a paste carried here from the home page or another tool's Import box */
+  var handed = TB.handoff && TB.handoff.take();
+  if(handed){ showView("editor"); openImport(); $("importText").value = handed; updateImportUi(); runImport(); }
   /* fonts arrive after first paint; fit again once they do */
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ refresh(); });
 })();

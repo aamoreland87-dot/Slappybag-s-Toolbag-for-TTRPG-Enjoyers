@@ -425,6 +425,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 .modal .big{display:inline-block; text-decoration:none; padding:.55rem 1rem; font-size:.95rem}
 .modal-row{display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-top:.9rem}
 .modal-row .grow{flex:1 1 1rem}
+.modal textarea{width:100%; font:inherit; font-size:14px; padding:.45rem .6rem; border:1px solid var(--rule); border-radius:2px; background:var(--chip); color:var(--ink); resize:vertical; min-height:9rem; line-height:1.4}
+.modal textarea:focus{outline:2px solid var(--accent-2); outline-offset:1px}
+.imp-note{min-height:1.2em; margin:.4rem 0 0 !important; font-size:.88rem; color:var(--accent) !important}
 .preview-card{display:flex; justify-content:center; margin:.3rem 0 .9rem}
 .preview-card .cardbox{--zoom:.62; box-shadow:0 1px 2px rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.10); margin:0 auto}
 
@@ -494,6 +497,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
     <div class="bar-group" data-for="editor">
       <button class="tog" id="blanks" aria-pressed="true" title="Show every field, and print it empty to fill in by hand">Show empty fields</button>
+      <button class="btn" id="importBtn" title="Paste an item from Archives of Nethys or Demiplane">Import</button>
       <button class="btn" id="newCard">New</button>
       <button class="btn solid" id="saveCard">Save</button>
     </div>
@@ -651,6 +655,18 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   </div>
 </section>
 
+<section class="modal" id="importModal" hidden role="dialog" aria-label="Import an item">
+  <h3>Import an item</h3>
+  <p>Paste the item from Archives of Nethys or Demiplane, from the title line down.</p>
+  <textarea id="importText" rows="9" placeholder="Healing Potion (Minor) Item 1&#10;Consumable Healing Magical Potion Vitality&#10;Price 4 gp&#10;Usage held in 1 hand; Bulk L&#10;Activate [one-action] (manipulate)&#10;…" aria-label="Item text"></textarea>
+  <p class="imp-note" id="importNote" aria-live="polite"></p>
+  <div class="modal-row">
+    <button class="btn" id="importCancel">Cancel</button>
+    <span class="grow"></span>
+    <button class="btn solid" id="importGo">Import</button>
+  </div>
+</section>
+
 <section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
   <h3 id="printTitle">Your sheet is ready</h3>
   <p id="printMsg">Save the PDF to this device, or open the sheet as a web page and print or save from your browser. Letter size, four cards per page.</p>
@@ -665,6 +681,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 </section>
 
 <script src="toolbag-core.js"></script>
+<script src="tb-parse.js"></script>
+<script src="tb-images.js"></script>
 <script src="firebase-config.js"></script>
 <script src="cloud.js"></script>
 <script>
@@ -936,7 +954,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var d = {traits:traits.slice(), c:{}, chg:chg, used:usedFlags, imgW:imgW, imgAr:imgAr,
              cat:catSel.value, bodyScale:bodyScale, nameScale:nameScale};
     texts().forEach(function(el){
-      d[el.dataset.f] = el.innerText;
+      /* one-line fields as typed: innerText hands back the capitals the card's CSS displays them in
+         ("4 GP"), which then stuck in the library. The write-ups keep innerText for their line breaks. */
+      d[el.dataset.f] = RICH.indexOf(el.dataset.f) >= 0 ? el.innerText : el.textContent;
       if(RICH.indexOf(el.dataset.f) >= 0) d[el.dataset.f + "Html"] = richHtml(el);
     });
     checks().forEach(function(el){ d.c[el.dataset.c] = el.checked; });
@@ -1101,7 +1121,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(bw * bh > w * h * 0.92) return null;
     return {x:left, y:top, w:bw, h:bh};
   }
-  function loadImage(file){
+  function loadImage(file, opts){
+    opts = opts || {};
     if(!file) return;
     var isImage = /^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || "");
     if(!isImage) return;
@@ -1123,7 +1144,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:w, h:h};
         }
         var isJpeg = /jpe?g/i.test(file.type), v;
-        if(bgToggle.checked){
+        if(opts.bg === false ? false : bgToggle.checked){
           /* Background knocked out and trimmed to the subject. */
           var cut = false, box = null;
           try{ cut = knockout(full); }catch(e){}
@@ -1135,6 +1156,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           v = encode(full, 0, 0, fw, fh, isJpeg);
           v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
         }
+        if(opts.credit) v.meta += " · Credit: " + opts.credit;   /* picture finder: who made it, and the licence */
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
         setImgSize(imgW, v.h / v.w);
         photo.classList.remove("busy");
@@ -1145,6 +1167,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     };
     reader.readAsDataURL(file);
   }
+
+
+  /* the picture finder (tb-images.js, site only) searches free picture sites by the card's name */
+  if(TB.pictures) TB.pictures.register({load:loadImage, meta:function(){ return img.meta || ""; },
+    title:function(){ var n = pane.querySelector('[data-f="name"]'); return n ? n.innerText.trim() : ""; }, traits:function(){ return traits.slice(); },
+    anchor:photo});
 
   /* ---------------- traits ---------------- */
   function splitTraits(s){ if(!s) return []; return s.split(/[|,;]/).map(function(x){ return x.trim(); }).filter(Boolean); }
@@ -1991,6 +2019,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         var X = ox + (k % 2) * (384 - 2), Y = oy + Math.floor(k / 2) * (480 - 2);
         fitAndDraw(pdf, it.d, it.img, X, Y, it.blanks);
       });
+      /* picture credits per page, licence notice on the last (in the 0.5in strip under the cards) */
+      var perPage = [];
+      items.forEach(function(it, i){ (perPage[Math.floor(i / 4)] = perPage[Math.floor(i / 4)] || []).push(it.d); });
+      if(TB.pdfFooters) TB.pdfFooters(pdf, perPage, {top:758, bottom:788, left:18, width:576});
       return pdf.output("blob");
     });
   }
@@ -2076,6 +2108,98 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   window.addEventListener("beforeprint", renderSheet);
 
   /* ---------------- views ---------------- */
+  /* ---------------- import: an item pasted from Archives of Nethys or Demiplane ----------------
+     TB.parse reads the paste into the full record (every labelled line, the body, the source);
+     this takes only what an item card prints: name, category, usage, price, traits, the write-up,
+     and one action per Activate. */
+  function canonTrait(t){
+    var hit = ALL_TRAITS.filter(function(x){ return x.toLowerCase() === String(t).toLowerCase(); })[0];
+    return hit || String(t).charAt(0).toUpperCase() + String(t).slice(1);
+  }
+  function itemCategory(rec){
+    var has = function(t){ return rec.traits.some(function(x){ return x.toLowerCase() === t; }); };
+    var F = rec.fields, use = String(F.Usage || "").toLowerCase();
+    if(has("artifact")) return "Artifacts";
+    if(has("cursed")) return "Cursed Items";
+    if(has("intelligent")) return "Intelligent Items";
+    if(has("relic")) return "Relics";
+    if(has("staff")) return "Staves";
+    if(has("wand")) return "Wands";
+    if(has("tattoo")) return "Tattoos";
+    if(has("grimoire")) return "Grimoires";
+    if(has("spellheart")) return "Spellhearts";
+    if(has("snare")) return "Snares";
+    if(has("apex")) return "Apex Items";
+    if(has("alchemical") && (has("consumable") || has("bomb") || has("elixir") || has("mutagen") || has("poison"))) return "Alchemical Items";
+    if(has("consumable") || has("potion") || has("scroll") || has("talisman") || has("oil") || has("ammunition")) return "Consumables";
+    if(/etched onto|applied to/.test(use) || has("rune")) return "Runes";
+    if(F.Hardness) return "Shields";
+    if(F.Strength || F["Dex Cap"] || F["Check Penalty"]) return "Armor";
+    if(F.Damage || F.Group || F.Hands) return "Weapons";
+    if(/^worn/.test(use)) return "Worn Items";
+    if(/^held|^carried/.test(use)) return "Held Items";
+    return "";
+  }
+  var ACT_RE = /^Activate\b\s*(?:[—–-]\s*([^\[(◆◇⬲]+?))?\s*(\[[a-z0-9-]+\]|[◆◇⬲]+|\d+\s+(?:minutes?|hours?|days?|rounds?))?\s*(?:\(([^)]*)\))?\s*(.*)$/i;
+  function itemFromRecord(rec){
+    var d = {name:rec.name, traits:orderTraits(rec.traits.map(canonTrait)), cat:itemCategory(rec), c:{}, chg:0, used:[],
+             imgW:120, imgAr:1, passiveOn:true, actions:[], description:"", passive:"", value:"", note:""};
+    var F = rec.fields;
+    d.value = F.Price || "";
+    var use = (F.Usage || "").replace(/\s*;.*$/, "");
+    d.note = [rec.level !== "" ? "item " + rec.level : "", use].filter(Boolean).join(" · ");
+    /* the body: the write-up, then activations (each gathers the lines under it), then variants */
+    var desc = [], passive = [], cur = null;
+    var lines = rec.text.split("\n").map(function(l){ return l.trim(); });
+    /* Activate lines were labelled pieces; walk the text again so they keep their order */
+    var start = lines.findIndex(function(l){ return /^(Price|Usage|Bulk|Source|Access)\b/i.test(l); });
+    var bodyLines = lines.slice(start < 0 ? 1 : start).filter(function(l){
+      return l && !/^(Source|Price|Usage|Bulk|Access|Hands|Damage|Category|Group|Ammunition|Strength|Check Penalty|Speed Penalty|Dex Cap|Hardness|Craft Requirements)\b/i.test(l) && l !== rec.traits.join(" ");
+    });
+    bodyLines.forEach(function(l){
+      var m = ACT_RE.exec(l);
+      if(m){
+        var cost = TB.costOf(m[2] || "");
+        var tr = String(m[3] || "").split(",").map(function(t){ return t.trim().toLowerCase(); }).filter(Boolean);
+        var keep = tr.filter(function(t){ return ATRAITS.indexOf(t) >= 0; }), rest = tr.filter(function(t){ return ATRAITS.indexOf(t) < 0; });
+        var lead = (m[1] ? m[1].trim() + " — " : "") + (!cost && m[2] ? m[2].trim() + ". " : "") + (rest.length ? "(" + rest.join(", ") + ") " : "");
+        cur = {type:ATYPES.indexOf(cost) >= 0 ? cost : "", text:(lead + (m[4] || "")).trim(), range:"", traits:keep};
+        d.actions.push(cur); return;
+      }
+      /* only the activation's own labelled lines belong to it; a plain paragraph after an
+         Activate line is the item's write-up (that's how Archives of Nethys lays out potions) */
+      if(cur && /^(Frequency|Trigger|Requirements|Effect|Critical Success|Success|Failure|Critical Failure)\b/.test(l)){ cur.text += (cur.text ? "\n" : "") + l; return; }
+      cur = null;
+      if(/^Type\b/i.test(l)){ passive.push(l.replace(/^Type\s+/i, "")); return; }
+      (desc.length ? passive : desc).push(l);
+    });
+    /* AoN puts the look and the effect in one paragraph: the first goes on the card's Description */
+    d.description = desc.join("\n");
+    d.passive = passive.join("\n");
+    d.actions.forEach(function(a){ var r = /\bRange\s+([^;.]+)/.exec(a.text); if(r) a.range = r[1].trim(); });
+    return d;
+  }
+  var importModal = $("importModal");
+  function openImport(){ $("importText").value = ""; $("importNote").textContent = ""; importModal.hidden = false; scrim.hidden = false; $("importText").focus(); }
+  function closeImport(){ importModal.hidden = true; scrim.hidden = true; }
+  function runImport(){
+    var txt = $("importText").value;
+    if(!txt.trim()){ $("importNote").textContent = "Paste the item's text first."; return; }
+    var rec = TB.parse(txt);
+    if(TB.offerRoute($("importNote"), rec, "item")) return;
+    if(!rec.name){ $("importNote").textContent = "Couldn't find an item in that text — start from the title line (“Name Item 3”)."; return; }
+    var d = itemFromRecord(rec);
+    d.id = null; d.blanks = false;
+    load(d); saveDraft(); closeImport(); showView("editor");
+    toast("Imported " + d.name + " — check it, then Save");
+  }
+  $("importBtn").addEventListener("click", openImport);
+  $("importCancel").addEventListener("click", closeImport);
+  $("importGo").addEventListener("click", runImport);
+  $("importText").addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); runImport(); } });
+  scrim.addEventListener("click", function(){ if(!importModal.hidden) closeImport(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !importModal.hidden) closeImport(); });
+
   function showView(name){
     ["editor","library","sheet"].forEach(function(v){
       $(v + "View").hidden = v !== name;
@@ -2138,6 +2262,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   try{ lastView = localStorage.getItem("pf2e-item-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
   if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
+  /* tool.html#import: a paste carried here from the home page or another tool's Import box */
+  var handed = TB.handoff && TB.handoff.take();
+  if(handed){ showView("editor"); openImport(); $("importText").value = handed; runImport(); }
 })();
 </script>
 

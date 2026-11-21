@@ -319,17 +319,20 @@
     "#resistIn": "Printed in short form to save space.",
     "#weakIn": "Printed in short form to save space.",
     "#saveSheet": "Download the sheet as a PDF.",
-    "#openHtml": "Open the sheet as a web page, to print from your browser."
+    "#openHtml": "Open the sheet as a web page, to print from your browser.",
+    "#findPic": "Search free pictures by this card's name: icons, classic paintings, or Openverse. Each keeps its credit, which prints under the cards."
   };
 
   var STEPS = "<ol class=\"tb-steps\"><li><b>Build</b> a card in the Editor.</li><li><b>Save</b> it to your Library.</li><li>Tick cards and <b>print</b> a sheet.</li></ol>";
   var HELP = {
     item: ["Cards are 4 × 5 in, two to a letter page.",
+           "Import reads an item you paste from Archives of Nethys or Demiplane, from the title line down.",
            "Text shrinks to fit the card. If it says text is cut off, shorten the write-up or shrink the picture.",
            "Pick an action icon to set an action's cost."],
     feat: ["Cards are 4 × 5 in, two to a letter page.",
            "Import fetches a feat by name from Demiplane, or reads a page you paste from Archives of Nethys or Demiplane.",
-           "Grants rows list what the feat gives: skills, spells, proficiencies."],
+           "Grants rows list what the feat gives: skills, spells, proficiencies.",
+           "Under the card, Area and Save fill the Area and Defense lines. The source line (book and page) prints small in the bottom corner."],
     spell: ["Cards are 4 × 5 in, two to a letter page.",
             "Import fetches a spell by name from Demiplane, or reads a page you paste from Archives of Nethys or Demiplane.",
             "The spell type (Spell, Cantrip, Focus, Ritual) sets the word before the rank. Heightened rows list what changes at higher ranks."],
@@ -411,6 +414,8 @@
         (d.getElementById("account") ? " Sign in from Options to sync cards between devices." : "") + "</p>" +
         "<h3>Printing</h3><p>" + (TOOL === "hazard" ? "Print opens your browser's Print dialog; choose “Save as PDF” there for a file." : "Print builds a PDF of the sheet to download, or opens it as a web page to print.") +
         " Print at 100% (actual size) so cards come out the right size.</p>" +
+        "<h3>Pictures</h3><p><b>Picture</b> searches free icons, public-domain paintings and Openverse by the card's name. Choose which source each kind of card starts with on the home page. Credits print under the cards.</p>" +
+        "<h3>Importing</h3><p>Paste anything from Archives of Nethys. If it's a different kind of entry (a spell in the feat tool, say), Import offers to open it in the right tool. The home page has a Paste anything box too.</p>" +
         "<h3>Hints</h3><p>Hover over, or long-press, any button to see what it does. Esc closes panels.</p>";
       d.body.appendChild(panel);
       panel.querySelector(".tb-close").addEventListener("click", closeHelp);

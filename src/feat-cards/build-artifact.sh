@@ -48,6 +48,11 @@ title="$(grep -o '<title>[^<]*</title>' "$page" | head -1)"
     if [[ "$line" == '<script src="toolbag-core.js"></script>' ]]; then
       printf '<script>\n'; cat "$root/toolbag-core.js"; printf '</script>\n'; continue
     fi
+    # the shared paste reader rides along; the picture finder needs the network, which artifacts don't have
+    if [[ "$line" == '<script src="tb-parse.js"></script>' ]]; then
+      printf '<script>\n'; cat "$root/tb-parse.js"; printf '</script>\n'; continue
+    fi
+    if [[ "$line" == '<script src="tb-images.js"></script>' ]]; then continue; fi
     printf '%s\n' "$line"
     if [[ "$line" == '<style id="cardCss">' ]]; then embedded_fonts_css; fi
   done | sed -e '/<nav class="toolbag"/,/<\/nav>/c\    <h1>Feat Cards <span class="sub">\&middot; PF2e</span></h1>'

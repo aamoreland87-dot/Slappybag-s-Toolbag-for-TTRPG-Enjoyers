@@ -293,6 +293,11 @@ span.tog{display:inline-flex; align-items:center}
 .rq [contenteditable]{display:inline}
 .blanks .rq [contenteditable]:empty{display:inline-block; min-width:8em; border-bottom:1px dotted var(--ink-3)}
 .blanks .rq [contenteditable]:empty::before{content:""}
+/* the source line: book and page, small, in the card's bottom margin (it takes no room from the text) */
+.c-src{position:absolute; right:calc(.9em + 10px); bottom:3px; max-width:70%; font-family:var(--caps);
+  font-size:7px; letter-spacing:.04em; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2}
+.c-src:empty{display:none}
+.blanks .c-src [contenteditable]:empty{display:inline-block; min-width:6em; border-bottom:1px dotted var(--ink-3)}
 /* grants: one line per thing the feat hands out — a bold kind, then the details */
 .sec.grants{flex-grow:2}
 .sec.grants .body{white-space:normal}
@@ -665,6 +670,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         <div class="body" contenteditable data-f="special" data-ph="Anything else worth remembering at the table."></div>
       </section>
 
+      <div class="c-src" id="srcLine"><span contenteditable data-f="src" data-ph="Source · page" aria-label="Source book and page"></span></div>
     </article>
   </div>
   <p class="card-count screen-only" id="cardCount"></p>
@@ -754,6 +760,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 </section>
 
 <script src="toolbag-core.js"></script>
+<script src="tb-parse.js"></script>
+<script src="tb-images.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1234,7 +1242,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(bw * bh > w * h * 0.92) return null;
     return {x:left, y:top, w:bw, h:bh};
   }
-  function loadImage(file){
+  function loadImage(file, opts){
+    opts = opts || {};
     if(!file) return;
     var isImage = /^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || "");
     if(!isImage) return;
@@ -1256,7 +1265,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:w, h:h};
         }
         var isJpeg = /jpe?g/i.test(file.type), v;
-        if(bgToggle.checked){
+        if(opts.bg === false ? false : bgToggle.checked){
           /* Background knocked out and trimmed to the subject. */
           var cut = false, box = null;
           try{ cut = knockout(full); }catch(e){}
@@ -1268,6 +1277,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           v = encode(full, 0, 0, fw, fh, isJpeg);
           v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
         }
+        if(opts.credit) v.meta += " · Credit: " + opts.credit;   /* picture finder: who made it, and the licence */
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
         setImgSize(imgW, v.h / v.w);
         photo.classList.remove("busy");
@@ -1278,6 +1288,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     };
     reader.readAsDataURL(file);
   }
+
+
+  /* the picture finder (tb-images.js, site only) searches free picture sites by the card's name */
+  if(TB.pictures) TB.pictures.register({load:loadImage, meta:function(){ return img.meta || ""; },
+    title:function(){ var n = pane.querySelector('[data-f="name"]'); return n ? n.innerText.trim() : ""; }, traits:function(){ return traits.slice(); },
+    anchor:photo});
 
   /* ---------------- traits ---------------- */
   function splitTraits(s){ if(!s) return []; return s.split(/[|,;]/).map(function(x){ return x.trim(); }).filter(Boolean); }
@@ -1596,6 +1612,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         grantHtml +
         actions +
         sec("special", "Notes", "special") +
+        (has(d.src) ? '<div class="c-src">' + esc(d.src) + '</div>' : '') +
       '</article>';
     return box;
   }
@@ -1649,7 +1666,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     Lib.loadLocal();
     $("status").innerHTML = "Saved on <b>this device</b>";
     if(window.Cloud && Cloud.available){
-      Cloud.init({kind:"items", mount:$("account"),
+      Cloud.init({kind:"spells", mount:$("account"),
         onStatus:function(html){ $("status").innerHTML = html; },
         onCards:function(cards){
           if(cards){ Lib.mode = "cloud"; Lib.cards = cards; }
@@ -1911,8 +1928,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   function closeImport(){ importModal.hidden = true; scrim.hidden = true; }
   function fillFromText(txt){
-    var d = parseSpell(txt);
+    /* one reader for every paste: a feat or a creature pasted here is offered to its own tool */
+    var rec = TB.parse(txt);
+    if(TB.offerRoute($("importNote"), rec, "spell")) return false;
+    var d = parseSpell(rec.text);
     if(!d || !d.name){ $("importNote").textContent = "Couldn't find a spell in that text — start from the title line (“Name Spell 3”)."; return false; }
+    d.src = TB.sourceLine(rec);
     d.id = null; d.blanks = false;
     load(d); saveDraft(); closeImport(); showView("editor");
     toast("Imported " + d.name + " — check it, then Save");
@@ -2323,6 +2344,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       if(s.tail) rule(x0, x0 + cw, bottom - 0.5, 1, RULE);
       y = bottom;
     });
+    /* source line: book and page in the bottom margin, right-aligned */
+    if(has(d.src) && !measure){
+      setFont("Caps", "normal", 7); color(INK3);
+      var srcTxt = String(d.src).trim();
+      while(srcTxt.length > 4 && width(srcTxt) > cw * 0.7) srcTxt = srcTxt.slice(0, -2).trim() + "...";
+      text(srcTxt, x0 + cw, Y + H - BORDER - 4, {align:"right", charSpace:pt(0.25)});
+    }
     return spill;
   }
   /* The title wrapped to a width, with room for the feat's cost glyph after the last word (it drops to a
@@ -2410,6 +2438,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         var X = ox + (k % 2) * (384 - 2), Y = oy + Math.floor(k / 2) * (480 - 2);
         fitAndDraw(pdf, it.d, it.img, X, Y, it.blanks);
       });
+      /* picture credits per page, licence notice on the last (in the 0.5in strip under the cards) */
+      var perPage = [];
+      items.forEach(function(it, i){ (perPage[Math.floor(i / 4)] = perPage[Math.floor(i / 4)] || []).push(it.d); });
+      if(TB.pdfFooters) TB.pdfFooters(pdf, perPage, {top:758, bottom:788, left:18, width:576});
       return pdf.output("blob");
     });
   }
@@ -2547,6 +2579,9 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   try{ lastView = localStorage.getItem("pf2e-spell-view") || "editor"; }catch(e){}
   showView(lastView === "sheet" ? "library" : lastView);
   if(wantNew){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){} $("newCard").click(); }
+  /* tool.html#import: a paste carried here from the home page or another tool's Import box */
+  var handed = TB.handoff && TB.handoff.take();
+  if(handed){ showView("editor"); openImport(); $("importText").value = handed; runImport(); }
 })();
 </script>
 

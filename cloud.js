@@ -4,7 +4,8 @@
    Signed out, nothing here runs and the page keeps its local library. Site pages only (not the artifact).
 
    The page calls Cloud.init({kind, mount, onCards, onStatus}) once:
-     kind      "creatures" | "items" — the collection, also the per-user counter checked by the rules
+     kind      "creatures" | "items" | "feats" | "spells" | "hazards" — the collection, also the per-user
+               counter checked by the rules
      mount     element that receives the sign-in / sign-out button
      onCards   called with the synced array on every change, or null when signed out (→ go local)
      onStatus  called with a short HTML string for the status line
@@ -69,7 +70,8 @@ window.Cloud = (function(){
     var ref = userRef();
     return ref.get().then(function(snap){
       if(snap.exists) return;
-      return ref.set({plan:"free", creatures:0, items:0, last_creatures:"", last_items:"",
+      return ref.set({plan:"free", creatures:0, items:0, feats:0, spells:0, hazards:0,
+                      last_creatures:"", last_items:"", last_feats:"", last_spells:"", last_hazards:"",
                       email:u.email || "", createdAt:new Date().toISOString()});
     });
   }
@@ -117,7 +119,7 @@ window.Cloud = (function(){
 
   C.full = function(){ return C.count >= limit(); };
   C.fullMessage = function(){
-    var what = C.kind === "items" ? "items" : "creatures";
+    var what = C.kind;
     return "Your synced library is full (" + limit() + " " + what + "). Delete one to make room" +
            (C.plan === "free" ? ", or sign out to keep more on this device." : ".");
   };
