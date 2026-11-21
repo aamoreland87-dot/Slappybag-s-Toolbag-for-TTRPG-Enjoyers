@@ -102,6 +102,32 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
 .pv .pvbar{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
 .pv .pvbar .sp{flex:1}
 .pv .nopv{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:16px;text-align:center}
+.sheetsec{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-top:10px}
+.sheetsec>summary{cursor:pointer;padding:10px 12px;font-family:Cinzel,serif;font-weight:700;color:var(--accent);list-style:none;display:flex;gap:8px;align-items:center}
+.sheetsec>summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .2s}
+.sheetsec[open]>summary::after{transform:rotate(180deg)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 10px;padding:0 12px 12px}
+.sgrid .f{display:flex;flex-direction:column;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+.sgrid .f.w{grid-column:span 2}.sgrid .f.t{grid-column:1/-1}
+.sgrid input,.sgrid select,.sgrid textarea{font:inherit;font-size:.95rem;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 7px;margin-top:3px;width:100%}
+.sgrid textarea{min-height:64px;resize:vertical}
+.sgrid .rk{display:flex;gap:4px;margin-top:3px}.sgrid .rk input{width:64px;margin:0}.sgrid .rk select{margin:0;flex:1;min-width:0}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.quick span{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:.85rem}
+.quick b{color:var(--accent)}
+.story{margin-top:18px}
+.story h3{font-size:1.05rem;color:var(--accent);display:flex;align-items:center;gap:8px}
+.story h3 .sp{flex:1}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.entry .eh{display:flex;gap:8px;align-items:center;font-weight:700}
+.entry .eh .d{color:var(--muted);font-weight:400;font-size:.85rem}
+.entry .eh .sp{flex:1}
+.entry textarea{display:block;width:100%;min-height:90px;font:inherit;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px;margin-top:6px;resize:vertical}
+.entry.cur{border-color:var(--gold)}
+.pbimp{margin-top:10px}
+.pbimp textarea{width:100%;min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:8px}
+.cmbox{margin-top:10px;background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:10px 12px;font-size:.95rem}
+.cmbox ul{margin:.3em 0 .5em 1.2em;padding:0}
 .icons.small .ti{width:70px;padding:6px 2px 5px}.icons.small .ti .e{font-size:1.4rem}
 /* docket toggle on each library tile */
 .card .dk{position:absolute;top:6px;left:6px;z-index:2;min-width:30px;height:30px;border-radius:15px;border:2px solid var(--card);background:var(--accent);color:#fff;font-weight:700;font-size:1rem;display:grid;place-items:center;padding:0 8px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
@@ -260,9 +286,11 @@ main{flex:1;min-width:0;padding:4px 14px 40px}
   <label class="fld">Subtitle (role, level, type…)<input id="psub"></label>
   <label class="fld">Card info (short, shows on card)<textarea id="pinfo"></textarea></label>
  </div>
+ <div id="psheet"></div>
  <div id="plib"><h2 id="plname" style="margin-top:14px"></h2><div class="muted" id="plsub"></div><div class="stats" id="plstats"></div></div>
  <label class="fld">Details page<textarea class="big" id="pdet" placeholder="Background, motives, tactics, what they know, how they react, links, session notes…"></textarea></label>
  <label class="opt"><input type="checkbox" id="pdetp"> Print the details page in this session's PDF</label>
+ <div id="pstory" class="story"></div>
  <div id="pblockw">
   <label class="fld">Full stat block<textarea class="mono" id="pblock" placeholder="Paste the full stat block from Demiplane or Archives of Nethys."></textarea></label>
   <div class="pactions"><button class="btn g s" id="pfetch">Fetch from Demiplane</button><span class="muted" id="pfetchn"></span></div>
@@ -592,12 +620,14 @@ function renderBooklet(){
     '<label class="fld" style="flex:1;min-width:150px">Date<input id="bdate" type="date" value="' + esc(s.date) + '"></label></div>' +
     '<label class="fld">Last session recap<textarea id="brecap" style="min-height:180px" placeholder="Paste the recap Claude wrote from the session recording here.&#10;## Headings, - bullets and **bold** are kept.">' + esc(s.recap) + '</textarea></label>' +
     '<p class="tip">From a recording: drop the transcript into the toolbag Project in Claude and ask for a recap — it comes back in this format, ready to paste.</p>' +
-    '<div class="prev" id="brecapp">' + previewHtml(s.recap) + '</div>' +
+    '<div class="prev" id="brecapp">' + previewHtml(s.recap) + '</div><div id="cmwrap">' + momentsBox() + '</div>' +
     '<label class="fld">Intro to the session (read-aloud)<textarea id="bintro" placeholder="Where we left off, what the players see as the session opens…">' + esc(s.intro) + '</textarea></label>' +
     '<div class="libhead" style="margin-top:22px"><h2 style="font-size:1.05rem">The plan</h2><button class="btn s" id="addsc">＋ Scene</button></div>' +
     '<p class="tip">Start a line with <b>!</b> for a beat. Checks (<span class="prev"><span class="ck">DC 20 Athletics</span></span>) and the names of cards picked for this session are picked out automatically.</p>' +
     scenes + '</div>';
-  var bind = function(id, f){ $(id).oninput = function(){ s[f] = this.value; save(); if(f === "title" || f === "date"){ $("sessname").textContent = "· " + (s.title || "Untitled") + (s.date ? " · " + s.date : ""); renderSessions(); } if(f === "recap") $("brecapp").innerHTML = previewHtml(s.recap); }; };
+  var bind = function(id, f){ $(id).oninput = function(){ s[f] = this.value; save(); if(f === "title" || f === "date"){ $("sessname").textContent = "· " + (s.title || "Untitled") + (s.date ? " · " + s.date : ""); renderSessions(); } if(f === "recap"){ $("brecapp").innerHTML = previewHtml(s.recap); $("cmwrap").innerHTML = momentsBox(); bindMoments(); } }; };
+  var bindMoments = function(){ if($("cmsend")) $("cmsend").onclick = function(){ sendMoments(false); }; if($("cmsendall")) $("cmsendall").onclick = function(){ sendMoments(true); }; };
+  bindMoments();
   bind("btitle", "title"); bind("bdate", "date"); bind("brecap", "recap"); bind("bintro", "intro");
   $("addsc").onclick = function(){ s.scenes.push({id:uid(), title:"", text:""}); save(); renderBooklet(); var all = document.querySelectorAll(".scene input"); all[all.length - 1].focus(); };
   document.querySelectorAll(".scene").forEach(function(el){
@@ -722,6 +752,8 @@ function openPage(c, k){
   $("pfetch").style.display = c.lib === "creature" && /demiplane\.com/.test(c.source || "") ? "" : "none";
   $("pfetchn").textContent = c.block && !ex.block ? "From the card's import. Edits here are kept for Next Session only." : "";
   setHero(); pageChecks(); assignUI("passign", c, selTab);
+  renderSheetUI(c); renderStory(c);
+  $("pdet").parentNode.firstChild.textContent = selTab === "pcs" ? "Notes for the GM" : "Details page";
   $("page").classList.add("on"); $("page").scrollTop = 0;
 }
 document.addEventListener("click", function(e){
@@ -755,7 +787,7 @@ document.addEventListener("keydown", function(e){ if((e.key === "Enter" || e.key
 $("sopen").onclick = function(){ openPage(sel, selTab); };
 $("pback").onclick = function(){ $("page").classList.remove("on"); render(); };
 $("pinc").onclick = function(){ toggle(selTab, sel); pageChecks(); };
-[["pname","name"],["psub","sub"],["pinfo","info"]].forEach(function(a){ $(a[0]).oninput = function(e){ sel.raw[a[1]] = e.target.value; sel.name = e.target.value || "Untitled"; save(); }; });
+[["pname","name"],["psub","sub"],["pinfo","info"]].forEach(function(a){ $(a[0]).oninput = function(e){ sel.raw[a[1]] = e.target.value; if(a[1] === "name") sel.name = e.target.value || "Untitled"; if(a[1] === "sub") sel.raw.autoSub = false; save(); }; });
 $("pdet").oninput = function(e){ extra(sel.ref).det = e.target.value; save(); };
 $("pblock").oninput = function(e){ extra(sel.ref).block = e.target.value; save(); };
 function setPickFlag(f, on){
@@ -785,6 +817,201 @@ $("pfile").onchange = function(e){
   }; im.src = r.result; };
   r.readAsDataURL(f);
 };
+
+/* ============================================================================================
+   PC character sheet: the fields of the Pathfinder 2e Remaster sheet (Player Core), kept on the
+   PC's quick card as raw.sheet. [key, label, kind]: kind n = number, r = proficiency rank,
+   nr = number + rank, w = wide text, t = long text; blank = short text.
+   ============================================================================================ */
+var RANKS = [["","—"],["U","Untrained"],["T","Trained"],["E","Expert"],["M","Master"],["L","Legendary"]];
+var SKILL16 = ["Acrobatics","Arcana","Athletics","Crafting","Deception","Diplomacy","Intimidation","Medicine","Nature","Occultism","Performance","Religion","Society","Stealth","Survival","Thievery"];
+var SHEET = [
+  ["Character", [["player","Player"],["ancestry","Ancestry"],["heritage","Heritage"],["background","Background"],["class","Class"],["subclass","Subclass / key choices","w"],["level","Level","n"],["xp","XP","n"],["keyAttr","Key attribute"],["size","Size"],["traits","Traits","w"],["deity","Deity"],["languages","Languages","w"],["heroPoints","Hero points","n"]]],
+  ["Attribute modifiers", [["str","Strength","n"],["dex","Dexterity","n"],["con","Constitution","n"],["int","Intelligence","n"],["wis","Wisdom","n"],["cha","Charisma","n"]]],
+  ["Defenses", [["ac","Armor Class","n"],["armor","Armor worn"],["shield","Shield (bonus / hardness / HP)","w"],["r_unarmored","Unarmored","r"],["r_light","Light armor","r"],["r_medium","Medium armor","r"],["r_heavy","Heavy armor","r"],["hp","Max HP","n"],["tempHp","Temp HP","n"],["irw","Immunities, resistances, weaknesses","w"],["conditions","Ongoing conditions","w"]]],
+  ["Saves, Perception & class DC", [["fort","Fortitude","nr"],["ref","Reflex","nr"],["will","Will","nr"],["per","Perception","nr"],["senses","Senses","w"],["classDc","Class DC","nr"],["speed","Speed"],["otherSpeeds","Other movement","w"]]],
+  ["Skills", SKILL16.map(function(k){ return ["sk_" + k.toLowerCase(), k, "nr"]; }).concat([["lore","Lore skills (one per line: name, rank, bonus)","t"]])],
+  ["Strikes & weapons", [["strikes","Strikes (one per line: weapon, +attack, damage, traits)","t"],["r_unarmed","Unarmed","r"],["r_simple","Simple weapons","r"],["r_martial","Martial weapons","r"],["r_advanced","Advanced weapons","r"],["weaponNotes","Other proficiencies, critical specializations","w"]]],
+  ["Spellcasting", [["tradition","Tradition"],["castType","Prepared / spontaneous / innate"],["spellAtk","Spell attack","nr"],["spellDc","Spell DC","n"],["focus","Focus points","n"],["cantrips","Cantrips","t"],["spells","Spells (one rank per line, slots used)","t"],["focusSpells","Focus spells","t"],["innate","Innate spells","t"],["rituals","Rituals","t"]]],
+  ["Feats & features", [["ancestryFeats","Ancestry & heritage abilities and feats","t"],["classFeats","Class feats & features","t"],["skillFeats","Skill feats","t"],["generalFeats","General feats","t"],["bonusFeats","Bonus / archetype feats","t"]]],
+  ["Inventory", [["held","Held items","t"],["worn","Worn & invested items (10 invested max)","t"],["stowed","Stowed / other items","t"],["consumables","Consumables","t"],["bulk","Bulk (carried / max)"],["cp","cp","n"],["sp","sp","n"],["gp","gp","n"],["pp","pp","n"]]],
+  ["Biography", [["pronouns","Gender & pronouns"],["age","Age"],["height","Height"],["weight","Weight"],["birthplace","Birthplace"],["ethnicity","Ethnicity / nationality"],["appearance","Appearance","t"],["personality","Personality","t"],["edicts","Edicts","t"],["anathema","Anathema","t"],["likes","Likes","t"],["dislikes","Dislikes","t"],["catchphrases","Catchphrases","t"],["allies","Allies","t"],["enemies","Enemies","t"],["organizations","Organizations","t"],["notes","Campaign notes & goals","t"]]]
+];
+var sgn = function(v){ v = String(v == null ? "" : v).trim(); return v === "" ? "" : /^[+-]/.test(v) ? v : "+" + v; };
+/* the PC's headline numbers: on the page, the booklet cover and its details page */
+function pcStats(sh){
+  sh = sh || {};
+  return [["AC", sh.ac], ["HP", sh.hp], ["Perception", sgn(sh.per)], ["Fort", sgn(sh.fort)], ["Ref", sgn(sh.ref)], ["Will", sgn(sh.will)], ["Class DC", sh.classDc], ["Spell DC", sh.spellDc], ["Speed", sh.speed]]
+    .filter(function(x){ return String(x[1] == null ? "" : x[1]).trim(); });
+}
+function pcSub(sh){
+  var b = [sh.ancestry, sh.heritage && sh.heritage !== sh.ancestry ? "" : "", sh.class].filter(Boolean).join(" ");
+  return [b, sh.level ? "Level " + sh.level : ""].filter(Boolean).join(" · ");
+}
+function sheetField(f, sh){
+  var k = f[0], kind = f[2] || "", v = function(key){ return esc(sh[key] == null ? "" : sh[key]); };
+  var rank = function(key){ return '<select data-sh="' + key + '" aria-label="Proficiency">' + RANKS.map(function(r){ return '<option value="' + r[0] + '"' + ((sh[key] || "") === r[0] ? " selected" : "") + '>' + r[1] + '</option>'; }).join("") + '</select>'; };
+  if(kind === "t") return '<label class="f t">' + f[1] + '<textarea data-sh="' + k + '">' + v(k) + '</textarea></label>';
+  if(kind === "r") return '<label class="f">' + f[1] + rank(k) + '</label>';
+  if(kind === "nr") return '<label class="f">' + f[1] + '<span class="rk"><input data-sh="' + k + '" inputmode="numeric" value="' + v(k) + '">' + rank("r_" + k) + '</span></label>';
+  return '<label class="f' + (kind === "w" ? " w" : "") + '">' + f[1] + '<input data-sh="' + k + '"' + (kind === "n" ? ' inputmode="numeric"' : '') + ' value="' + v(k) + '"></label>';
+}
+function renderSheetUI(c){
+  var box = $("psheet");
+  if(!(c.lib === "own" && c.raw.cat === "pcs")){ box.innerHTML = ""; return; }
+  var sh = c.raw.sheet = c.raw.sheet || {};
+  var open = {}; try{ open = JSON.parse(localStorage.getItem("ns-sheet-open")) || {"Character":1,"Saves, Perception & class DC":1}; }catch(e){}
+  box.innerHTML = '<div class="quick" id="pcquick"></div>' +
+    '<details class="sheetsec pbimp"><summary>Fill from Pathbuilder</summary><div style="padding:0 12px 12px">' +
+      '<p class="tip">In Pathbuilder 2e: Menu → Export → Export JSON, then paste it here (or paste the 6-digit export code). It fills the sheet; check the numbers afterwards — item bonuses aren\'t all in the export.</p>' +
+      '<textarea id="pbjson" placeholder=\'{"success":true,"build":{…}}  or a code like 123456\'></textarea>' +
+      '<div class="pactions"><button class="btn s" id="pbgo">Fill the sheet</button><span class="muted" id="pbn"></span></div></div></details>' +
+    SHEET.map(function(sec){
+      return '<details class="sheetsec" data-sec="' + esc(sec[0]) + '"' + (open[sec[0]] ? " open" : "") + '><summary>' + sec[0] + '</summary><div class="sgrid">' + sec[1].map(function(f){ return sheetField(f, sh); }).join("") + '</div></details>';
+    }).join("");
+  var quick = function(){
+    var st = pcStats(sh);
+    $("pcquick").innerHTML = st.length ? st.map(function(x){ return "<span><b>" + esc(x[0]) + "</b> " + esc(x[1]) + "</span>"; }).join("") : '<span class="muted" style="border:none;background:none">Fill in the sheet below — or from Pathbuilder — and the key numbers show here and on the booklet cover.</span>';
+  };
+  quick();
+  box.querySelectorAll("[data-sh]").forEach(function(el){
+    el.addEventListener(el.tagName === "SELECT" ? "change" : "input", function(){
+      sh[el.dataset.sh] = el.value;
+      if(/^(ancestry|heritage|class|level)$/.test(el.dataset.sh) && (!c.raw.sub || c.raw.autoSub)){ c.raw.sub = pcSub(sh); c.raw.autoSub = true; $("psub").value = c.raw.sub; }
+      save(); quick();
+    });
+  });
+  box.querySelectorAll("details[data-sec]").forEach(function(d){ d.addEventListener("toggle", function(){ open[d.dataset.sec] = d.open ? 1 : 0; try{ localStorage.setItem("ns-sheet-open", JSON.stringify(open)); }catch(e){} }); });
+  $("pbgo").onclick = function(){
+    var raw = $("pbjson").value.trim(), note = $("pbn");
+    var apply = function(j){
+      var n = fromPathbuilder(j, sh);
+      if(!c.raw.name && sh.name) c.raw.name = sh.name;
+      delete sh.name;
+      c.raw.sub = pcSub(sh); c.raw.autoSub = true;
+      save(); openPage(byRef(c.ref) || c, "pcs"); toast("Filled " + n + " fields from Pathbuilder — check them", 3500);
+    };
+    if(/^\d{3,8}$/.test(raw)){
+      note.textContent = "Asking Pathbuilder…";
+      fetch("https://pathbuilder2e.com/json.php?id=" + raw).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+        .then(apply).catch(function(){ note.innerHTML = 'Pathbuilder doesn\'t let other sites read it. <a target="_blank" rel="noopener" href="https://pathbuilder2e.com/json.php?id=' + raw + '">Open the export</a>, copy everything, and paste it here.'; });
+      return;
+    }
+    try{ apply(JSON.parse(raw)); }catch(e){ note.textContent = "That isn't Pathbuilder JSON — paste the whole export."; }
+  };
+}
+/* Pathbuilder 2e export → sheet fields. Proficiency is 0/2/4/6/8; a check is attribute + rank + level. */
+function fromPathbuilder(j, sh){
+  var b = j && (j.build || j); if(!b || !b.class) throw new Error("not a build");
+  var n = 0, set = function(k, v){ if(v != null && v !== ""){ sh[k] = String(v); n++; } };
+  var lvl = +b.level || 1, ab = b.abilities || {}, mod = function(a){ var v = ab[a]; return v == null ? 0 : (v > 7 || v < -5 ? Math.floor((v - 10) / 2) : +v); };
+  var P = b.proficiencies || {}, RK = {0:"U", 2:"T", 4:"E", 6:"M", 8:"L"};
+  var check = function(p, a){ var v = +P[p] || 0; return mod(a) + (v ? v + lvl : 0); };
+  set("name", b.name); set("ancestry", b.ancestry); set("heritage", b.heritage); set("background", b.background); set("class", b.class);
+  set("level", lvl); set("xp", b.xp); set("deity", b.deity); set("size", b.sizeName || b.size); set("keyAttr", (b.keyability || "").toUpperCase());
+  set("pronouns", b.gender); set("age", b.age); set("languages", (b.languages || []).join(", "));
+  ["str","dex","con","int","wis","cha"].forEach(function(a){ set(a, sgn(mod(a))); });
+  var at = b.attributes || {};
+  set("hp", (+at.ancestryhp || 0) + ((+at.classhp || 0) + (+at.bonushpPerLevel || 0) + mod("con")) * lvl + (+at.bonushp || 0));
+  set("speed", (+at.speed || 0) + (+at.speedBonus || 0) + " ft");
+  if(b.acTotal) set("ac", b.acTotal.acTotal);
+  [["fort","fortitude","con"],["ref","reflex","dex"],["will","will","wis"],["per","perception","wis"]].forEach(function(x){ set(x[0], sgn(check(x[1], x[2]))); set("r_" + x[0], RK[+P[x[1]] || 0]); });
+  if(P.classDC){ set("classDc", 10 + check("classDC", (b.keyability || "str").toLowerCase())); set("r_classDc", RK[+P.classDC || 0]); }
+  ["unarmored","light","medium","heavy","unarmed","simple","martial","advanced"].forEach(function(k){ if(P[k] != null) set("r_" + k, RK[+P[k] || 0]); });
+  var SKA = {acrobatics:"dex",arcana:"int",athletics:"str",crafting:"int",deception:"cha",diplomacy:"cha",intimidation:"cha",medicine:"wis",nature:"wis",occultism:"int",performance:"cha",religion:"wis",society:"int",stealth:"dex",survival:"wis",thievery:"dex"};
+  Object.keys(SKA).forEach(function(k){ set("sk_" + k, sgn(check(k, SKA[k]))); set("r_sk_" + k, RK[+P[k] || 0]); });
+  if((b.lores || []).length) set("lore", b.lores.map(function(l){ var v = +l[1] || 0; return l[0] + " Lore, " + (RANKS.filter(function(r){ return r[0] === RK[v]; })[0] || ["",""])[1] + ", " + sgn(mod("int") + (v ? v + lvl : 0)); }).join("\n"));
+  var feats = {ancestry:[], class:[], skill:[], general:[], other:[]};
+  (b.feats || []).forEach(function(f){ var t = String(f[2] || "").toLowerCase(), k = /ancestry|heritage/.test(t) ? "ancestry" : /class|archetype/.test(t) ? "class" : /skill/.test(t) ? "skill" : /general/.test(t) ? "general" : "other"; feats[k].push(f[0] + (f[3] ? " (" + f[3] + ")" : "")); });
+  set("ancestryFeats", feats.ancestry.join("\n")); set("classFeats", feats.class.concat(b.specials || []).join("\n")); set("skillFeats", feats.skill.join("\n")); set("generalFeats", feats.general.join("\n")); set("bonusFeats", feats.other.join("\n"));
+  if((b.weapons || []).length) set("strikes", b.weapons.map(function(w){ return [w.display || w.name, sgn(w.attack), (w.die ? (w.str ? w.str + " " : "") + w.die + (w.damageBonus ? sgn(w.damageBonus) : "") + " " + (w.damageType || "") : "").trim()].filter(Boolean).join(", "); }).join("\n"));
+  if((b.armor || []).length) set("armor", b.armor.filter(function(a){ return a.worn !== false; }).map(function(a){ return a.display || a.name; }).join(", "));
+  if((b.equipment || []).length) set("stowed", b.equipment.map(function(e){ return e[0] + (e[1] > 1 ? " ×" + e[1] : ""); }).join("\n"));
+  var m = b.money || {}; ["cp","sp","gp","pp"].forEach(function(k){ if(m[k]) set(k, m[k]); });
+  if(b.focusPoints) set("focus", b.focusPoints);
+  var sc = (b.spellCasters || [])[0];
+  if(sc){
+    set("tradition", sc.magicTradition); set("castType", sc.spellcastingType);
+    var sa = check("casting" + cap(sc.magicTradition || ""), sc.ability || "cha");
+    set("spellAtk", sgn(sa)); set("spellDc", 10 + sa);
+    var ranks = (sc.spells || []).map(function(r){ return { lvl:r.spellLevel, list:r.list || [] }; });
+    set("cantrips", ((ranks.filter(function(r){ return r.lvl === 0; })[0] || {}).list || []).join(", "));
+    set("spells", ranks.filter(function(r){ return r.lvl > 0 && r.list.length; }).map(function(r){ return "Rank " + r.lvl + ": " + r.list.join(", "); }).join("\n"));
+  }
+  return n;
+}
+function cap(s){ s = String(s || ""); return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* ---------------- session story: per character, one entry per session ----------------
+   Kept with the card's extras (S.extra[ref].log), so PCs, NPCs and library creatures all get one.
+   Entries come from the recap's "Character moments" / "NPC moments" sections or are typed here. */
+function storyOf(ref){ var e = extra(ref); return e.log = e.log || []; }
+function sessionLabel(sid){ var x = S.sessions.filter(function(s){ return s.id === sid; })[0]; return x ? (x.title || "Untitled") + (x.date ? " · " + x.date : "") : "Earlier session"; }
+function renderStory(c){
+  var box = $("pstory"), k = selTab;
+  if(!/^(pcs|npcs|creatures)$/.test(k)){ box.innerHTML = ""; return; }
+  var log = storyOf(c.ref), s = cur();
+  var order = function(e){ var i = S.sessions.findIndex(function(x){ return x.id === e.sid; }); return i < 0 ? -1 : i; };
+  var list = log.slice().sort(function(a, b){ return order(b) - order(a); });
+  box.innerHTML = '<h3>📜 Session story<span class="sp"></span>' + (log.some(function(e){ return e.sid === s.id; }) ? '' : '<button class="btn s" id="stadd">＋ Entry for ' + esc(s.title || "this session") + '</button>') + '</h3>' +
+    '<p class="tip">What ' + esc(c.name) + ' did or what happened to them, session by session. Start a line with <b>!</b> for an impactful moment. The recap\'s ' + (k === "pcs" ? "Character" : "NPC") + ' moments section fills this in for you (Booklet → Send moments to character pages).</p>' +
+    (list.length ? list.map(function(e){
+      return '<div class="entry' + (e.sid === s.id ? " cur" : "") + '" data-sid="' + esc(e.sid) + '"><div class="eh">' + esc(sessionLabel(e.sid)) + '<span class="d">' + (e.from === "recap" ? "from the recap" : "") + '</span><span class="sp"></span><button class="ib" data-stx title="Delete this entry">✕</button></div>' +
+        '<textarea data-stt>' + esc(e.text) + '</textarea><div class="prev" data-stp>' + previewHtml(e.text) + '</div></div>';
+    }).join("") : '<p class="muted">Nothing yet.</p>');
+  if($("stadd")) $("stadd").onclick = function(){ log.push({sid:s.id, text:""}); save(); renderStory(c); var t = box.querySelector('.entry.cur textarea'); if(t) t.focus(); };
+  box.querySelectorAll(".entry").forEach(function(el){
+    var e = log.filter(function(x){ return x.sid === el.dataset.sid; })[0];
+    el.querySelector("[data-stt]").oninput = function(){ e.text = this.value; save(); el.querySelector("[data-stp]").innerHTML = previewHtml(e.text); };
+    el.querySelector("[data-stx]").onclick = function(){ var b = this; armed(b, "✕", function(){ log.splice(log.indexOf(e), 1); save(); renderStory(c); }, "?"); };
+  });
+}
+/* The recap's "## Character moments" and "## NPC moments" sections: "### Name" then that character's lines. */
+function recapMoments(text){
+  var out = [], sec = null, who = null;
+  String(text || "").replace(/\r/g, "").split("\n").forEach(function(l){
+    var h2 = /^##\s+(.*)$/.exec(l.trim()), h3 = /^###\s+(.*)$/.exec(l.trim());
+    if(h2 && !h3){ var t = h2[1].toLowerCase(); sec = /\bnpc moments/.test(t) ? "npcs" : /character moments|\bpc moments/.test(t) ? "pcs" : null; who = null; return; }
+    if(!sec) return;
+    if(h3){ who = {kind:sec, name:h3[1].replace(/\*\*/g, "").trim(), lines:[]}; out.push(who); return; }
+    if(who) who.lines.push(l);
+  });
+  out.forEach(function(w){ w.text = w.lines.join("\n").trim(); });
+  return out.filter(function(w){ return w.name && w.text; });
+}
+function findCharacter(name, kind){
+  var n = name.toLowerCase(), first = n.split(/[\s,(]/)[0];
+  var pool = kind === "pcs" ? cardsFor("pcs") : cardsFor("npcs");
+  return pool.filter(function(c){ return c.name.toLowerCase() === n; })[0] ||
+    pool.filter(function(c){ var cn = c.name.toLowerCase(); return cn.split(/[\s,(]/)[0] === first || cn.indexOf(n) >= 0 || n.indexOf(cn) >= 0; })[0] || null;
+}
+function sendMoments(createMissing){
+  var s = cur(), ms = recapMoments(s.recap), done = 0, made = 0;
+  /* the recap is about the session before this one; file it there when there is one */
+  var i = S.sessions.indexOf(s), sid = i > 0 ? S.sessions[i - 1].id : s.id;
+  ms.forEach(function(m){
+    var c = findCharacter(m.name, m.kind);
+    if(!c && createMissing){
+      var o = {id:uid(), cat:m.kind, name:m.name, sub:m.kind === "pcs" ? "" : "NPC", info:"", img:""};
+      S.own.push(o); c = ownCard(o); made++;
+    }
+    if(!c) return;
+    var log = storyOf(c.ref), e = log.filter(function(x){ return x.sid === sid; })[0];
+    if(e) e.text = m.text, e.from = "recap"; else log.push({sid:sid, text:m.text, from:"recap"});
+    done++;
+  });
+  save(); render();
+  toast("Sent moments to " + done + " character page" + (done === 1 ? "" : "s") + (made ? " — made " + made + " new card" + (made === 1 ? "" : "s") : ""), 3500);
+}
+function momentsBox(){
+  var s = cur(), ms = recapMoments(s.recap);
+  if(!ms.length) return "";
+  var i = S.sessions.indexOf(s);
+  var rows = ms.map(function(m){ var c = findCharacter(m.name, m.kind); return '<li>' + esc(m.name) + ' <span class="muted">(' + (m.kind === "pcs" ? "PC" : "NPC") + ')</span> → ' + (c ? '<b>' + esc(c.name) + '</b>' : '<i>no card yet</i>') + '</li>'; }).join("");
+  var missing = ms.filter(function(m){ return !findCharacter(m.name, m.kind); }).length;
+  return '<div class="cmbox"><b>Character moments in this recap</b> — filed under ' + esc(i > 0 ? sessionLabel(S.sessions[i - 1].id) : sessionLabel(s.id)) + '<ul>' + rows + '</ul>' +
+    '<button class="btn s" id="cmsend">Send moments to character pages</button> ' + (missing ? '<button class="btn g s" id="cmsendall">Send, and make cards for the ' + missing + ' without one</button>' : '') + '</div>';
+}
 
 /* Demiplane, read directly (the same unofficial API the Initiative Cards import uses). */
 var DP_API = "https://apiv4.demiplane.com/v1/graphql";
@@ -845,8 +1072,8 @@ function blockList(){
 function quickList(){
   var out = [];
   CARD_TABS.forEach(function(t){ pickedCards(t[0]).forEach(function(x){
-    var det = (S.extra[x.c.ref] || {}).det;
-    if(x.c.lib === "own" || (x.p.det && det)) out.push({c:x.c, k:t[0], p:x.p, det:x.p.det || x.c.lib === "own" ? det : ""});
+    var ex = S.extra[x.c.ref] || {}, det = ex.det, story = (ex.log || []).some(function(e){ return (e.text || "").trim(); });
+    if(x.c.lib === "own" || (x.p.det && (det || story))) out.push({c:x.c, k:t[0], p:x.p, det:x.p.det || x.c.lib === "own" ? (det || (x.p.det && story ? " " : "")) : ""});   /* " ": a page for the story alone */
   }); });
   return out;
 }
@@ -1023,7 +1250,11 @@ function buildBooklet(){
   if(s.date){ W.font("body", "italic"); doc.setFontSize(12); doc.setTextColor.apply(doc, GREY); doc.text(new Date(s.date + "T12:00").toLocaleDateString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"}), W.x0, W.y); W.y += 0.3; }
   var pcs = pickedCards("pcs");
   W.caption("At the table");
-  W.runs([{t:pcs.length ? pcs.map(function(x){ return x.c.name + (x.c.sub ? " (" + x.c.sub + ")" : ""); }).join(", ") : "No PCs marked as attending."}]);
+  if(!pcs.length) W.runs([{t:"No PCs marked as attending."}]);
+  pcs.forEach(function(x){
+    var st = pcStats(x.c.raw.sheet);
+    W.runs([{t:x.c.name, b:true}, {t:x.c.sub ? "  " + x.c.sub : "", i:true}].concat(st.length ? [{t:"   " + st.map(function(v){ return v[0] + " " + v[1]; }).join(" · ")}] : []), {after:0.04});
+  });
   var roster = [["Creatures","creatures"],["NPCs","npcs"],["Hazards","hazards"],["Locations","locations"]];
   roster.forEach(function(r){ var L = pickedCards(r[1]); if(L.length) W.runs([{t:r[0] + ": ", b:true}, {t:L.map(function(x){ return x.c.name; }).join(", ")}], {after:0.04}); });
   var loot = pickedCards("items");
@@ -1098,15 +1329,21 @@ function buildQuick(list){
     var pos = [[0.25, 0.5], [4.25, 0.5], [0.25, 5.5], [4.25, 5.5]];
     own.forEach(function(x, i){ if(i % 4 === 0 && i > 0) W.page(); quickCard(W, x, pos[i % 4][0], pos[i % 4][1]); });
     /* details pages */
-    list.filter(function(x){ return (x.det || "").trim(); }).forEach(function(x, i){
+    list.filter(function(x){ return x.det; }).forEach(function(x, i){
       if(own.length || i > 0) W.page();
       W.font("caps"); doc.setFontSize(9); doc.setTextColor.apply(doc, GOLD); doc.text(tab(x.k)[1].toUpperCase(), W.x0, W.y); W.y += 0.05;
       W.heading(x.c.name, 24);
       if(x.c.sub){ W.font("body", "italic"); doc.setFontSize(12); doc.setTextColor.apply(doc, GREY); doc.text(clean(x.c.sub), W.x0, W.y); W.y += 0.25; }
       if(x.p.pc){ W.runs([{t:"Goes to " + pcName(x.p.pc), b:true}]); }
+      if(x.k === "pcs"){ var st = pcStats((x.c.raw || {}).sheet); if(st.length) W.runs([{t:st.map(function(v){ return v[0] + " " + v[1]; }).join("  ·  "), b:true}]); }
       if(x.pic){ var h = Math.min(3, W.w * x.pic.h / x.pic.w), w = h * x.pic.w / x.pic.h; doc.addImage(x.pic.data, TB.imgFormat(x.pic.data), W.x0, W.y, w, h); W.y += h + 0.25; }
       if((x.c.info || "").trim() && x.c.lib === "own") W.runs(lineRuns(x.c.info, null), {italic:true, size:12});
       W.rich(x.det, mentionRe(), {size:12});
+      var log = ((S.extra[x.c.ref] || {}).log || []).filter(function(e){ return (e.text || "").trim(); });
+      if(log.length){
+        W.caption("Session story");
+        log.slice(-3).forEach(function(e){ W.runs([{t:sessionLabel(e.sid), b:true, i:true}], {after:0.02}); W.rich(e.text, mentionRe(), {size:11}); });
+      }
     });
     footer(W, sessLabel() + " · cards & details");
     return doc;
