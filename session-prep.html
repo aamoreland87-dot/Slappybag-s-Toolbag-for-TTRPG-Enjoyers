@@ -389,7 +389,7 @@ function libCard(lib, c){
   var t = [], sub = "", info = "";
   var tr = (c.traits || []).join(", ");
   if(lib === "item"){ sub = [c.cat, (c.value || "").trim() ? "Item " + c.value.trim() : ""].filter(Boolean).join(" · "); info = tr; }
-  else if(lib === "feat"){ sub = [c.cat, (c.level || "").trim() ? "Feat " + c.level.trim() : ""].filter(Boolean).join(" · "); info = tr; }
+  else if(lib === "feat"){ sub = [c.cat, (c.level || "").trim() ? "Feat " + c.level.trim() : "", (c.tier || "").trim()].filter(Boolean).join(" · "); info = tr; }
   else if(lib === "spell"){ var w = /^(Cantrip|Focus|Ritual)$/.test(c.cat || "") ? c.cat : "Spell"; sub = (c.level || "").trim() ? w + " " + c.level.trim() : w; info = [c.trad, tr].filter(Boolean).join(" · "); }
   else if(lib === "creature"){
     var lv = /\bCreature\s+(-?\d+)/i.exec(c.block || "");

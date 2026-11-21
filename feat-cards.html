@@ -308,6 +308,30 @@ span.tog{display:inline-flex; align-items:center}
 .grant.spare{display:none}
 .blanks .grant.spare{display:block}
 .sec.special{flex-grow:1}
+.sec.related{flex-grow:1}
+.sec.related .body{white-space:normal}
+/* tier: which version of the feat this card is (blank = the base feat) */
+.c-cat .tier{color:var(--ink-2); letter-spacing:.06em; margin-left:.5em}
+.c-cat .tier:not(:empty)::before{content:"\00B7\00A0"; color:var(--ink-3)}
+.c-cat .tier[contenteditable]{display:inline; min-width:1em}
+.c-cat .tier[contenteditable]:empty::before{content:attr(data-ph)}
+.c-cat .tier.blank{display:none}
+.blanks .c-cat .tier.blank{display:inline}
+.blanks .c-cat .tier:empty{display:inline-block; min-width:5em; border-bottom:1px dotted var(--ink-3)}
+/* area / save / damage: one stat-block line in the prerequisite block */
+.rq.aos{white-space:normal}
+.rq.aos .ap{display:inline-block; margin-right:.7em; white-space:nowrap}
+.rq.aos .ap.blank{display:none}
+.blanks .rq.aos .ap.blank{display:inline}
+.rq.aos select{font:inherit; font-size:.95em; border:1px solid var(--rule); border-radius:2px; background:var(--chip); color:var(--ink); padding:0 .15em; margin:0 .15em}
+.rq.aos .basic{display:inline-flex; align-items:center; gap:.2em; margin:0 .1em; cursor:pointer}
+.rq.aos .basic input{margin:0; width:.95em; height:.95em; accent-color:var(--accent)}
+/* source: small print at the foot of the card */
+.c-src{flex:0 0 auto; margin-top:.45em; text-align:right; font-family:var(--caps); font-size:.78em; letter-spacing:.06em; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.c-src.blank{display:none}
+.blanks .c-src.blank{display:block}
+.c-src [contenteditable]{display:inline-block; min-width:1em}
+.blanks .c-src [contenteditable]:empty{min-width:10em; border-bottom:1px dotted var(--ink-3)}
 .sec-cap{
   flex:0 0 auto; display:flex; align-items:baseline; gap:.6em; flex-wrap:wrap;
   font-family:var(--sub); font-weight:700; font-size:1.15em; line-height:1; letter-spacing:.07em;
@@ -416,6 +440,29 @@ span.tog{display:inline-flex; align-items:center}
 }
 .gcard:hover .gdel,.gcard:focus-within .gdel{display:flex}
 p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1rem}
+/* versions of one feat stack like a little deck; the badge says which tier is on top */
+.gcard.stack .cardbox{position:relative}
+.gcard.stack::before,.gcard.stack::after{
+  content:""; position:absolute; left:0; right:0; top:0; height:calc(480px * .46); border:1px solid var(--rule);
+  background:var(--paper); border-radius:2px; box-shadow:0 1px 2px rgba(0,0,0,.08);
+}
+.gcard.stack::before{transform:translate(8px,8px); z-index:-2}
+.gcard.stack::after{transform:translate(4px,4px); z-index:-1}
+.gcard.stack{isolation:isolate; margin-right:8px}
+.gtier{
+  display:inline-block; margin-top:.4rem; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-family:var(--caps); font-size:.72rem; letter-spacing:.07em; text-transform:uppercase;
+  padding:.1rem .45rem; border-radius:2px; background:var(--chip); color:var(--ink-2); border:1px solid var(--rule);
+}
+.gtier.up{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+.gtier .n{opacity:.8; margin-left:.35em}
+/* a fanned-out stack: a full-width row with every version side by side */
+.gfan{grid-column:1/-1; border:1px solid var(--rule); border-left:3px solid var(--accent); border-radius:2px; padding:.6rem .7rem .8rem; background:var(--paper)}
+.gfan-head{display:flex; align-items:center; gap:.6rem; margin-bottom:.6rem; font-family:var(--caps); font-size:.8rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-2)}
+.gfan-head b{font-family:var(--serif); font-size:1rem; letter-spacing:0; text-transform:none; color:var(--ink)}
+.gfan-head .grow{flex:1 1 auto}
+.gfan-row{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:1rem}
+@media (max-width:760px){ .gfan-row{grid-template-columns:repeat(2, 1fr); gap:.75rem .5rem} }
 
 /* ================= print sheet ================= */
 .sheet-wrap{display:flex; flex-direction:column; align-items:center; gap:1.5rem}
@@ -472,6 +519,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 .modal textarea{resize:vertical; min-height:9rem; line-height:1.4}
 .modal input[type=search]:focus,.modal textarea:focus{outline:2px solid var(--accent-2); outline-offset:1px}
 .imp-row{margin:0 0 .5rem}
+.pack{border:1px solid var(--rule); border-radius:2px; padding:.6rem .7rem; margin:0 0 .6rem}
+.pack h4{font-family:var(--serif); font-size:1rem; margin:0 0 .2rem}
+.pack p{margin:0 0 .5rem; font-size:.9rem}
+.pack .src{font-size:.8rem; color:var(--ink-2)}
 .imp-opt{display:flex; align-items:center; gap:.4rem; margin-top:.5rem; font-size:.9rem; color:var(--ink-2)}
 .imp-opt input{accent-color:var(--accent)}
 .imp-note{min-height:1.2em; margin:.4rem 0 0 !important; font-size:.88rem; color:var(--accent) !important}
@@ -546,6 +597,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     <div class="bar-group" data-for="editor">
       <button class="tog" id="blanks" aria-pressed="true" title="Show every field, and print it empty to fill in by hand">Show empty fields</button>
       <button class="btn" id="importBtn" title="Fetch a feat by name, or paste it from Archives of Nethys or Demiplane">Import</button>
+      <button class="btn" id="tierCopy" title="Start a new card from this one as an upgraded version (a new tier). It stacks with this card in the Library.">New tier</button>
       <button class="btn" id="newCard">New</button>
       <button class="btn solid" id="saveCard">Save</button>
     </div>
@@ -559,6 +611,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       </div>
       <button class="btn" id="selAll">Select all</button>
       <button class="btn" id="selNone">Select none</button>
+      <button class="btn" id="packBtn" title="Add ready-made feats from a book to your library" hidden>Add a pack</button>
       <button class="btn solid" id="toSheet">Print sheet (0)</button>
     </div>
     <div class="bar-group" data-for="sheet" hidden>
@@ -588,6 +641,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         </div>
       </div>
       <div class="bar-group">
+        <button class="tog" id="legacyTog" aria-pressed="false" title="Hide pre-Remaster traits (the eight spell schools, Positive, Negative) on cards and prints. They stay on the card, so you can show them again.">Hide legacy traits</button>
         <button class="btn" id="example">Example</button>
         <button class="btn" id="clear">Clear card</button>
       </div>
@@ -610,6 +664,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         <span class="c-left">
           <select id="cat" aria-label="Feat type"><option value="">Feat type</option></select>
           <span class="note" contenteditable data-f="note" data-ph="class · archetype" aria-label="Class, ancestry, or archetype"></span>
+          <span class="tier" contenteditable data-f="tier" data-ph="tier" aria-label="Tier or version of this feat, e.g. Awakened: Eye Beams. Leave empty for the base feat." title="Tier: leave empty for the base feat; name the upgrade (e.g. Awakened: Eye Beams) for an upgraded version. Versions with the same name stack in the Library."></span>
         </span>
         <span class="charges" id="charges">
           <button class="chg-btn screen-only" id="chgMinus" aria-label="Fewer uses">&minus;</button>
@@ -631,6 +686,11 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
           <span class="rq" data-rq="freq"><b>Frequency</b> <span contenteditable data-f="freq" data-ph=""></span></span>
           <span class="rq" data-rq="trigger"><b>Trigger</b> <span contenteditable data-f="trigger" data-ph=""></span></span>
           <span class="rq" data-rq="reqs"><b>Requirements</b> <span contenteditable data-f="reqs" data-ph=""></span></span>
+          <span class="rq aos" id="aosRow">
+            <span class="ap" data-ap="area"><b>Area</b> <span contenteditable data-f="areaSize" data-ph="30-foot" aria-label="Area size"></span><select id="areaShape" aria-label="Area shape"><option value="">shape</option></select></span>
+            <span class="ap" data-ap="save"><b>Save</b> <label class="basic" title="Basic save: success halves the damage, critical success none, failure full, critical failure double"><input type="checkbox" id="saveBasic">basic</label><select id="saveType" aria-label="Saving throw"><option value="">save</option><option>Fortitude</option><option>Reflex</option><option>Will</option></select></span>
+            <span class="ap" data-ap="damage"><b>Damage</b> <span contenteditable data-f="damage" data-ph="4d6 fire" aria-label="Damage"></span></span>
+          </span>
         </div>
       </section>
 
@@ -660,6 +720,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         <div class="sec-cap">Special</div>
         <div class="body" contenteditable data-f="special" data-ph="Can it be taken more than once? Does it lock anything out?"></div>
       </section>
+
+      <section class="sec related" id="relSec">
+        <div class="sec-cap">Related</div>
+        <div class="body" id="relBody"></div>
+      </section>
+
+      <div class="c-src" id="srcRow"><span contenteditable data-f="source" data-ph="Source, page" aria-label="Source book and page"></span></div>
 
     </article>
   </div>
@@ -736,6 +803,16 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   </div>
 </section>
 
+<section class="modal" id="packModal" hidden role="dialog" aria-label="Add a pack">
+  <h3>Add a pack</h3>
+  <p>Ready-made cards from a book. They go into your library like any card you made, and you can edit them there. Adding a pack again updates its cards instead of making copies.</p>
+  <div id="packList"></div>
+  <div class="modal-row">
+    <span class="grow"></span>
+    <button class="btn" id="packClose">Close</button>
+  </div>
+</section>
+
 <section class="modal" id="printModal" hidden role="dialog" aria-label="Print the sheet">
   <h3 id="printTitle">Your sheet is ready</h3>
   <p id="printMsg">Save the PDF to this device, or open the sheet as a web page and print or save from your browser. Letter size, four cards per page.</p>
@@ -750,6 +827,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 </section>
 
 <script src="toolbag-core.js"></script>
+<script src="packs/feat-packs.js"></script>
 <script>
 (function(){
   "use strict";
@@ -823,6 +901,37 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   ];
   var GRANT_KINDS = GRANTS.map(function(g){ return g[0]; });
   function grantHint(k){ for(var i = 0; i < GRANTS.length; i++) if(GRANTS[i][0] === k) return GRANTS[i][1]; return "What it gives"; }
+  /* Related: rules that live somewhere else but come with the feat — a cost it carries, what it
+     sets up or follows from, what it combines with. Same rows as Grants, its own kinds. */
+  var RELATED = [
+    ["Backlash", "Energetic Meltdown: mild, take damage equal to your level"],
+    ["Triggers", "Gain panache when you succeed"],
+    ["Combos with", "Tumble Through, then a finisher"],
+    ["Leads to", "Greater Awakened Power at 10th level"],
+    ["Follows", "Requires Bone Spikes to be active"],
+    ["Condition", "Frightened: −X to all checks and DCs"],
+    ["Note", "Anything else to remember at the table"]
+  ];
+  var REL_KINDS = RELATED.map(function(g){ return g[0]; });
+  function relHint(k){ for(var i = 0; i < RELATED.length; i++) if(RELATED[i][0] === k) return RELATED[i][1]; return "How it connects"; }
+  /* Area shapes from the rules; "Other" leaves the size box to say it all ("10-foot square"). */
+  var AREA_SHAPES = ["burst","cone","emanation","line","cylinder","cube","other"];
+  /* Pre-Remaster traits that the toggle hides on cards and prints (they stay in the data). */
+  var LEGACY = ["Abjuration","Conjuration","Divination","Enchantment","Evocation","Illusion","Necromancy","Transmutation","Positive","Negative"];
+  var hideLegacy = false;
+  try{ hideLegacy = localStorage.getItem("pf2e-feat-legacy") === "1"; }catch(e){}
+  function shownTraits(list){ return (list || []).filter(function(t){ return !hideLegacy || LEGACY.indexOf(t) < 0; }); }
+  /* "30-foot cone", "basic Reflex", "4d6 fire" — the area/save/damage line as words */
+  function areaText(d){ var sz = String(d.areaSize || "").trim(), sh = d.areaShape && d.areaShape !== "other" ? d.areaShape : ""; return [sz, sh].filter(Boolean).join(" "); }
+  function saveText(d){ return d.save ? (d.saveBasic ? "basic " : "") + d.save : ""; }
+  function aosParts(d){
+    var out = [], a = areaText(d), sv = saveText(d), dm = String(d.damage || "").trim();
+    if(a) out.push(["Area", a]); if(sv) out.push(["Save", sv]); if(dm) out.push(["Damage", dm]);
+    return out;
+  }
+  function relatedOf(d){
+    return (Array.isArray(d.related) ? d.related : []).filter(function(g){ return g && (String(g.k || "").trim() || String(g.text || "").trim()); });
+  }
   /* Action icons as inline SVG, drawn after the Paizo glyphs: a diamond notched with a
      chevron, plus one chevron per extra action; a hooked arrow; a hollow diamond. */
   var ICON = (function(){
@@ -981,6 +1090,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   /* ---------------- grants: one row per thing the feat hands out ----------------
      Each row is a kind (picked from GRANTS or typed) and a line of detail. There is always one
      empty row at the bottom to start the next grant; it only shows while blank fields are on. */
+  var relBody = $("relBody"), relSec = $("relSec");
+  function isRel(row){ return !!row.closest("#relBody"); }
   function grantRow(g){
     g = g || {};
     var row = document.createElement("div"); row.className = "grant";
@@ -995,36 +1106,46 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   function setGrantKind(row, k){
     row.dataset.k = k;
     row.querySelector(".gk").textContent = k;
-    row.querySelector(".gt").dataset.ph = k ? grantHint(k) : "";
+    row.querySelector(".gt").dataset.ph = k ? (isRel(row) ? relHint(k) : grantHint(k)) : "";
+    row.querySelector(".gk").setAttribute("aria-label", isRel(row) ? "How it's related" : "Kind of grant");
   }
-  function grantRows(){ return Array.prototype.slice.call(grantBody.querySelectorAll(".grant")); }
+  function grantRows(body){ return Array.prototype.slice.call((body || grantBody).querySelectorAll(".grant")); }
   function rowEmpty(row){ return !row.dataset.k && isEmpty(row.querySelector(".gt")); }
-  function renderGrants(list){
-    grantBody.innerHTML = "";
-    (list || []).forEach(function(g){ grantBody.appendChild(grantRow(g)); });
-    ensureSpareGrant();
+  /* body = grantBody (default) or relBody: both hold the same kind of rows */
+  function renderGrants(list, body){
+    body = body || grantBody;
+    body.innerHTML = "";
+    list = list || [];
+    list.forEach(function(g){ body.appendChild(grantRow(g)); });
+    /* the hint depends on which body the row is in, so set kinds once they're placed */
+    grantRows(body).forEach(function(r, i){ setGrantKind(r, (list[i] || {}).k || ""); });
+    ensureSpareGrant(body);
   }
-  function ensureSpareGrant(){
-    var rows = grantRows(), last = rows[rows.length - 1];
-    if(!last || !rowEmpty(last)){ last = grantRow(); grantBody.appendChild(last); rows.push(last); }
+  function ensureSpareGrant(body){
+    if(!body){ ensureSpareGrant(grantBody); ensureSpareGrant(relBody); return; }
+    var rows = grantRows(body), last = rows[rows.length - 1];
+    if(!last || !rowEmpty(last)){ last = grantRow(); body.appendChild(last); setGrantKind(last, ""); rows.push(last); }
     rows.forEach(function(r){ r.classList.toggle("spare", r === last); });
   }
-  grantBody.addEventListener("click", function(e){
-    var row = e.target.closest(".grant"); if(!row) return;
-    if(e.target.classList.contains("gx")){ row.remove(); ensureSpareGrant(); refresh(); saveDraft(); return; }
-    if(e.target.classList.contains("gk")) openPicker(row);
+  [grantBody, relBody].forEach(function(body){
+    body.addEventListener("click", function(e){
+      var row = e.target.closest(".grant"); if(!row) return;
+      if(e.target.classList.contains("gx")){ row.remove(); ensureSpareGrant(body); refresh(); saveDraft(); return; }
+      if(e.target.classList.contains("gk")) openPicker(row);
+    });
+    body.addEventListener("keydown", function(e){
+      if(e.target.classList.contains("gk") && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openPicker(e.target.closest(".grant")); }
+      /* Enter at the end of a row starts the next one rather than a new line */
+      if(e.target.classList.contains("gt") && e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        ensureSpareGrant(body);
+        var rows = grantRows(body), next = rows[rows.indexOf(e.target.closest(".grant")) + 1];
+        if(next) openPicker(next);
+      }
+    });
   });
-  grantBody.addEventListener("keydown", function(e){
-    if(e.target.classList.contains("gk") && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openPicker(e.target.closest(".grant")); }
-    /* Enter at the end of a grant starts the next one rather than a new line */
-    if(e.target.classList.contains("gt") && e.key === "Enter" && !e.shiftKey){
-      e.preventDefault();
-      ensureSpareGrant();
-      var rows = grantRows(), next = rows[rows.indexOf(e.target.closest(".grant")) + 1];
-      if(next) openPicker(next);
-    }
-  });
-  renderGrants([]);
+  function relRows(){ return grantRows(relBody); }
+  renderGrants([]); renderGrants([], relBody);
 
   /* ---------------- the feat's own action cost (none, or one of the five) ---------------- */
   $("selfPick").innerHTML = ATYPES.map(function(t){
@@ -1072,10 +1193,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     for(var i = 0; i < chg; i++) usedFlags.push(!!used[i]);   /* no holes or undefineds in the record */
     var d = {traits:traits.slice(), c:{}, chg:chg, used:usedFlags, imgW:imgW, imgAr:imgAr,
              cat:catSel.value, cost:cost, bodyScale:bodyScale, nameScale:nameScale};
-    d.grants = grantRows().filter(function(r){ return !rowEmpty(r); }).map(function(r){
+    var rowsData = function(rows){ return rows.filter(function(r){ return !rowEmpty(r); }).map(function(r){
       var gt = r.querySelector(".gt");
       return {k:r.dataset.k || "", text:gt.innerText, html:richHtml(gt)};
-    });
+    }); };
+    d.grants = rowsData(grantRows());
+    d.related = rowsData(relRows());
+    d.areaShape = $("areaShape").value; d.save = $("saveType").value; d.saveBasic = $("saveBasic").checked;
     texts().forEach(function(el){
       /* one-line fields as typed (innerText would hand back the caps the card displays them in) */
       d[el.dataset.f] = RICH.indexOf(el.dataset.f) >= 0 ? el.innerText : el.textContent;
@@ -1117,6 +1241,10 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     checks().forEach(function(el){ el.checked = !!(d.c && d.c[el.dataset.c]); });
     renderActionSections(actionsOf(d));
     renderGrants(grantsOf(d));
+    renderGrants(relatedOf(d), relBody);
+    $("areaShape").value = AREA_SHAPES.indexOf(d.areaShape) >= 0 ? d.areaShape : "";
+    $("saveType").value = /^(Fortitude|Reflex|Will)$/.test(d.save || "") ? d.save : "";
+    $("saveBasic").checked = !!d.saveBasic;
     setCost(d.cost || "");
     catSel.value = d.cat || ""; if(catSel.selectedIndex < 0) catSel.value = "";
     traits = orderTraits(d.traits || splitTraits(d.traitsText));
@@ -1341,8 +1469,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(grantFor){
       var k = grantFor.dataset.k || "";
       if(k) sel.appendChild(chip(k, true));
-      $("sugLabel").textContent = "What the feat gives";
-      GRANT_KINDS.filter(match).forEach(function(t){ sug.appendChild(chip(t, t === k)); });
+      $("sugLabel").textContent = isRel(grantFor) ? "How it's related" : "What the feat gives";
+      (isRel(grantFor) ? REL_KINDS : GRANT_KINDS).filter(match).forEach(function(t){ sug.appendChild(chip(t, t === k)); });
       return;
     }
     traits.forEach(function(t){ sel.appendChild(chip(t, true)); });
@@ -1369,7 +1497,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   function pickKind(k){
     var row = grantFor;
     setGrantKind(row, row.dataset.k === k ? "" : k);
-    ensureSpareGrant(); refresh(); saveDraft(); closePicker();
+    ensureSpareGrant(row.closest(".body")); refresh(); saveDraft(); closePicker();
   }
   function pick(name){ if(grantFor) pickKind(name); else toggleTrait(name); }
   traitLine.addEventListener("click", function(){ openPicker(); });
@@ -1383,7 +1511,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     if(e.key !== "Enter") return;
     e.preventDefault();
     var q = search.value.trim(); if(!q) return;
-    var list = grantFor ? GRANT_KINDS : ALL_TRAITS;
+    var list = grantFor ? (isRel(grantFor) ? REL_KINDS : GRANT_KINDS) : ALL_TRAITS;
     var hit = list.filter(function(t){ return t.toLowerCase() === q.toLowerCase(); })[0];
     pick(hit || q.replace(/\b\w/g, function(c){ return c.toUpperCase(); }));
     if(grantFor || picker.hidden) return;
@@ -1456,22 +1584,33 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var hasGrants = grantRows().some(function(r){ return !rowEmpty(r); });
     /* No grants (and not showing blanks): image centres above a full-width description. */
     cardEl.classList.toggle("stacked", !hasGrants && !blanksOn());
-    pane.querySelectorAll(".rq").forEach(function(l){ l.classList.toggle("blank", isEmpty(l.querySelector("[data-f]"))); });
+    pane.querySelectorAll(".rq:not(.aos)").forEach(function(l){ l.classList.toggle("blank", isEmpty(l.querySelector("[data-f]"))); });
+    /* area / save / damage: each part hides when empty; the line hides when all three are */
+    var aos = {area:!isEmpty(pane.querySelector('[data-f="areaSize"]')) || !!$("areaShape").value,
+               save:!!$("saveType").value, damage:!isEmpty(pane.querySelector('[data-f="damage"]'))};
+    pane.querySelectorAll("#aosRow .ap").forEach(function(a){ a.classList.toggle("blank", !aos[a.dataset.ap]); });
+    $("aosRow").classList.toggle("blank", !aos.area && !aos.save && !aos.damage);
+    var hasRel = relRows().some(function(r){ return !rowEmpty(r); });
     pane.querySelectorAll(".sec").forEach(function(sec){
       var filled = false;
       sec.querySelectorAll("[data-f]").forEach(function(el){ if(!isEmpty(el)) filled = true; });
       if(sec.querySelector(".pl.on")) filled = true;
       if(sec.classList.contains("desc") && img.src) filled = true;   /* an image is content too */
       if(sec === grantSec && hasGrants) filled = true;
+      if(sec === relSec && hasRel) filled = true;
+      if(sec.id === "reqSec" && (aos.area || aos.save || aos.damage)) filled = true;
       sec.classList.toggle("blank", !filled);
     });
     photo.classList.toggle("blank", !img.src);
-    traitLine.textContent = traits.join(" | ");
+    traitLine.textContent = shownTraits(traits).join(" | ");
+    traitLine.title = hideLegacy && shownTraits(traits).length < traits.length ? "Legacy traits are hidden (Options). They're still on the card: " + traits.filter(function(t){ return LEGACY.indexOf(t) >= 0; }).join(", ") : "";
+    $("srcRow").classList.toggle("blank", isEmpty(pane.querySelector('[data-f="source"]')));
+    pane.querySelector('[data-f="tier"]').classList.toggle("blank", isEmpty(pane.querySelector('[data-f="tier"]')));
     renderCharges();
     var f = function(name){ return pane.querySelector('[data-f="' + name + '"]'); };
     var noCharges = chg === 0 && isEmpty(f("per"));
     $("charges").classList.toggle("blank", noCharges);
-    $("catRow").classList.toggle("blank", !catSel.value && isEmpty(f("note")) && noCharges);
+    $("catRow").classList.toggle("blank", !catSel.value && isEmpty(f("note")) && isEmpty(f("tier")) && noCharges);
     $("traitRow").classList.toggle("blank", traits.length === 0 && isEmpty(f("level")));
     nameScale = fitName(cardEl);
     bodyScale = fitCard(cardEl);
@@ -1486,7 +1625,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     var t = e.target;
     if(t && t.dataset && t.dataset.t && t.closest(".sec.active")){ setSlotType(t.closest(".sec.active"), t.checked ? t.dataset.t : ""); refresh(); saveDraft(); return; }
     if(t && t.dataset && t.dataset.cost){ setCost(t.checked ? t.dataset.cost : ""); refresh(); saveDraft(); return; }
-    if(t === catSel || (t && t.dataset && t.dataset.c)){ refresh(); saveDraft(); }
+    if(t === catSel || t === $("areaShape") || t === $("saveType") || t === $("saveBasic") || (t && t.dataset && t.dataset.c)){ refresh(); saveDraft(); }
   });
   document.addEventListener("paste", function(e){
     if(!e.target || !e.target.isContentEditable) return;
@@ -1530,6 +1669,27 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   $("example").addEventListener("click", function(){ var d = JSON.parse(JSON.stringify(EXAMPLE)); d.id = null; load(d); saveDraft(); });
   $("clear").addEventListener("click", function(){ load({id:currentId, blanks:true}); saveDraft(); pane.querySelector('[data-f="name"]').focus(); });
   $("newCard").addEventListener("click", function(){ load({blanks:true}); saveDraft(); showView("editor"); pane.querySelector('[data-f="name"]').focus(); });
+  AREA_SHAPES.forEach(function(sh){ var o = document.createElement("option"); o.value = sh; o.textContent = sh; $("areaShape").appendChild(o); });
+  /* New tier: the same feat as a fresh, unsaved card with the tier to fill in; saved, it stacks with this one. */
+  $("tierCopy").addEventListener("click", function(){
+    var d = collect();
+    d.image = img.data; d.imageId = img.id; d.imageSrc = img.src; d.imageMeta = img.meta;
+    d.id = null; d.tier = ""; d.blanks = true;
+    load(d); saveDraft(); showView("editor");
+    var t = pane.querySelector('[data-f="tier"]'); t.focus();
+    toast("New tier of " + (d.name || "this feat") + " — name the tier, change what's different, then Save");
+  });
+  function setLegacy(on){
+    hideLegacy = !!on;
+    $("legacyTog").setAttribute("aria-pressed", hideLegacy ? "true" : "false");
+    try{ localStorage.setItem("pf2e-feat-legacy", hideLegacy ? "1" : "0"); }catch(e){}
+  }
+  setLegacy(hideLegacy);
+  $("legacyTog").addEventListener("click", function(){
+    setLegacy(!hideLegacy); refresh();
+    if(!$("libraryView").hidden) renderGallery();
+    if(!$("sheetView").hidden) renderSheet();
+  });
 
   function fitZoom(){
     var room = Math.min(window.innerWidth - 24, 900), best = ZOOMS[0];
@@ -1567,9 +1727,16 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     };
     var reqs = REQ.filter(function(r){ return has(d[r[0]]); });
     if(opts.blanks) reqs = [REQ[0], REQ[3], REQ[4]];
-    var reqHtml = reqs.length ? '<section class="sec req"><div class="body">' + reqs.map(function(r){
+    var aos = opts.blanks ? [["Area",""],["Save",""],["Damage",""]] : aosParts(d);
+    var reqHtml = (reqs.length || aos.length) ? '<section class="sec req"><div class="body">' + reqs.map(function(r){
       return '<span class="rq"><b>' + r[1] + '</b> <span>' + esc(d[r[0]]) + '</span></span>';
-    }).join("") + '</div></section>' : "";
+    }).join("") + (aos.length ? '<span class="rq aos">' + aos.map(function(a){ return '<span class="ap"><b>' + a[0] + '</b> ' + esc(a[1]) + '</span>'; }).join("") + '</span>' : '') +
+      '</div></section>' : "";
+    var related = relatedOf(d);
+    var relHtml = (related.length || opts.blanks) ? '<section class="sec related"><div class="sec-cap">Related</div><div class="body">' +
+      related.map(function(g){
+        return '<div class="grant"><span class="gk">' + esc(g.k) + '</span> <span class="gt">' + (g.html ? safeHtml(g.html) : esc(g.text)) + '</span></div>';
+      }).join("") + '</div></section>' : "";
     var grantHtml = (grants.length || opts.blanks) ? '<section class="sec grants"><div class="sec-cap">Grants</div><div class="body">' +
       grants.map(function(g){
         return '<div class="grant"><span class="gk">' + esc(g.k) + '</span> <span class="gt">' + (g.html ? safeHtml(g.html) : esc(g.text)) + '</span></div>';
@@ -1588,13 +1755,14 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     box.innerHTML =
       '<article class="card' + (stacked ? " stacked" : "") + '" style="--img-w:' + (d.imgW || 120) + 'px;--img-ar:' + (1 / imgAr).toFixed(3) + ';--body-scale:' + (d.bodyScale || 1) + ';--name-scale:' + (d.nameScale || 1) + '">' +
         '<h2 class="c-name"><span class="nm">' + esc(d.name) + '</span><span class="ncost glyph">' + (ICON[d.cost] && ATYPES.indexOf(d.cost) >= 0 ? ICON[d.cost] : "") + '</span></h2>' +
-        ((d.cat || has(d.note) || d.chg > 0 || has(d.per) || opts.blanks) ?
+        ((d.cat || has(d.note) || has(d.tier) || d.chg > 0 || has(d.per) || opts.blanks) ?
           '<div class="c-cat"><span class="c-left"><span>' + esc(d.cat || (opts.blanks ? "Feat type" : "")) + '</span>' +
-            (has(d.note) ? '<span class="note">' + esc(d.note) + '</span>' : '') + '</span>' +
+            (has(d.note) ? '<span class="note">' + esc(d.note) + '</span>' : '') +
+            (has(d.tier) ? '<span class="tier">' + esc(d.tier) + '</span>' : '') + '</span>' +
             ((d.chg > 0 || has(d.per) || opts.blanks) ? '<span class="charges"><span class="dots">' + dotsHtml(d.chg || 0, d.used || []) + '</span>' +
               ((has(d.per) || opts.blanks) ? '<span class="per">/ ' + esc(d.per) + '</span>' : '') + '</span>' : '') + '</div>' : '') +
-        (((d.traits || []).length || level) ?
-          '<div class="c-meta"><span class="traits">' + esc((d.traits || []).join(" | ")) + '</span><span class="lvl">' + level + '</span></div>' : '') +
+        ((shownTraits(d.traits).length || level) ?
+          '<div class="c-meta"><span class="traits">' + esc(shownTraits(d.traits).join(" | ")) + '</span><span class="lvl">' + level + '</span></div>' : '') +
         reqHtml +
         '<section class="sec desc"><div class="sec-cap">Description</div><div class="flow">' +
           ((src || opts.blanks) ? '<div class="photo' + (src ? " has-img" : "") + '">' + (src ? '<img alt=""' + cors(src) + ' src="' + esc(src) + '">' : '') + '</div>' : '') +
@@ -1602,6 +1770,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
         grantHtml +
         actions +
         sec("special", "Special", "special") +
+        relHtml +
+        ((has(d.source) || opts.blanks) ? '<div class="c-src">' + esc(d.source || "") + '</div>' : '') +
       '</article>';
     return box;
   }
@@ -1772,7 +1942,8 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   }
   var HEAD_LABELS = {"prerequisites":"prereq", "prerequisite":"prereq", "access":"access", "frequency":"freq",
     "trigger":"trigger", "requirements":"reqs", "requirement":"reqs", "archetype":"note", "archetypes":"note",
-    "source":"", "pfs note":"", "pfs":"", "cost":"", "legacy content":"", "remastered":"", "effect":""};
+    "source":"source", "area":"areaRaw", "saving throw":"saveRaw", "save":"saveRaw",
+    "pfs note":"", "pfs":"", "cost":"", "legacy content":"", "remastered":"", "effect":""};
   var SKILLS = ["Acrobatics","Arcana","Athletics","Crafting","Deception","Diplomacy","Intimidation","Medicine",
     "Nature","Occultism","Performance","Religion","Society","Stealth","Survival","Thievery"];
   function cap1(s){ s = String(s || "").trim(); return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -1834,6 +2005,18 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       if(L.key === "note") d.note = L.rest.replace(/\*$/, "");
       else if(L.key) d[L.key] = L.rest;
     }
+    /* "Area 30-foot cone" / "Saving Throw basic Reflex" lines, when the text has them */
+    if(d.areaRaw){
+      var am = /^(.*?)\s*\b(burst|cone|emanation|line|cylinder|cube)\b\s*$/i.exec(d.areaRaw.replace(/[;.]\s*$/, ""));
+      if(am){ d.areaSize = am[1].trim(); d.areaShape = am[2].toLowerCase(); } else { d.areaSize = d.areaRaw; d.areaShape = "other"; }
+      delete d.areaRaw;
+    }
+    if(d.saveRaw){
+      var sm = /(fortitude|reflex|will)/i.exec(d.saveRaw);
+      if(sm){ d.save = cap1(sm[1].toLowerCase()); d.saveBasic = /\bbasic\b/i.test(d.saveRaw); }
+      delete d.saveRaw;
+    }
+    if(d.source) d.source = d.source.replace(/\s+\d+\.\d+\s*$/, "").replace(/\bpg\.\s*/i, "p. ");
     /* the body: description paragraphs, actions, and Special; "X leads to…" and after is dropped */
     var desc = [];
     for(; i < lines.length; i++){
@@ -1992,6 +2175,57 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
   $("importName").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); runImport(); } });
   scrim.addEventListener("click", function(){ if(!importModal.hidden) closeImport(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !importModal.hidden) closeImport(); });
+  /* ---------------- card packs (packs/feat-packs.js) ---------------- */
+  /* A pack entry is feat text in the Import box's shape; "Awakening …" paragraphs are set in bold.
+     Ids are fixed per entry, so a pack added twice updates its cards rather than copying them. */
+  var PACKS = (window.TB_PACKS && window.TB_PACKS.feat) || [];
+  function packCard(pack, e){
+    var d = parseFeat(e.text);
+    if(!d || !d.name) return null;
+    if(e.note && !d.note) d.note = e.note;
+    ["tier","areaSize","areaShape","save","saveBasic","damage","related"].forEach(function(k){ if(e[k] !== undefined) d[k] = e[k]; });
+    d.c = {}; d.bodyScale = 1; d.nameScale = 1;
+    d.source = pack.source + (e.page ? ", p. " + e.page : ""); d.pack = pack.id;
+    return d;
+  }
+  function addPack(pack, btn){
+    btn.disabled = true;
+    var have = {}; Lib.cards.forEach(function(c){ have[c.id] = 1; });
+    var added = 0, updated = 0, jobs = [];
+    pack.entries.forEach(function(e){
+      var d = packCard(pack, e), id = "pk-" + pack.id + "-" + e.slug;
+      if(!d) return;
+      if(have[id]) updated++; else added++;
+      jobs.push(function(){ return Lib.save(d, id); });
+    });
+    /* one at a time: the cloud and db stores count each save */
+    jobs.reduce(function(p, job){ return p.then(job); }, Promise.resolve()).then(function(){
+      toast(pack.name + ": " + added + " added" + (updated ? ", " + updated + " updated" : ""));
+      closePack(); showView("library");
+    }, function(e){ toast("Couldn't add every card — " + errText(e), 5000); })
+      .then(function(){ btn.disabled = false; });
+  }
+  var packModal = $("packModal");
+  function openPack(){
+    var list = $("packList"); list.innerHTML = "";
+    PACKS.forEach(function(pack){
+      var box = document.createElement("div"); box.className = "pack";
+      box.innerHTML = '<h4>' + esc(pack.name) + '</h4><p>' + esc(pack.blurb || "") + '</p>' +
+        '<div class="modal-row" style="margin-top:0"><span class="src">' + esc(pack.source) + ' · ' + pack.entries.length + ' cards</span>' +
+        '<span class="grow"></span><button class="btn solid">Add ' + pack.entries.length + ' cards</button></div>';
+      var b = box.querySelector("button");
+      b.addEventListener("click", function(){ addPack(pack, b); });
+      list.appendChild(box);
+    });
+    packModal.hidden = false; scrim.hidden = false;
+  }
+  function closePack(){ packModal.hidden = true; scrim.hidden = true; }
+  if(PACKS.length) $("packBtn").hidden = false;
+  $("packBtn").addEventListener("click", openPack);
+  $("packClose").addEventListener("click", closePack);
+  scrim.addEventListener("click", function(){ if(!packModal.hidden) closePack(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !packModal.hidden) closePack(); });
+
   /* ---------------- library view ---------------- */
   var sortMode = "created", selected = [];
   try{ selected = JSON.parse(localStorage.getItem(SEL)) || []; }catch(e){}
@@ -2006,34 +2240,84 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
     return a;
   }
   function fmtDate(s){ if(!s) return "—"; var d = new Date(s); return isNaN(d) ? "—" : d.toLocaleDateString(undefined, {month:"short", day:"numeric"}); }
+  /* Versions of one feat (same name, different tier) stack into one tile. The tile shows the
+     version picked for the sheet, or the base feat when none is; tapping it fans the stack out
+     into a row of every version. */
+  var fanned = {};
+  function groupKey(d){ var n = String(d.name || "").trim().toLowerCase(); return n ? "n:" + n : "id:" + d.id; }
+  function tierRank(d){ return String(d.tier || "").trim() ? 1 : 0; }
+  function groups(){
+    var order = [], by = {};
+    sorted().forEach(function(d){
+      var k = groupKey(d);
+      if(!by[k]){ by[k] = []; order.push(k); }
+      by[k].push(d);
+    });
+    return order.map(function(k){
+      var list = by[k].slice().sort(function(a, b){
+        return (tierRank(a) - tierRank(b)) || String(a.tier || "").localeCompare(String(b.tier || "")) || (a.createdAt || "").localeCompare(b.createdAt || "");
+      });
+      return {key:k, cards:list};
+    });
+  }
+  function tierBadge(d, n){
+    var t = String(d.tier || "").trim();
+    return '<span class="gtier' + (t ? " up" : "") + '" title="' + esc(t ? "Tier: " + t : "The base feat") + '">' + esc(t || "Base") +
+      (n > 1 ? '<span class="n">· ' + n + ' versions</span>' : '') + '</span>';
+  }
+  function tile(d, o){
+    o = o || {};
+    var w = document.createElement("div");
+    w.className = "gcard" + (selected.indexOf(d.id) >= 0 ? " sel" : "") + (o.stack ? " stack" : ""); w.tabIndex = 0; w.dataset.id = d.id;
+    if(o.stack) w.dataset.group = o.stack;
+    var cb = document.createElement("input"); cb.type = "checkbox"; cb.className = "gsel"; cb.checked = selected.indexOf(d.id) >= 0;
+    cb.setAttribute("aria-label", "Select " + (String(d.tier || "").trim() || "base") + " version for the sheet");
+    w.appendChild(cb);
+    if(!o.stack){ var del = document.createElement("button"); del.className = "gdel"; del.innerHTML = "&times;"; del.title = "Delete card"; w.appendChild(del); }
+    w.appendChild(renderCard(d));
+    if(o.badge) w.insertAdjacentHTML("beforeend", tierBadge(d, o.n || 1));
+    var meta = document.createElement("div"); meta.className = "gmeta";
+    meta.innerHTML = "<b>" + esc([d.cat, (d.level || "").trim() ? "feat " + d.level.trim() : ""].filter(Boolean).join(" · ") || "untyped") + "</b><span>" + (sortMode === "edited" ? "edited " + fmtDate(d.updatedAt) : "made " + fmtDate(d.createdAt)) + "</span>";
+    w.appendChild(meta);
+    if(o.stack) w.title = "Tap to see all " + o.n + " versions";
+    return w;
+  }
   function renderGallery(){
     var g = $("gallery"); g.innerHTML = "";
     var list = sorted();
     $("libEmpty").hidden = list.length > 0;
     selected = selected.filter(function(id){ return Lib.cards.some(function(c){ return c.id === id; }); });
-    list.forEach(function(d){
-      var w = document.createElement("div");
-      w.className = "gcard" + (selected.indexOf(d.id) >= 0 ? " sel" : ""); w.tabIndex = 0; w.dataset.id = d.id;
-      var cb = document.createElement("input"); cb.type = "checkbox"; cb.className = "gsel"; cb.checked = selected.indexOf(d.id) >= 0; cb.setAttribute("aria-label", "Select for the sheet");
-      var del = document.createElement("button"); del.className = "gdel"; del.innerHTML = "&times;"; del.title = "Delete card";
-      w.appendChild(cb); w.appendChild(del); w.appendChild(renderCard(d));
-      var meta = document.createElement("div"); meta.className = "gmeta";
-      meta.innerHTML = "<b>" + esc([d.cat, (d.level || "").trim() ? "feat " + d.level.trim() : ""].filter(Boolean).join(" · ") || "untyped") + "</b><span>" + (sortMode === "edited" ? "edited " + fmtDate(d.updatedAt) : "made " + fmtDate(d.createdAt)) + "</span>";
-      w.appendChild(meta);
-      g.appendChild(w);
+    groups().forEach(function(gr){
+      var cards = gr.cards;
+      if(cards.length === 1){ g.appendChild(tile(cards[0], {badge:String(cards[0].tier || "").trim() !== ""})); return; }
+      if(fanned[gr.key]){
+        var fan = document.createElement("div"); fan.className = "gfan"; fan.dataset.group = gr.key;
+        fan.innerHTML = '<div class="gfan-head"><b>' + esc(cards[0].name) + '</b><span>' + cards.length + ' versions</span><span class="grow"></span><button class="btn gfold" type="button">Stack them</button></div>';
+        var row = document.createElement("div"); row.className = "gfan-row";
+        cards.forEach(function(d){ row.appendChild(tile(d, {badge:true})); });
+        fan.appendChild(row); g.appendChild(fan);
+        return;
+      }
+      var top = cards.filter(function(c){ return selected.indexOf(c.id) >= 0; })[0] || cards[0];
+      g.appendChild(tile(top, {stack:gr.key, badge:true, n:cards.length}));
     });
     /* Stored scales predate edits to the layout; fit again so the thumbnails match the print. */
     whenFontsReady(function(){ g.querySelectorAll(".card").forEach(function(c){ fitName(c); fitCard(c); }); });
     $("toSheet").textContent = "Print sheet (" + selected.length + ")";
   }
   $("gallery").addEventListener("click", function(e){
+    var fold = e.target.closest(".gfold");
+    if(fold){ delete fanned[fold.closest(".gfan").dataset.group]; renderGallery(); return; }
     var w = e.target.closest(".gcard"); if(!w) return;
     var id = w.dataset.id;
+    /* a stack: the box picks its top version; anywhere else fans it out */
+    if(w.dataset.group && !e.target.classList.contains("gsel")){ fanned[w.dataset.group] = 1; renderGallery(); return; }
     if(e.target.classList.contains("gsel")){
       var i = selected.indexOf(id);
       if(e.target.checked && i < 0) selected.push(id); else if(!e.target.checked && i >= 0) selected.splice(i, 1);
       w.classList.toggle("sel", e.target.checked); saveSel();
       $("toSheet").textContent = "Print sheet (" + selected.length + ")";
+      if(w.dataset.group) renderGallery();   /* the stack's top follows what's picked */
       return;
     }
     if(e.target.classList.contains("gdel")){
@@ -2230,7 +2514,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
 
     /* category row: category + note left, charges right */
     var chg = d.chg || 0, cons = chg > 0 || has(d.per);
-    if(d.cat || has(d.note) || cons || opts.blanks){
+    if(d.cat || has(d.note) || has(d.tier) || cons || opts.blanks){
       y += 3; var rf = 8.5, rlh = rf * 1.35, base = y + rlh * 0.5 + rf * 0.35;
       var rightW = 0;
       if(cons){
@@ -2248,11 +2532,13 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       setFont("Caps", "bold", rf); color(ACCENT);
       var catTxt = up(d.cat || (opts.blanks ? "Feat type" : ""));
       text(catTxt, x0, base, {charSpace:pt(0.9)});
-      if(has(d.note)){ color(INK); text(up(d.note), x0 + width(catTxt) + 0.9 * catTxt.length + 6, base, {charSpace:pt(0.5)}); }
+      var nx = x0 + width(catTxt) + 0.9 * catTxt.length + (catTxt ? 6 : 0);
+      if(has(d.note)){ color(INK); text(up(d.note), nx, base, {charSpace:pt(0.5)}); nx += width(up(d.note)) + 0.5 * d.note.length + 6; }
+      if(has(d.tier)){ var tt = (nx > x0 ? "\u00B7 " : "") + up(d.tier); color(INK2); text(tt, nx, base, {charSpace:pt(0.5)}); }
       y += rlh;
     }
     /* traits row: traits left (wrapping), FEAT n right */
-    var traits = (d.traits || []).join(" | ");
+    var traits = shownTraits(d.traits).join(" | ");
     if(traits || has(d.level) || opts.blanks){
       y += 2.5; var tf = 9.5, tlh2 = tf * 1.35;
       setFont("Sub", "bold", tf); color(INK);
@@ -2341,16 +2627,30 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       reqRuns.push({t:r[1] + " ", b:true, i:false});
       reqRuns = reqRuns.concat(runsOf("", d[r[0]] || ""));
     });
+    /* area / save / damage share one line */
+    var aos = opts.blanks ? [["Area",""],["Save",""],["Damage",""]] : aosParts(d);
+    if(aos.length){
+      if(reqRuns.length) reqRuns.push({t:"\n", b:false, i:false});
+      aos.forEach(function(a, k){
+        reqRuns.push({t:(k ? "   " : "") + a[0] + " ", b:true, i:false});
+        if(a[1]) reqRuns.push({t:a[1], b:false, i:false});
+        else reqRuns.push({t:"            ", b:false, i:false});
+      });
+    }
+    var related = relatedOf(d);
     /* the req block has no caption: .4em above it, then .25em and a rule under it */
     var REQ_GAP = 4, REQ_TAIL = 2.5 + 1;
     var secs = [];
-    if(reqs.length) secs.push({label:null, w:0, gap:REQ_GAP, tail:REQ_TAIL, body:function(){ return bodyRuns(reqRuns, null); }});
+    if(reqRuns.length) secs.push({label:null, w:0, gap:REQ_GAP, tail:REQ_TAIL, body:function(){ return bodyRuns(reqRuns, null); }});
     secs.push({label:"Description", w:3, extra:null, body:descBody});
     if(grants.length || opts.blanks) secs.push({label:"Grants", w:2, extra:null, body:function(){ return bodyRuns(runsOf(grantsHtml(grants), ""), null); }});
     /* One section per action; a blank card gets a single generic Action section. */
     if(opts.blanks) secs.push({label:"Action", w:2, extra:null, body:function(){ return bodyRuns([], null); }});
     else actions.forEach(function(a){ secs.push({label:ALABEL[a.type], w:2, extra:actionCap(a), body:function(){ return bodyRuns(runsOf(a.html, a.text), null); }}); });
     if(has(d.special) || opts.blanks) secs.push({label:"Special", w:1, extra:null, body:function(){ return body("special", null); }});
+    if(related.length || opts.blanks) secs.push({label:"Related", w:1, extra:null, body:function(){ return bodyRuns(runsOf(grantsHtml(related), ""), null); }});
+    /* the source is small print pinned to the foot of the card; the sections share what's above it */
+    var srcF = 7.8, srcH = (has(d.source) || opts.blanks) ? srcF * 1.35 + 4.5 : 0;
     secs.forEach(function(s){ s.head = s.label === null ? 0 : CAP_BLOCK; s.gap = s.gap || SEC_GAP; s.tail = s.tail || 0; });
 
     /* pass 1: natural heights (caption block + body), measured without drawing */
@@ -2361,7 +2661,7 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       natSum += s.nat; wsum += s.w; gaps += s.gap;
     });
     y = yTop;
-    var free = (Y + H - BORDER - PADB) - y - gaps;
+    var free = (Y + H - BORDER - PADB) - y - gaps - srcH;
     var spill = Math.max(0, natSum - free);
     secs.forEach(function(s){
       s.box = spill > 0 ? s.nat - spill * s.nat / natSum : s.nat + (free - natSum) * s.w / wsum;
@@ -2380,6 +2680,12 @@ p.empty{text-align:center; color:var(--ink-3); font-style:italic; padding:3rem 1
       if(s.tail) rule(x0, x0 + cw, bottom - 0.5, 1, RULE);
       y = bottom;
     });
+    if(srcH && has(d.source) && !measure){
+      setFont("Caps", "normal", srcF); color(INK3);
+      var st = up(d.source);
+      while(st.length > 4 && width(st) + 0.47 * st.length > cw) st = st.slice(0, -2);
+      text(st, x0 + cw, Y + H - BORDER - PADB - srcF * 0.3, {align:"right", charSpace:pt(0.47)});
+    }
     return spill;
   }
   /* The title wrapped to a width, with room for the feat's cost glyph after the last word (it drops to a
