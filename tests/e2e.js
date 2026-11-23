@@ -131,6 +131,26 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
   await page.click('#importBtn'); await page.fill('#importText', S.item); await page.click('#importGo');
   ok(/looks like an item/.test(await page.textContent('#importNote')), 'initiative offers an item to Item Cards');
 
+  // 9. every tool saves through TB.saveToLibrary and prints through TB.pdf.sheet (or its browser sheet)
+  for (const [pg, sample] of [['item-cards.html', S.item], ['spell-cards.html', S.spell], ['initiative-cards.html', S.creature], ['hazard-cards.html', S.hazard]]) {
+    await page.goto(BASE + 'index.html'); await page.fill('#anyText', sample);
+    await Promise.all([page.waitForNavigation(), page.click('#anyGo')]); await page.waitForTimeout(900);
+    ok(page.url().endsWith(pg), pg + ': paste landed');
+    await page.click('#saveCard'); await page.waitForTimeout(300); await page.click('#previewSave'); await page.waitForTimeout(900);
+    const ids = await page.evaluate(() => new Promise(res => { const r = indexedDB.open('toolbag', 1); r.onsuccess = () => { const st = r.result.transaction('kv').objectStore('kv'); const q = st.getAllKeys(); q.onsuccess = () => { const keys = q.result.filter(k => /lib/.test(k)); const out = {}; let n = keys.length; if (!n) res(out); keys.forEach(k => { const g = st.get(k); g.onsuccess = () => { out[k] = (g.result || []).map(c => ({ id: c.id, name: c.name })); if (!--n) res(out); }; }); }; }; }));
+    const mine = Object.entries(ids).find(([k, v]) => v.some(c => c.name && sample.indexOf(c.name) >= 0));
+    ok(!!mine, pg + ': saved to its library ' + (mine ? mine[0] : JSON.stringify(ids)));
+    if (!mine) continue;
+    const id = mine[1].find(c => sample.indexOf(c.name) >= 0).id;
+    await page.evaluate(() => { TB.JSPDF = { url: '/_test/jspdf-mock.js', sri: '' }; window.__pdf = null; });
+    const out = await page.evaluate(id => window.TBExport.pdf([id]).then(v => v && v.images ? 'images:' + v.images.length : (v instanceof Blob ? 'blob' : String(v))), id);
+    if (pg === 'hazard-cards.html') ok(/^images:1$/.test(out), pg + ': browser sheet rendered (' + out + ')');
+    else {
+      const t = await page.evaluate(() => window.__pdf ? window.__pdf.calls.filter(c => c.op === 'text').map(c => c.t).join(' | ') : '');
+      ok(out === 'blob' && /TX 9-307-067/.test(t), pg + ': PDF built through the shared print pass');
+    }
+  }
+
   ok(errors.length === 0, 'no script errors during the run ' + (errors.length ? JSON.stringify(errors) : ''));
   await browser.close();
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

@@ -63,7 +63,7 @@
     imgScale:100
   };
 
-  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function esc(s){ return TB.esc(s); }
   var SMALL = {not:1, and:1, or:1, of:1, to:1, from:1, except:1, the:1, a:1, an:1, in:1, with:1, vs:1};
   function titleCase(s){
     return String(s || "").replace(/[A-Za-z][A-Za-z'’.]*/g, function(w){
@@ -281,10 +281,7 @@
   function saveDraft(){
     var d = collect();
     d.id = currentId; d.zoom = zoom;
-    d.image = img.data; d.imageId = img.id; d.imageSrc = img.src; d.imageMeta = img.meta; d.imageDirty = img.dirty;
-    var pic = TB.splitPics(d);   /* pictures go to TB.store, and only when they change */
-    try{ localStorage.setItem(DRAFT, JSON.stringify(d)); }catch(e){}
-    TB.putPic(DRAFT, pic);
+    TB.saveDraft(DRAFT, d, img);
   }
   /* typing: re-fit once per frame, write the draft once typing pauses (and when leaving) */
   var saveDraftSoon = TB.debounce(saveDraft, 400), refreshSoon = TB.perFrame(refresh);
@@ -541,7 +538,7 @@
   phFile.addEventListener("change", function(){ loadImage(this.files[0]); this.value = ""; });
   $("phClear").addEventListener("click", function(){ setImage({src:"", data:"", id:"", meta:"", dirty:true}); refresh(); saveDraft(); });
   $("imgScale").addEventListener("input", function(){ setImgScale(+this.value); saveDraftSoon(); });
-  function hasFile(e){ var t = e.dataTransfer; return t && t.types && Array.prototype.indexOf.call(t.types, "Files") >= 0; }
+  function hasFile(e){ return TB.hasFile(e); }
   ["dragenter","dragover"].forEach(function(t){
     cardEl.addEventListener(t, function(e){ if(!hasFile(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; photo.classList.add("drop"); });
   });
@@ -557,192 +554,27 @@
     try{ localStorage.setItem("pf2e-hazard-bg", this.checked ? "on" : "off"); }catch(e){}
     toast(this.checked ? "Next picture: background removed" : "Next picture: left as is");
   });
-  function knockout(cv){
-    var w = cv.width, h = cv.height, ctx = cv.getContext("2d");
-    var im = ctx.getImageData(0, 0, w, h), d = im.data;
-    var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
-    if(corners.some(function(i){ return d[i + 3] < 24; })) return false;
-    var bg = [0, 0, 0], spread = 0;
-    for(var k = 0; k < 3; k++){
-      var vals = corners.map(function(i){ return d[i + k]; });
-      bg[k] = (vals[0] + vals[1] + vals[2] + vals[3]) / 4;
-      spread = Math.max(spread, Math.max.apply(null, vals) - Math.min.apply(null, vals));
-    }
-    if(spread > 40) return false;
-    var IN = 48, OUT = 150;
-    function dist(p){ var i = p * 4; return Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]); }
-    var seen = new Uint8Array(w * h), stack = [];
-    function push(p){ if(!seen[p] && dist(p) < OUT){ seen[p] = 1; stack.push(p); } }
-    for(var x = 0; x < w; x++){ push(x); push((h - 1) * w + x); }
-    for(var y = 0; y < h; y++){ push(y * w); push(y * w + w - 1); }
-    while(stack.length){
-      var p = stack.pop(), px = p % w, py = (p - px) / w;
-      if(px > 0) push(p - 1); if(px < w - 1) push(p + 1);
-      if(py > 0) push(p - w); if(py < h - 1) push(p + w);
-    }
-    var n = 0;
-    for(var q = 0; q < w * h; q++){
-      if(!seen[q]) continue;
-      var dd = dist(q), i = q * 4, a = dd <= IN ? 0 : Math.min(1, (dd - IN) / (OUT - IN));
-      if(a <= 0){ d[i + 3] = 0; }
-      else{
-        for(var c = 0; c < 3; c++) d[i + c] = Math.max(0, Math.min(255, Math.round((d[i + c] - (1 - a) * bg[c]) / a)));
-        d[i + 3] = Math.round(a * 255);
-      }
-      n++;
-    }
-    if(n) ctx.putImageData(im, 0, 0);
-    return n > 0;
-  }
-  function trimBox(cv){
-    var w = cv.width, h = cv.height, d = cv.getContext("2d").getImageData(0, 0, w, h).data;
-    var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
-    var alphaMode = corners.some(function(i){ return d[i + 3] < 24; });
-    var bg = [0, 0, 0];
-    if(!alphaMode){
-      var spread = 0;
-      for(var k = 0; k < 3; k++){
-        var vals = corners.map(function(i){ return d[i + k]; });
-        bg[k] = (vals[0] + vals[1] + vals[2] + vals[3]) / 4;
-        spread = Math.max(spread, Math.max.apply(null, vals) - Math.min.apply(null, vals));
-      }
-      if(spread > 40) return null;
-    }
-    var TOL = 34;
-    function isBg(i){
-      if(d[i + 3] < 24) return true;
-      if(alphaMode) return false;
-      return Math.abs(d[i] - bg[0]) + Math.abs(d[i + 1] - bg[1]) + Math.abs(d[i + 2] - bg[2]) < TOL * 3;
-    }
-    var top = -1, bottom = -1, left = w, right = -1;
-    for(var y = 0; y < h; y++){
-      var rowHas = false;
-      for(var x = 0; x < w; x++){
-        if(!isBg((y * w + x) * 4)){ rowHas = true; if(x < left) left = x; if(x > right) right = x; }
-      }
-      if(rowHas){ if(top < 0) top = y; bottom = y; }
-    }
-    if(top < 0) return null;
-    var pad = Math.round(Math.max(w, h) * 0.02);
-    left = Math.max(0, left - pad); top = Math.max(0, top - pad);
-    right = Math.min(w - 1, right + pad); bottom = Math.min(h - 1, bottom + pad);
-    var bw = right - left + 1, bh = bottom - top + 1;
-    if(bw * bh > w * h * 0.92) return null;
-    return {x:left, y:top, w:bw, h:bh};
-  }
+  function knockout(cv){ return TB.img.knockout(cv); }
+  function trimBox(cv){ return TB.img.trimBox(cv); }
+  /* a picture file → the card (TB.img.read: decode, knock out the background, trim, scale) */
   function loadImage(file, opts){
     opts = opts || {};
-    if(!file) return;
-    var isImage = /^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || "");
-    if(!isImage) return;
+    if(!TB.img.isImage(file)) return;
     photo.classList.add("busy");
-    var reader = new FileReader();
-    reader.onload = function(){
-      var im = new Image();
-      im.onload = function(){
-        var fw = im.width, fh = im.height, WORK = 1200;
-        if(fw > WORK || fh > WORK){ var fs = Math.min(WORK / fw, WORK / fh); fw = Math.round(fw * fs); fh = Math.round(fh * fs); }
-        var full = document.createElement("canvas"); full.width = fw; full.height = fh;
-        full.getContext("2d").drawImage(im, 0, 0, fw, fh);
-        function encode(src, sx, sy, sw, sh, asJpeg){
-          var max = 900, w = sw, h = sh;
-          if(w > max || h > max){ var s = Math.min(max / w, max / h); w = Math.round(w * s); h = Math.round(h * s); }
-          var out = document.createElement("canvas"); out.width = w; out.height = h;
-          out.getContext("2d").drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
-          return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:w, h:h};
-        }
-        var isJpeg = /jpe?g/i.test(file.type), v;
-        if(opts.bg === false ? false : bgToggle.checked){
-          var cut = false, box = null;
-          try{ cut = knockout(full); }catch(e){}
-          try{ box = trimBox(full); }catch(e){}
-          v = box ? encode(full, box.x, box.y, box.w, box.h, false) : encode(full, 0, 0, fw, fh, isJpeg && !cut);
-          v.meta = (isJpeg && !cut && !box ? "JPG" : "PNG") + " · " + v.w + "×" + v.h + (cut ? " · background removed" : (box ? " · trimmed" : ""));
-        }else{
-          v = encode(full, 0, 0, fw, fh, isJpeg);
-          v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
-        }
-        if(opts.credit) v.meta += " · Credit: " + opts.credit;   /* picture finder: who made it, and the licence */
+    TB.img.read(file, {work:1200, max:900, bg:opts.bg === false ? false : bgToggle.checked, credit:opts.credit, from:opts.from})
+      .then(function(v){
+        if(!v) return;
         setImage({src:v.url, data:v.url, id:"", meta:v.meta, dirty:true});
-        photo.classList.remove("busy");
         refresh(); saveDraft();
-      };
-      im.onerror = function(){ photo.classList.remove("busy"); };
-      im.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+      }, function(e){ toast("Couldn't read that picture: " + errText(e)); })
+      .then(function(){ photo.classList.remove("busy"); });
   }
 
   /* ---------------- import: a pasted hazard stat block (Archives of Nethys, a PDF, a book) ---------------- */
+  /* the hazard reader lives in tb-parse.js (TB.cards.hazard); this tool supplies its trait list */
   function parseHazardText(text){
-    var t = String(text || "").replace(/\r/g, "").replace(/[–−]/g, "-");
-    var lines = t.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
-    var out = {actions:[]}, li = -1, m;
-    /* "Hazard 3" on its own line under the name (Demiplane, the books), or "Hidden Pit Hazard 0" on one
-       line (Archives of Nethys) */
-    for(var i = 0; i < lines.length; i++){ if((m = /^(.*?)\s*\bHazard\s+(-?\d+)\s*$/i.exec(lines[i]))){ li = i; out.level = m[2]; if(m[1].trim()) out.name = m[1].trim(); break; } }
-    if(li > 0 && !out.name) out.name = lines[li - 1];
-    var typeLine = "";
-    if(li >= 0 && lines[li + 1] && !/^(Source\b|Complexity\b|Stealth\b|Disable\b|AC\s+\d|Description\b)/i.test(lines[li + 1])) typeLine = lines[li + 1];
-    var cLine = lines.filter(function(l){ return /^Complexity\s+/i.test(l); })[0];
-    var complexity = cLine ? cLine.replace(/^Complexity\s+/i, "").trim() : "";
-    /* the trait line(s) under "Hazard N": when every word is a trait we know, they go on the trait
-       line rather than the kicker; Complex / Simple stay with the kicker as the complexity */
-    out.traits = [];
-    for(var k = li + 1; li >= 0 && k < lines.length; k++){
-      var words = lines[k].split(/[\s,]+/).filter(Boolean);
-      if(!words.length || !words.every(function(w){ return TR.hazard.canon[w.toLowerCase()] || /^(complex|simple|common)$/i.test(w); })) break;
-      words.forEach(function(w){
-        if(/^(complex|simple)$/i.test(w)){ if(!complexity) complexity = titleCase(w); }
-        else if(!/^common$/i.test(w)) out.traits.push(traitName("hazard", w));
-      });
-      if(k === li + 1) typeLine = "";
-    }
-    if(li >= 0) out.kicker = ["Hazard " + (out.level || "?"), typeLine, complexity].filter(Boolean).join(" · ");
-    var flat = lines.join("\n");
-    if((m = /^Stealth\s+DC\s*(\d+)/im.exec(flat))) out.stealthDc = m[1];
-    if((m = /^Disable\s+DC\s*(\d+)/im.exec(flat))) out.disableDc = m[1];
-    if((m = /^Reset\s+(.+)$/im.exec(flat))) out.reset = m[1].trim();
-    if((m = /\bAC\s+(\d+)/.exec(flat))) out.ac = m[1];
-    if((m = /\bHardness\s+(\d+)/i.exec(flat))) out.hardness = m[1];
-    var sm = function(re){ var r = re.exec(flat); return r ? r[1] + r[2] : ""; };
-    var fort = sm(/\bFort\w*\s+([+-])\s*(\d+)/); if(fort) out.fort = fort;
-    var ref = sm(/\bRef\w*\s+([+-])\s*(\d+)/); if(ref) out.ref = ref;
-    var will = sm(/\bWill\s+([+-])\s*(\d+)/); if(will) out.will = will;
-    if((m = /\bHP\s+(\d+)/.exec(flat))) out.hp = m[1];
-    var abbr = function(s){
-      return s.replace(/\s+/g, " ").trim()
-        .replace(/bludgeoning/gi, "bludg.").replace(/piercing/gi, "pierc.").replace(/slashing/gi, "slash.")
-        .replace(/electricity/gi, "elec.").replace(/precision/gi, "prec.").replace(/physical/gi, "phys.")
-        .replace(/\bdamage\b/gi, "dmg");
-    };
-    /* the HP line, which may start with the part's name ("Trapdoor HP 12 (BT 6); Immunities …");
-       the defences stop at the end of their line */
-    var hpLine = lines.filter(function(l){ return /^HP\s+\d+/i.test(l); })[0] || lines.filter(function(l){ return /\bHP\s+\d+/.test(l) && /Immunities|Resistances|Weaknesses/i.test(l); })[0] || flat;
-    [["immune", /Immunities\s+([^;\n]+?)(?:,?\s*(?:Resistances|Weaknesses)\b|$)/im],
-     ["resist", /Resistances\s+([^;\n]+?)(?:,?\s*(?:Immunities|Weaknesses)\b|$)/im],
-     ["weak", /Weaknesses\s+([^;\n]+?)(?:,?\s*(?:Immunities|Resistances)\b|$)/im]].forEach(function(q){
-      var mm = q[1].exec(hpLine); if(mm) out[q[0]] = abbr(mm[1]);
-    });
-    var costMap = {"reaction":"reaction","free action":"free","one action":"1","two actions":"2","three actions":"3","single action":"1",
-                   "free-action":"free","one-action":"1","two-actions":"2","three-actions":"3","1-action":"1","2-actions":"2","3-actions":"3"};
-    var actionRe = /^(.*?)\s*\[([^\]]+)\]\s*(?:\(([^)]+)\)\s*)?(.*)$/;
-    lines.forEach(function(l){
-      var mm = actionRe.exec(l); if(!mm) return;
-      var key = mm[2].trim().toLowerCase(); if(!(key in costMap)) return;
-      var traits = mm[3] ? mm[3].split(",").map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean) : [];
-      var rest = mm[4].trim(), trigger = "", effect = rest;
-      /* "Trigger …; Effect …" (books) or "Trigger …. Effect …" (Archives of Nethys) */
-      var tm = /^Trigger\s+(.*?)[;.]?\s+Effect\s+(.*)$/is.exec(rest);
-      if(tm){ trigger = tm[1].trim(); effect = tm[2].trim(); }
-      else{
-        var tm2 = /^Trigger\s+(.*)$/is.exec(rest);
-        if(tm2){ trigger = tm2[1].trim(); effect = ""; }
-        else{ var em = /^Effect\s+(.*)$/is.exec(rest); if(em) effect = em[1].trim(); }
-      }
-      out.actions.push({name:mm[1].trim(), cost:costMap[key], traits:traits, trigger:trigger, effect:effect});
-    });
-    return out;
+    return TB.cards.hazard(text, {isTrait:function(w){ return !!TR.hazard.canon[String(w).toLowerCase()]; },
+                                  traitName:function(w){ return traitName("hazard", w); }});
   }
   function importText(text, link){
     var whole = String(text || "").trim();
@@ -793,11 +625,7 @@
   }
 
   var toastT = null;
-  function toast(msg, ms){
-    var t = $("toast"); t.textContent = msg; t.classList.remove("hide");
-    clearTimeout(toastT);
-    toastT = setTimeout(function(){ t.classList.add("hide"); }, ms || (/failed|not stored/i.test(msg) ? 6000 : 2200));
-  }
+  function toast(msg, ms){ TB.toast(msg, ms); }
 
   function renderCard(d, opts){
     var box = document.createElement("div"); box.className = "cardbox"; box.innerHTML = cardHtml(d, false, opts);
@@ -805,37 +633,10 @@
   }
 
   /* ---------------- library store: this device only ---------------- */
-  var Lib = {cards:[], listeners:[]};
-  Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
-  Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
-  /* The local library lives in IndexedDB (TB.store), loaded once at start; a card saved before
-     that finishes is kept and merged in. */
-  Lib.ready = false;
-  Lib.loadLocal = function(){
-    Lib.mode = "local"; Lib.cards = []; Lib.ready = false;
-    return TB.store.get(LIB_LOCAL).then(null, function(){ return null; }).then(function(v){
-      if(Lib.mode !== "local" || Lib.ready) return;
-      var early = Lib.cards, ids = {};
-      early.forEach(function(c){ ids[c.id] = 1; });
-      Lib.cards = (Array.isArray(v) ? v : []).filter(function(c){ return !ids[c.id]; }).concat(early);
-      Lib.ready = true;
-      if(early.length) Lib.writeLocal();
-      Lib.emit();
-    });
-  };
-  Lib.writeLocal = function(){ if(Lib.ready) TB.store.set(LIB_LOCAL, Lib.cards).catch(function(){ toast("Storage full — picture too large to keep"); }); };
-  Lib.newId = function(){ return "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
-  Lib.save = function(card, id){
-    var now = new Date().toISOString();
-    id = id || Lib.newId();
-    var i = Lib.cards.findIndex(function(c){ return c.id === id; });
-    card.id = id; card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
-    if(i >= 0) Lib.cards[i] = card; else Lib.cards.push(card);
-    Lib.writeLocal(); Lib.emit();
-    return id;
-  };
-  Lib.remove = function(id){ Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; }); Lib.writeLocal(); Lib.emit(); };
-  Lib.start = function(){ Lib.loadLocal(); $("status").innerHTML = "Saved on <b>this device</b>"; };
+  /* the library: this device, the artifact's database, or the cloud account (TB.library) */
+  var Lib = TB.library({key:LIB_LOCAL, kind:"hazards", idPrefix:"h", status:$("status"), account:$("account")});
+  function dataUrlToBlob(u){ return TB.dataUrlToBlob(u); }
+  function errText(e){ return TB.errText(e); }
 
   /* Save opens a preview first — the same rendering the Library uses, not the editor's
      contenteditable one — so what gets saved is what you'll actually see there. */
@@ -855,12 +656,17 @@
   function closePreview(){ previewModal.hidden = true; scrim.hidden = true; }
   $("saveCard").addEventListener("click", openPreview);
   $("previewCancel").addEventListener("click", closePreview);
+  /* Save the editor card into the library (TB.saveToLibrary uploads the picture first where it's hosted). */
   $("previewSave").addEventListener("click", function(){
-    currentId = Lib.save(cardForSave(), currentId);
-    saveDraft();
-    closePreview();
-    toast("Saved to library");
-    showView("library");
+    var btn = this; btn.disabled = true;
+    TB.saveToLibrary(Lib, collect(), img, currentId)
+      .then(function(r){ currentId = r.id; saveDraft(); closePreview(); toast("Saved to library" + r.note); showView("library"); },
+            function(e){
+              if(e && e.full){ toast(e.message, 5000); return; }
+              toast("Save failed: " + errText(e), 5000); console.error("save", e);
+              if(e && e.newCard && Lib.mode === "cloud") currentId = null;
+            })
+      .then(function(){ btn.disabled = false; });
   });
 
   /* ---------------- library view ---------------- */
@@ -874,7 +680,7 @@
     else a.sort(function(x, y){ return (y.createdAt || "").localeCompare(x.createdAt || ""); });
     return a;
   }
-  function fmtDate(s){ if(!s) return "—"; var d = new Date(s); return isNaN(d) ? "—" : d.toLocaleDateString(undefined, {month:"short", day:"numeric"}); }
+  function fmtDate(s){ return TB.fmtDate(s); }
   function renderGallery(){
     var g = $("gallery"); g.innerHTML = "";
     var list = sorted();

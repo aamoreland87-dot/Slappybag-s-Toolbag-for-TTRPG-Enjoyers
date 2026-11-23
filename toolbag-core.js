@@ -270,6 +270,385 @@
       apply(pic);
     });
   };
+
+  /* =====================================================================================
+     THE SHARED ENGINE: everything a card tool does that isn't about how its card looks.
+     One copy here, so a fix reaches every tool. Each tool keeps only its card: markup,
+     editor fields, collect()/load(), renderCard() and the jsPDF drawCard().
+
+       TB.esc / TB.fmtDate / TB.errText / TB.cors / TB.hasFile / TB.dataUrlToBlob / TB.toast
+       TB.img.read(file, o)       a dropped or found picture, decoded, background knocked out
+                                  and trimmed (o.bg), scaled and encoded; credit kept in meta
+       TB.saveDraft(key, d, img)  the editor's draft: text in localStorage, pictures in TB.store
+       TB.library(o)              the card library: this device (IndexedDB), the claude.ai
+                                  artifact database, or the cloud account (paid tier, cloud.js)
+       TB.saveToLibrary(Lib, card, img, id)
+                                  saving a card, uploading its picture first where it's hosted
+       TB.pdf.sheet(o)            a print sheet as a PDF: jsPDF, the typefaces, pages of cards
+                                  laid out by o.at(k), credits and the ORC notice underneath
+     ===================================================================================== */
+  TB.esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+  TB.fmtDate = function(s){ if(!s) return "—"; var t = new Date(s); return isNaN(t) ? "—" : t.toLocaleDateString(undefined, {month:"short", day:"numeric"}); };
+  TB.errText = function(e){ if(!e) return "unknown"; return (e.code ? e.code + " " : "") + (e.message || ""); };
+  TB.cors = function(src){ return /^https?:/i.test(src) ? ' crossorigin="anonymous"' : ""; };
+  TB.hasFile = function(e){ var t = e.dataTransfer; return !!(t && t.types && Array.prototype.indexOf.call(t.types, "Files") >= 0); };
+  /* A data: URL back into a Blob without fetch(), which the artifact sandbox blocks. */
+  TB.dataUrlToBlob = function(u){
+    var m = /^data:([^;,]+)(;base64)?,(.*)$/.exec(u || "");
+    if(!m) return null;
+    var raw = m[2] ? atob(m[3]) : decodeURIComponent(m[3]), bytes = new Uint8Array(raw.length);
+    for(var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return new Blob([bytes], {type:m[1]});
+  };
+  var toastT = null;
+  TB.toast = function(msg, ms){
+    var t = d.getElementById("toast"); if(!t) return;
+    t.textContent = msg; t.classList.remove("hide");
+    clearTimeout(toastT);
+    toastT = setTimeout(function(){ t.classList.add("hide"); }, ms || (/failed|not stored/i.test(msg) ? 6000 : 2200));
+  };
+
+  /* ---------------- pictures ---------------- */
+  TB.img = {};
+  TB.img.isImage = function(file){
+    return !!file && (/^image\//.test(file.type) || /\.(webp|png|jpe?g|gif|bmp|avif)$/i.test(file.name || ""));
+  };
+  /* Knock out a plain background: flood-fill from the edges through pixels close to the corners'
+     colour, with a soft edge. False when the corners disagree (a busy background) or are already clear. */
+  TB.img.knockout = function(cv){
+    var w = cv.width, h = cv.height, ctx = cv.getContext("2d");
+    var im = ctx.getImageData(0, 0, w, h), px = im.data;
+    var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
+    if(corners.some(function(i){ return px[i + 3] < 24; })) return false;
+    var bg = [0, 0, 0], spread = 0;
+    for(var k = 0; k < 3; k++){
+      var vals = corners.map(function(i){ return px[i + k]; });
+      bg[k] = (vals[0] + vals[1] + vals[2] + vals[3]) / 4;
+      spread = Math.max(spread, Math.max.apply(null, vals) - Math.min.apply(null, vals));
+    }
+    if(spread > 40) return false;
+    var IN = 48, OUT = 150;
+    function dist(p){ var i = p * 4; return Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]); }
+    var seen = new Uint8Array(w * h), stack = [];
+    function push(p){ if(!seen[p] && dist(p) < OUT){ seen[p] = 1; stack.push(p); } }
+    for(var x = 0; x < w; x++){ push(x); push((h - 1) * w + x); }
+    for(var y = 0; y < h; y++){ push(y * w); push(y * w + w - 1); }
+    while(stack.length){
+      var p = stack.pop(), qx = p % w, qy = (p - qx) / w;
+      if(qx > 0) push(p - 1); if(qx < w - 1) push(p + 1);
+      if(qy > 0) push(p - w); if(qy < h - 1) push(p + w);
+    }
+    var n = 0;
+    for(var q = 0; q < w * h; q++){
+      if(!seen[q]) continue;
+      var dd = dist(q), i = q * 4, a = dd <= IN ? 0 : Math.min(1, (dd - IN) / (OUT - IN));
+      if(a <= 0){ px[i + 3] = 0; }
+      else{
+        for(var c = 0; c < 3; c++) px[i + c] = Math.max(0, Math.min(255, Math.round((px[i + c] - (1 - a) * bg[c]) / a)));
+        px[i + 3] = Math.round(a * 255);
+      }
+      n++;
+    }
+    if(n) ctx.putImageData(im, 0, 0);
+    return n > 0;
+  };
+  /* The box around the subject: clear pixels, or pixels near the corners' colour, are background. */
+  TB.img.trimBox = function(cv){
+    var w = cv.width, h = cv.height, px = cv.getContext("2d").getImageData(0, 0, w, h).data;
+    var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
+    var alphaMode = corners.some(function(i){ return px[i + 3] < 24; });
+    var bg = [0, 0, 0];
+    if(!alphaMode){
+      var spread = 0;
+      for(var k = 0; k < 3; k++){
+        var vals = corners.map(function(i){ return px[i + k]; });
+        bg[k] = (vals[0] + vals[1] + vals[2] + vals[3]) / 4;
+        spread = Math.max(spread, Math.max.apply(null, vals) - Math.min.apply(null, vals));
+      }
+      if(spread > 40) return null;
+    }
+    var TOL = 34;
+    function isBg(i){
+      if(px[i + 3] < 24) return true;
+      if(alphaMode) return false;
+      return Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) < TOL * 3;
+    }
+    var top = -1, bottom = -1, left = w, right = -1;
+    for(var y = 0; y < h; y++){
+      var rowHas = false;
+      for(var x = 0; x < w; x++){
+        if(!isBg((y * w + x) * 4)){ rowHas = true; if(x < left) left = x; if(x > right) right = x; }
+      }
+      if(rowHas){ if(top < 0) top = y; bottom = y; }
+    }
+    if(top < 0) return null;
+    var pad = Math.round(Math.max(w, h) * 0.02);
+    left = Math.max(0, left - pad); top = Math.max(0, top - pad);
+    right = Math.min(w - 1, right + pad); bottom = Math.min(h - 1, bottom + pad);
+    var bw = right - left + 1, bh = bottom - top + 1;
+    if(bw * bh > w * h * 0.92) return null;
+    return {x:left, y:top, w:bw, h:bh};
+  };
+  /* A picture file → {url, w, h, meta}. o: {work, max (px on the long side), bg (knock out and
+     trim), credit (picture finder), from (where it came from)}. Resolves null if it isn't a picture. */
+  TB.img.read = function(file, o){
+    o = o || {};
+    if(!TB.img.isImage(file)) return Promise.resolve(null);
+    var WORK = o.work || 1200, MAX = o.max || 900;
+    return new Promise(function(res, rej){
+      var reader = new FileReader();
+      reader.onerror = function(){ rej(new Error("couldn't read the file")); };
+      reader.onload = function(){
+        var im = new Image();
+        im.onerror = function(){ rej(new Error("couldn't read the picture")); };
+        im.onload = function(){
+          var fw = im.width, fh = im.height;
+          if(fw > WORK || fh > WORK){ var fs = Math.min(WORK / fw, WORK / fh); fw = Math.round(fw * fs); fh = Math.round(fh * fs); }
+          var full = d.createElement("canvas"); full.width = fw; full.height = fh;
+          full.getContext("2d").drawImage(im, 0, 0, fw, fh);
+          var encode = function(sx, sy, sw, sh, asJpeg){
+            var ow = sw, oh = sh;
+            if(ow > MAX || oh > MAX){ var s = Math.min(MAX / ow, MAX / oh); ow = Math.round(ow * s); oh = Math.round(oh * s); }
+            var out = d.createElement("canvas"); out.width = ow; out.height = oh;
+            out.getContext("2d").drawImage(full, sx, sy, sw, sh, 0, 0, ow, oh);
+            return {url:asJpeg ? out.toDataURL("image/jpeg", 0.88) : out.toDataURL("image/png"), w:ow, h:oh};
+          };
+          var isJpeg = /jpe?g/i.test(file.type), v;
+          if(o.bg){
+            var cut = false, box = null;
+            try{ cut = TB.img.knockout(full); }catch(e){}
+            try{ box = TB.img.trimBox(full); }catch(e){}
+            v = box ? encode(box.x, box.y, box.w, box.h, false) : encode(0, 0, fw, fh, isJpeg && !cut);
+            v.meta = (isJpeg && !cut && !box ? "JPG" : "PNG") + " · " + v.w + "×" + v.h + (cut ? " · background removed" : (box ? " · trimmed" : ""));
+          }else{
+            v = encode(0, 0, fw, fh, isJpeg);
+            v.meta = (isJpeg ? "JPG" : "PNG") + " · " + v.w + "×" + v.h;
+          }
+          if(o.from) v.meta += " · from " + o.from;
+          if(o.credit) v.meta += " · Credit: " + o.credit;   /* picture finder: who made it, and the licence */
+          res(v);
+        };
+        im.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  /* ---------------- the editor's draft ---------------- */
+  TB.saveDraft = function(key, dr, img){
+    dr.image = img.data; dr.imageId = img.id; dr.imageSrc = img.src; dr.imageMeta = img.meta; dr.imageDirty = img.dirty;
+    var pic = TB.splitPics(dr);   /* pictures go to TB.store, and only when they change */
+    try{ localStorage.setItem(key, JSON.stringify(dr)); }catch(e){}
+    TB.putPic(key, pic);
+  };
+
+  /* ---------------- the card library ----------------
+     o: {key (TB.store key), kind (cloud collection: creatures, items, feats, spells, hazards),
+         idPrefix, status (element for "Saved on this device"), account (element for sign-in)}
+     Three homes, one shape: this device (default; IndexedDB through TB.store), the claude.ai
+     artifact's database (claude.use("db")), or the cloud account (cloud.js, for a paid tier with
+     unlimited storage; off until firebase-config.js is filled in). Every call returns a Promise. */
+  TB.library = function(o){
+    var Lib = {mode:"local", cards:[], listeners:[], db:null, assets:null, ready:false, kind:o.kind};
+    var status = function(html){ if(o.status) o.status.innerHTML = html; };
+    Lib.emit = function(){ Lib.listeners.forEach(function(f){ f(Lib.cards); }); };
+    Lib.onChange = function(f){ Lib.listeners.push(f); f(Lib.cards); };
+    /* loaded once at start; a card saved before that finishes is kept and merged in */
+    Lib.loadLocal = function(){
+      Lib.mode = "local"; Lib.cards = []; Lib.ready = false;
+      return TB.store.get(o.key).then(null, function(){ return null; }).then(function(v){
+        if(Lib.mode !== "local" || Lib.ready) return;
+        var early = Lib.cards, ids = {};
+        early.forEach(function(c){ ids[c.id] = 1; });
+        Lib.cards = (Array.isArray(v) ? v : []).filter(function(c){ return !ids[c.id]; }).concat(early);
+        Lib.ready = true;
+        if(early.length) Lib.writeLocal();
+        Lib.emit();
+      });
+    };
+    Lib.writeLocal = function(){ if(Lib.ready) TB.store.set(o.key, Lib.cards).catch(function(){ TB.toast("Storage full — picture too large to keep"); }); };
+    Lib.newId = function(){ return (o.idPrefix || "c") + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
+    Lib.save = function(card, id){
+      var now = new Date().toISOString();
+      if(Lib.mode === "db"){
+        var ref = Lib.db.collection("cards").doc(id || Lib.newId());
+        var existing = Lib.cards.filter(function(c){ return c.id === ref.id; })[0];
+        card.createdAt = existing ? existing.createdAt : now; card.updatedAt = now;
+        return ref.set(card).then(function(){ return ref.id; });
+      }
+      id = id || Lib.newId();
+      var i = Lib.cards.findIndex(function(c){ return c.id === id; });
+      card.createdAt = i >= 0 ? Lib.cards[i].createdAt : now; card.updatedAt = now;
+      if(Lib.mode === "cloud") return w.Cloud.save(id, card).then(function(){ return id; });
+      card.id = id;
+      if(i >= 0) Lib.cards[i] = card; else Lib.cards.push(card);
+      Lib.writeLocal(); Lib.emit();
+      return Promise.resolve(id);
+    };
+    Lib.remove = function(id){
+      if(Lib.mode === "db") return Lib.db.collection("cards").doc(id).delete();
+      if(Lib.mode === "cloud") return w.Cloud.remove(id);
+      Lib.cards = Lib.cards.filter(function(c){ return c.id !== id; });
+      Lib.writeLocal(); Lib.emit();
+      return Promise.resolve();
+    };
+    Lib.start = function(){
+      Lib.loadLocal();
+      status("Saved on <b>this device</b>");
+      if(w.Cloud && w.Cloud.available){
+        w.Cloud.init({kind:o.kind, mount:o.account,
+          onStatus:status,
+          onCards:function(cards){
+            if(cards){ Lib.mode = "cloud"; Lib.cards = cards; Lib.ready = true; }
+            else{ Lib.loadLocal(); status("Saved on <b>this device</b>"); }
+            Lib.emit();
+          }});
+        return;
+      }
+      var tries = 0;
+      (function wait(){
+        if(w.claude && w.claude.use) return Lib.connect();
+        if(++tries < 40) setTimeout(wait, 250);
+      })();
+    };
+    Lib.connect = function(){
+      Promise.all([w.claude.use("db"), w.claude.use("assets")]).then(function(r){
+        var db = r[0]; Lib.assets = r[1];
+        if(!db) return;
+        Lib.db = db; Lib.mode = "db"; Lib.ready = true;
+        status("Library: <b>synced</b>");
+        db.collection("cards").onSnapshot(function(snap){
+          Lib.cards = snap.docs.map(function(s){ var c = Object.assign({}, s.data()); c.id = s.id; return c; });
+          Lib.emit();
+        }, function(e){ status("Library: <b>sync lost</b> — " + TB.esc(e.code)); });
+      }).catch(function(){});
+    };
+    return Lib;
+  };
+
+  /* Saving the editor's card. img is the editor's picture state {data, src, id, meta, dirty} and is
+     updated in place once a picture is uploaded. Resolves {id, note}; rejects with {full:true} when
+     the cloud plan is full, or the error. */
+  TB.saveToLibrary = function(Lib, card, img, id){
+    var note = "", p = Promise.resolve(), isNew = false;
+    if(Lib.mode === "db"){
+      if(img.dirty && img.data){
+        if(!Lib.assets) note = " (picture not stored: uploads unavailable here)";
+        else{
+          var blob = TB.dataUrlToBlob(img.data);
+          p = Lib.assets.upload(blob, {type:blob.type || "image/png"})
+            .then(function(res){ img.id = res.id; img.src = res.url; img.data = ""; img.dirty = false; },
+                  function(e){ note = " (picture not stored: " + TB.errText(e) + ")"; });
+        }
+      }else if(img.dirty && !img.src){ img.id = ""; img.dirty = false; }
+      p = p.then(function(){ card.imageId = img.id || ""; card.imageMeta = img.meta || ""; });
+    }else if(Lib.mode === "cloud"){
+      /* the picture lives in Storage under the card's id, so a new card gets its id before the upload */
+      isNew = !Lib.cards.some(function(c){ return c.id === id; });
+      if(isNew && w.Cloud.full()) return Promise.reject({full:true, message:w.Cloud.fullMessage()});
+      id = isNew ? Lib.newId() : id;
+      if(img.dirty && img.data){
+        p = w.Cloud.upload(id, TB.dataUrlToBlob(img.data))
+          .then(function(url){ img.src = url; img.data = ""; img.dirty = false; },
+                function(e){ note = " (picture not stored: " + TB.errText(e) + ")"; });
+      }else if(img.dirty && !img.src){ w.Cloud.removeArt(id); img.dirty = false; }
+      p = p.then(function(){ card.imageUrl = img.src || ""; card.imageMeta = img.meta || ""; });
+    }else{
+      card.image = img.data || img.src || ""; card.imageMeta = img.meta || "";
+    }
+    return p.then(function(){ return Lib.save(card, id); })
+      .then(function(newId){ return {id:newId, note:note}; },
+            function(e){ if(Lib.mode === "cloud" && isNew) w.Cloud.removeArt(id); if(e && typeof e === "object") e.newCard = isNew; throw e; });
+  };
+
+  /* ---------------- the print sheet as a PDF ---------------- */
+  TB.pdf = {};
+  var scripts = {};
+  TB.pdf.loadScript = function(src, sri){
+    if(scripts[src]) return scripts[src];
+    scripts[src] = new Promise(function(res, rej){
+      var s = d.createElement("script"); s.src = src; s.onload = res;
+      s.onerror = function(){ delete scripts[src]; rej(new Error("could not load " + src)); };
+      if(sri){ s.integrity = sri; s.crossOrigin = "anonymous"; }
+      d.head.appendChild(s);
+    });
+    return scripts[src];
+  };
+  TB.pdf.libs = function(){ return w.jspdf ? Promise.resolve() : TB.pdf.loadScript(TB.JSPDF.url, TB.JSPDF.sri); };
+  /* The TrueType twins of the site's typefaces, base64, for jsPDF. The artifact copies carry them in
+     a #pdfFonts JSON block; the site fetches them from fonts/. Cached per file. */
+  TB.FONT_FILES = {
+    body:"ebgaramond-400.ttf", bodyBold:"ebgaramond-600.ttf", bodyItalic:"ebgaramond-400i.ttf", bodyBoldItalic:"ebgaramond-600.ttf",   /* the set has no 600 italic: bold italic prints bold */
+    title:"eczar-700.ttf", sub:"teko-700.ttf", caps:"tauri-400.ttf"
+  };
+  var fontCache = {};
+  TB.pdf.fonts = function(files){
+    files = files || TB.FONT_FILES;
+    var raw = d.getElementById("pdfFonts"), inline = null;
+    if(raw){ try{ inline = JSON.parse(raw.textContent); }catch(e){} }
+    var keys = Object.keys(files);
+    return Promise.all(keys.map(function(k){
+      if(inline && inline[k]) return inline[k];
+      var f = files[k];
+      if(!fontCache[f]) fontCache[f] = fetch("fonts/" + f).then(function(r){ if(!r.ok) throw new Error(r.status + " " + f); return r.arrayBuffer(); })
+        .then(function(buf){ var b = new Uint8Array(buf), out = "", CH = 0x8000; for(var i = 0; i < b.length; i += CH) out += String.fromCharCode.apply(null, b.subarray(i, i + CH)); return btoa(out); })
+        .catch(function(e){ delete fontCache[f]; throw e; });
+      return fontCache[f];
+    })).then(function(list){ var out = {}; keys.forEach(function(k, i){ out[k] = list[i]; }); return out; });
+  };
+  /* Registers the faces under the names every drawCard uses: Sans (body; bold, and italic where the
+     tool asks for it), Serif (titles), Sub (subtitles), Caps (labels; one weight, so bold = normal). */
+  TB.pdf.register = function(pdf, F, files){
+    files = files || TB.FONT_FILES;
+    var add = function(k, name, style){ if(!F[k]) return; pdf.addFileToVFS(files[k], F[k]); pdf.addFont(files[k], name, style); };
+    add("body", "Sans", "normal"); add("bodyBold", "Sans", "bold");
+    add("bodyItalic", "Sans", "italic"); add("bodyBoldItalic", "Sans", "bolditalic");
+    add("title", "Serif", "bold");
+    add("sub", "Sub", "bold");
+    add("caps", "Caps", "normal"); add("caps", "Caps", "bold");
+  };
+  /* A laid-out <img> as {data, w, h} for jsPDF (flip: upside down, for tent cards). null if it can't be read. */
+  TB.pdf.imgData = function(el, flip){
+    try{
+      var iw = el.naturalWidth || el.width || 1, ih = el.naturalHeight || el.height || 1;
+      var cv = d.createElement("canvas"); cv.width = iw; cv.height = ih;
+      var ctx = cv.getContext("2d");
+      if(flip){ ctx.translate(iw, ih); ctx.rotate(Math.PI); }
+      ctx.drawImage(el, 0, 0);
+      return {data:TB.canvasData(cv), w:iw, h:ih};
+    }catch(e){ return null; }
+  };
+  /* The whole print pass. o: {
+       orientation  "portrait" | "landscape" (letter, pt)
+       items        [{d, img, ...}] in print order
+       perPage      cards per page (default 4)
+       at(k)        → {x, y} of the k-th card on a page
+       draw(pdf, item, x, y)        the tool's own card
+       fonts        which font files (default TB.FONT_FILES)
+       onFonts(ok)  told whether the typefaces registered (the tool falls back to Helvetica if not)
+       footer       {top, bottom, left, width}: the strip for picture credits and the ORC notice }
+     Resolves a PDF Blob. */
+  TB.pdf.sheet = function(o){
+    var per = o.perPage || 4, F = null;
+    return TB.pdf.libs()
+      .then(function(){ return TB.pdf.fonts(o.fonts).then(function(f){ F = f; }, function(e){ if(w.console) console.warn("fonts", e); }); })
+      .then(function(){
+        var pdf = new w.jspdf.jsPDF({unit:"pt", format:"letter", orientation:o.orientation || "portrait", compress:true});
+        var ok = false;
+        if(F){ try{ TB.pdf.register(pdf, F, o.fonts); ok = true; }catch(e){ if(w.console) console.warn("fonts", e); } }
+        if(o.onFonts) o.onFonts(ok);
+        var pages = [];
+        o.items.forEach(function(it, i){
+          var p = Math.floor(i / per), k = i % per;
+          if(k === 0 && p > 0) pdf.addPage("letter", o.orientation || "portrait");
+          (pages[p] = pages[p] || []).push(it.d);
+          var at = o.at(k);
+          o.draw(pdf, it, at.x, at.y);
+        });
+        if(o.footer && TB.pdfFooters) TB.pdfFooters(pdf, pages, o.footer);
+        return pdf.output("blob");
+      });
+  };
 })(window);
 
 /* ======================= UI: tooltips, help panel, first-visit hint =======================

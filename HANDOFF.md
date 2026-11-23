@@ -152,3 +152,15 @@ scales free forever, no live sync, more OAuth friction.
 - Cloud: feat and spell cards were set to sync into `items`; now `feats` / `spells`, rules updated (still off).
 - The hourly Drive mirror of the item library described above no longer exists as a scheduled task.
 - Full findings: the Project doc `claude/code-audit-2026-11.md`.
+
+## 2026-11-22: one engine for every card tool
+
+- Saving, the library, drafts, picture loading and the PDF print pass now live once in `toolbag-core.js`
+  (`TB.library`, `TB.saveToLibrary`, `TB.saveDraft`, `TB.img.read`, `TB.pdf.sheet`). The five tools call them;
+  their own code is now only the card (about 1,400 duplicated lines gone).
+- Every tool loads `cloud.js` and has an account slot (hazards included, kind `hazards`). Cloud sync is kept for
+  a possible paid tier with unlimited storage; it stays off until `firebase-config.js` is filled in.
+- The hazard and item readers moved into `tb-parse.js` (`TB.cards.hazard`, `TB.cards.item`).
+- Demiplane import stays on for creatures and NPCs.
+- Hazards still print through the browser sheet; a jsPDF `drawCard` for hazards would put them on `TB.pdf.sheet`
+  too (and fix Safari).

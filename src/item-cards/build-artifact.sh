@@ -53,6 +53,8 @@ title="$(grep -o '<title>[^<]*</title>' "$page" | head -1)"
       printf '<script>\n'; cat "$root/tb-parse.js"; printf '</script>\n'; continue
     fi
     if [[ "$line" == '<script src="tb-images.js"></script>' ]]; then continue; fi
+    # cloud sync is the website's paid tier; the artifact keeps its library in claude.ai's own database
+    if [[ "$line" == '<script src="firebase-config.js"></script>' || "$line" == '<script src="cloud.js"></script>' ]]; then continue; fi
     printf '%s\n' "$line"
     if [[ "$line" == '<style id="cardCss">' ]]; then embedded_fonts_css; fi
   done | sed -e '/<nav class="toolbag"/,/<\/nav>/c\    <h1>Item Cards <span class="sub">\&middot; PF2e</span></h1>'

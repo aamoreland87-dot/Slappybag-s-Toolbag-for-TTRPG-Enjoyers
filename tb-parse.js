@@ -288,6 +288,151 @@
     }catch(e){ if(w.console) console.warn("pdf footer", e); }
   };
 
+
+  /* ---------------- the filters: one full record → one kind of card ----------------
+     The card tools pass in what only they know (their trait spellings and order); everything
+     about reading the paste lives here, so a fix reaches the home page, the tool and Next Session. */
+  TB.cards = TB.cards || {};
+  function itemCategory(rec){
+    var has = function(t){ return rec.traits.some(function(x){ return x.toLowerCase() === t; }); };
+    var F = rec.fields, use = String(F.Usage || "").toLowerCase();
+    if(has("artifact")) return "Artifacts";
+    if(has("cursed")) return "Cursed Items";
+    if(has("intelligent")) return "Intelligent Items";
+    if(has("relic")) return "Relics";
+    if(has("staff")) return "Staves";
+    if(has("wand")) return "Wands";
+    if(has("tattoo")) return "Tattoos";
+    if(has("grimoire")) return "Grimoires";
+    if(has("spellheart")) return "Spellhearts";
+    if(has("snare")) return "Snares";
+    if(has("apex")) return "Apex Items";
+    if(has("alchemical") && (has("consumable") || has("bomb") || has("elixir") || has("mutagen") || has("poison"))) return "Alchemical Items";
+    if(has("consumable") || has("potion") || has("scroll") || has("talisman") || has("oil") || has("ammunition")) return "Consumables";
+    if(/etched onto|applied to/.test(use) || has("rune")) return "Runes";
+    if(F.Hardness) return "Shields";
+    if(F.Strength || F["Dex Cap"] || F["Check Penalty"]) return "Armor";
+    if(F.Damage || F.Group || F.Hands) return "Weapons";
+    if(/^worn/.test(use)) return "Worn Items";
+    if(/^held|^carried/.test(use)) return "Held Items";
+    return "";
+  }
+  var ACT_RE = /^Activate\b\s*(?:[—–-]\s*([^\[(◆◇⬲]+?))?\s*(\[[a-z0-9-]+\]|[◆◇⬲]+|\d+\s+(?:minutes?|hours?|days?|rounds?))?\s*(?:\(([^)]*)\))?\s*(.*)$/i;
+  TB.cards.item = function(rec, h){
+    h = h || {};
+    var canonTrait = h.canonTrait || cap, orderTraits = h.orderTraits || function(a){ return a; };
+    var ATRAITS = h.actionTraits || [], ATYPES = h.actionTypes || ["a1","a2","a3","ar","af"];
+    var d = {name:rec.name, traits:orderTraits(rec.traits.map(canonTrait)), cat:itemCategory(rec), c:{}, chg:0, used:[],
+             imgW:120, imgAr:1, passiveOn:true, actions:[], description:"", passive:"", value:"", note:""};
+    var F = rec.fields;
+    d.value = F.Price || "";
+    var use = (F.Usage || "").replace(/\s*;.*$/, "");
+    d.note = [rec.level !== "" ? "item " + rec.level : "", use].filter(Boolean).join(" · ");
+    /* the body: the write-up, then activations (each gathers the lines under it), then variants */
+    var desc = [], passive = [], cur = null;
+    var lines = rec.text.split("\n").map(function(l){ return l.trim(); });
+    /* Activate lines were labelled pieces; walk the text again so they keep their order */
+    var start = lines.findIndex(function(l){ return /^(Price|Usage|Bulk|Source|Access)\b/i.test(l); });
+    var bodyLines = lines.slice(start < 0 ? 1 : start).filter(function(l){
+      return l && !/^(Source|Price|Usage|Bulk|Access|Hands|Damage|Category|Group|Ammunition|Strength|Check Penalty|Speed Penalty|Dex Cap|Hardness|Craft Requirements)\b/i.test(l) && l !== rec.traits.join(" ");
+    });
+    bodyLines.forEach(function(l){
+      var m = ACT_RE.exec(l);
+      if(m){
+        var cost = TB.costOf(m[2] || "");
+        var tr = String(m[3] || "").split(",").map(function(t){ return t.trim().toLowerCase(); }).filter(Boolean);
+        var keep = tr.filter(function(t){ return ATRAITS.indexOf(t) >= 0; }), rest = tr.filter(function(t){ return ATRAITS.indexOf(t) < 0; });
+        var lead = (m[1] ? m[1].trim() + " — " : "") + (!cost && m[2] ? m[2].trim() + ". " : "") + (rest.length ? "(" + rest.join(", ") + ") " : "");
+        cur = {type:ATYPES.indexOf(cost) >= 0 ? cost : "", text:(lead + (m[4] || "")).trim(), range:"", traits:keep};
+        d.actions.push(cur); return;
+      }
+      /* only the activation's own labelled lines belong to it; a plain paragraph after an
+         Activate line is the item's write-up (that's how Archives of Nethys lays out potions) */
+      if(cur && /^(Frequency|Trigger|Requirements|Effect|Critical Success|Success|Failure|Critical Failure)\b/.test(l)){ cur.text += (cur.text ? "\n" : "") + l; return; }
+      cur = null;
+      if(/^Type\b/i.test(l)){ passive.push(l.replace(/^Type\s+/i, "")); return; }
+      (desc.length ? passive : desc).push(l);
+    });
+    /* AoN puts the look and the effect in one paragraph: the first goes on the card's Description */
+    d.description = desc.join("\n");
+    d.passive = passive.join("\n");
+    d.actions.forEach(function(a){ var r = /\bRange\s+([^;.]+)/.exec(a.text); if(r) a.range = r[1].trim(); });
+    return d;
+  };
+
+  TB.cards.hazard = function(text, h){
+    h = h || {};
+    var isTrait = h.isTrait || function(){ return false; }, traitName = h.traitName || function(w){ return titleCase(w); };
+    var t = String(text || "").replace(/\r/g, "").replace(/[–−]/g, "-");
+    var lines = t.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
+    var out = {actions:[]}, li = -1, m;
+    /* "Hazard 3" on its own line under the name (Demiplane, the books), or "Hidden Pit Hazard 0" on one
+       line (Archives of Nethys) */
+    for(var i = 0; i < lines.length; i++){ if((m = /^(.*?)\s*\bHazard\s+(-?\d+)\s*$/i.exec(lines[i]))){ li = i; out.level = m[2]; if(m[1].trim()) out.name = m[1].trim(); break; } }
+    if(li > 0 && !out.name) out.name = lines[li - 1];
+    var typeLine = "";
+    if(li >= 0 && lines[li + 1] && !/^(Source\b|Complexity\b|Stealth\b|Disable\b|AC\s+\d|Description\b)/i.test(lines[li + 1])) typeLine = lines[li + 1];
+    var cLine = lines.filter(function(l){ return /^Complexity\s+/i.test(l); })[0];
+    var complexity = cLine ? cLine.replace(/^Complexity\s+/i, "").trim() : "";
+    /* the trait line(s) under "Hazard N": when every word is a trait we know, they go on the trait
+       line rather than the kicker; Complex / Simple stay with the kicker as the complexity */
+    out.traits = [];
+    for(var k = li + 1; li >= 0 && k < lines.length; k++){
+      var words = lines[k].split(/[\s,]+/).filter(Boolean);
+      if(!words.length || !words.every(function(w){ return isTrait(w) || /^(complex|simple|common)$/i.test(w); })) break;
+      words.forEach(function(w){
+        if(/^(complex|simple)$/i.test(w)){ if(!complexity) complexity = titleCase(w); }
+        else if(!/^common$/i.test(w)) out.traits.push(traitName(w));
+      });
+      if(k === li + 1) typeLine = "";
+    }
+    if(li >= 0) out.kicker = ["Hazard " + (out.level || "?"), typeLine, complexity].filter(Boolean).join(" · ");
+    var flat = lines.join("\n");
+    if((m = /^Stealth\s+DC\s*(\d+)/im.exec(flat))) out.stealthDc = m[1];
+    if((m = /^Disable\s+DC\s*(\d+)/im.exec(flat))) out.disableDc = m[1];
+    if((m = /^Reset\s+(.+)$/im.exec(flat))) out.reset = m[1].trim();
+    if((m = /\bAC\s+(\d+)/.exec(flat))) out.ac = m[1];
+    if((m = /\bHardness\s+(\d+)/i.exec(flat))) out.hardness = m[1];
+    var sm = function(re){ var r = re.exec(flat); return r ? r[1] + r[2] : ""; };
+    var fort = sm(/\bFort\w*\s+([+-])\s*(\d+)/); if(fort) out.fort = fort;
+    var ref = sm(/\bRef\w*\s+([+-])\s*(\d+)/); if(ref) out.ref = ref;
+    var will = sm(/\bWill\s+([+-])\s*(\d+)/); if(will) out.will = will;
+    if((m = /\bHP\s+(\d+)/.exec(flat))) out.hp = m[1];
+    var abbr = function(s){
+      return s.replace(/\s+/g, " ").trim()
+        .replace(/bludgeoning/gi, "bludg.").replace(/piercing/gi, "pierc.").replace(/slashing/gi, "slash.")
+        .replace(/electricity/gi, "elec.").replace(/precision/gi, "prec.").replace(/physical/gi, "phys.")
+        .replace(/\bdamage\b/gi, "dmg");
+    };
+    /* the HP line, which may start with the part's name ("Trapdoor HP 12 (BT 6); Immunities …");
+       the defences stop at the end of their line */
+    var hpLine = lines.filter(function(l){ return /^HP\s+\d+/i.test(l); })[0] || lines.filter(function(l){ return /\bHP\s+\d+/.test(l) && /Immunities|Resistances|Weaknesses/i.test(l); })[0] || flat;
+    [["immune", /Immunities\s+([^;\n]+?)(?:,?\s*(?:Resistances|Weaknesses)\b|$)/im],
+     ["resist", /Resistances\s+([^;\n]+?)(?:,?\s*(?:Immunities|Weaknesses)\b|$)/im],
+     ["weak", /Weaknesses\s+([^;\n]+?)(?:,?\s*(?:Immunities|Resistances)\b|$)/im]].forEach(function(q){
+      var mm = q[1].exec(hpLine); if(mm) out[q[0]] = abbr(mm[1]);
+    });
+    var costMap = {"reaction":"reaction","free action":"free","one action":"1","two actions":"2","three actions":"3","single action":"1",
+                   "free-action":"free","one-action":"1","two-actions":"2","three-actions":"3","1-action":"1","2-actions":"2","3-actions":"3"};
+    var actionRe = /^(.*?)\s*\[([^\]]+)\]\s*(?:\(([^)]+)\)\s*)?(.*)$/;
+    lines.forEach(function(l){
+      var mm = actionRe.exec(l); if(!mm) return;
+      var key = mm[2].trim().toLowerCase(); if(!(key in costMap)) return;
+      var traits = mm[3] ? mm[3].split(",").map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean) : [];
+      var rest = mm[4].trim(), trigger = "", effect = rest;
+      /* "Trigger …; Effect …" (books) or "Trigger …. Effect …" (Archives of Nethys) */
+      var tm = /^Trigger\s+(.*?)[;.]?\s+Effect\s+(.*)$/is.exec(rest);
+      if(tm){ trigger = tm[1].trim(); effect = tm[2].trim(); }
+      else{
+        var tm2 = /^Trigger\s+(.*)$/is.exec(rest);
+        if(tm2){ trigger = tm2[1].trim(); effect = ""; }
+        else{ var em = /^Effect\s+(.*)$/is.exec(rest); if(em) effect = em[1].trim(); }
+      }
+      out.actions.push({name:mm[1].trim(), cost:costMap[key], traits:traits, trigger:trigger, effect:effect});
+    });
+    return out;
+  };
+
   /* ---------------- the source line printed on a card ---------------- */
   TB.sourceLine = function(rec){
     if(!rec || !rec.source || !rec.source.book) return "";

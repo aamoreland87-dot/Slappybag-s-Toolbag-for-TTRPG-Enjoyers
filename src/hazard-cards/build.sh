@@ -47,7 +47,7 @@ else
     echo '<style id="cardCss">'; cat "$here/card.css"; echo '</style>'
     echo '<style>'; cat "$here/app.css"; echo '</style>'
     sed -e '/<!-- artifact-only /d' -e '/<!-- \/\?site-only -->/d' "$here/body.html"
-    echo '<script src="toolbag-core.js"></script><script src="tb-parse.js"></script><script src="tb-images.js"></script>'
+    echo '<script src="toolbag-core.js"></script><script src="tb-parse.js"></script><script src="tb-images.js"></script><script src="firebase-config.js"></script><script src="cloud.js"></script>'
     echo '<script>'; cat "$here/traits.js" "$here/app.js"; echo '</script>'
     echo '</body></html>'
   } > "$out"

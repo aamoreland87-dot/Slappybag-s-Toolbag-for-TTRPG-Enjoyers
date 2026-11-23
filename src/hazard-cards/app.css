@@ -206,3 +206,5 @@ span.tog{display:inline-flex; align-items:center}
 .picker .chips:empty::before{content:"none yet"; font-style:italic; color:var(--ink-3); font-size:.85rem}
 .chip.on{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
 .chip.more{border-style:dashed; color:var(--ink-3)}
+.account-slot:empty{display:none}
+.btn.account .who{display:inline-block; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom}
